@@ -21,9 +21,9 @@ The Makefile for Object Professional can be found in SRC\OPRO.MAK.  This file wi
 
 There are three directory assignments in the Makefile that you'll need to change:
 
-`asmdir` - the location of the assembly code files.  
-`tpudir` - the location of the Turbo Pascal source code.
-`demodir` - the location of the Turbo Pascal source code for the demos.
+* asmdir - the location of the assembly code files.  
+* tpudir - the location of the Turbo Pascal source code.
+* demodir - the location of the Turbo Pascal source code for the demos.
 
 The directory assignments must be full paths - relative paths confuses Borland's make program.
 
@@ -32,9 +32,9 @@ Change to the SRC directory and kick off the build with `MAKE -FOPRO`.  This wil
 ## Documentation
 
 The Object Professional documentation is spread across three volumes:
-`Vol. 1 - Screen Management`
-`Vol. 2 - Data Input/Output`
-`Vol. 3 - TSRs and More` 
+* Vol. 1 - Screen Management
+* Vol. 2 - Data Input/Output
+* Vol. 3 - TSRs and More
 
 I'll be scanning all three volumes and updating them as soon as possible.
 
