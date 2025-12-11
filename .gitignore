@@ -3,17 +3,22 @@ ignorecase = true
 # IDE config (.cfg) files.
 
 src/.tpu
-src/.cfg
+src/.tpp
+src/.obj
+src/.exe
+src/.com
+#
+src/tpc.cfg
+src/bpc.cfg
 src/oprodemo/.tpu
 src/oprodemo/.exe
 src/oprodemo/.obj
 #
-src/.tpp
 src/oprodemo/.tpp
+src/oprodemo/tpc.cfg
+src/prodemo/bpc.cfg
 #
-src/.obj
 src/oproobj/.obj
 src/oproobj/.cfg
-src/.cfg
-src/.exe
-src/.com
+src/oproobj/tpc.cfg
+src/oproobj/bpc.cfg
