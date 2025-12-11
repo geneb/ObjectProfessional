@@ -1,0 +1,688 @@
+;
+;------------------------------------------------------------
+!TOPIC 2211 OpPrnLow
+OpPrnLow implements several objects for low-level printing support. It
+also provides a way to associate these objects with a Turbo Pascal Text
+File Device Driver (TFDD). Using these facilities, an application program
+can improve its printer support without having to give up the convenience
+of Write and WriteLn.
+
+The following hierarchy shows the objects provided by OPPRNLOW:
+
+    2212BasePrinter
+      2235DosPrinter
+        2267AppendDosPrinter
+      2239FlexiblePrinter*
+        2240BiosPrinter
+
+Although OpPrnLow is a low level unit that the other printer units build
+upon, the DosPrinter and BiosPrinter objects, and especially the associated
+TFDD support, are useful in their own right.
+
+  2265Declarations              2266Other routines
+;
+;------------------------------------------------------------
+!TOPIC 2212 BasePrinter
+!NOINDEX
+2211OpPrnLow.BasePrinter = object(2306Root)
+!LINE
+BasePrinterPtr = ^BasePrinter;
+
+The BasePrinter object is an abstract object type used to define the
+methods and data fields that will be common to derived printer objects.
+OpPrint and OpForm declare all printers as pointers to BasePrinter,
+allowing any object type derived from BasePrinter to be used.
+
+The BasePrinter object has data fields that contain information about the
+type of printer, a "handle" to the printer (which may be a DOS file handle,
+an LPT number, or some other word sized or smaller value), information
+regarding the last error code and operation, the number of characters
+written by the last output call, and a character translation table.
+
+Many of the methods defined in the BasePrinter object are virtual so that
+they can be overridden by derived types. The virtual methods include:
+
+!NOWRAP
+- open and close the device
+- translate characters
+- output single characters and blocks of characters
+- translate raw errors to logical error codes
+!WRAP
+
+Note that BasePrinter is not capable of printing by itself. It just sets
+the stage for the following objects. We'll document only a few of
+BasePrinter's virtual methods: those that an application will call directly
+and those that you may have need to override.
+
+  2211OpPrnlow                  2222CharXlat                2231ClearXlatCharTable
+  2223Done                      2213Init                    2233Load
+  2225NameOfPrn                 2232NewXlatCharTable        2217PrnClose
+  2226PrnError                  2228PrnErrorOp              2220PrnFlush
+  2229PrnLastPut                2216PrnOpen                 2215PrnPutBlock
+  2214PrnPutChar                2227PrnRawError             2219PrnReset
+  2218PrnStatus                 2221PrnXlatErrorCode        2234Store
+  2224TypeOfPrn                 2230XlatCharItem
+;
+;------------------------------------------------------------
+!TOPIC 2213 Init,BasePrinter
+!NOINDEX
+constructor 2212BasePrinter.Init(PrnName : PathStr; TypeOfPrinter : PrnType);
+
+Initializes a printer object.
+
+See also:  2241BiosPrinter.Init
+;
+;------------------------------------------------------------
+!TOPIC 2214 PrnPutChar,BasePrinter
+!NOINDEX
+procedure 2212BasePrinter.PrnPutChar(Character : Char); virtual;
+
+Puts a character to the output device.
+
+See also:  2215PrnPutBlock
+;
+;------------------------------------------------------------
+!TOPIC 2215 PrnPutBlock
+!NOINDEX
+procedure 2212BasePrinter.PrnPutBlock(var Block;
+                                  BlockSize : Word); virtual;
+
+Puts a block of characters to the output device.
+
+See also:  2214PrnPutChar
+;
+;------------------------------------------------------------
+!TOPIC 2216 PrnOpen
+!NOINDEX
+function 2212BasePrinter.PrnOpen : Boolean; virtual;
+
+Opens the output device.
+;
+;------------------------------------------------------------
+!TOPIC 2217 PrnClose
+!NOINDEX
+procedure 2212BasePrinter.PrnClose; virtual;
+
+Closes an output device.
+;
+;------------------------------------------------------------
+!TOPIC 2218 PrnStatus
+!NOINDEX
+function 2212BasePrinter.PrnStatus : Word; virtual;
+
+Return the status of the device.
+;
+;------------------------------------------------------------
+!TOPIC 2219 PrnReset
+!NOINDEX
+procedure 2212BasePrinter.PrnReset; virtual;
+
+Reset the output device.
+;
+;------------------------------------------------------------
+!TOPIC 2220 PrnFlush
+!NOINDEX
+procedure 2212BasePrinter.PrnFlush; virtual;
+
+Flush the device.
+;
+;------------------------------------------------------------
+!TOPIC 2221 PrnXlatErrorCode
+!NOINDEX
+function 2212BasePrinter.PrnXlatErrorCode(Call : PrnCallType;
+                                      ErrorCode : Word) : Word; virtual;
+
+Translate a raw error code into appropriate user error code.
+
+See also:  2226PrnError
+;
+;------------------------------------------------------------
+!TOPIC 2222 CharXlat
+!NOINDEX
+function 2212BasePrinter.CharXlat(C : Char) : Char; virtual;
+
+Translate the character C according to translation table.
+
+See also:  2232NewXlatCharTable  2230XlatCharItem
+;
+;------------------------------------------------------------
+!TOPIC 2223 Done,BasePrinter
+!NOINDEX
+destructor 2212BasePrinter.Done; virtual;
+
+Flush, close, and deallocate memory used by a BasePrinter object.
+
+See also:  2220PrnFlush
+;
+;------------------------------------------------------------
+!TOPIC 2224 TypeOfPrn
+!NOINDEX
+function 2212BasePrinter.TypeOfPrn : PrnType;
+
+Returns the type of printer.
+
+See also:  2225NameOfPrn
+;
+;------------------------------------------------------------
+!TOPIC 2225 NameOfPrn
+!NOINDEX
+function 2212BasePrinter.NameOfPrn : String;
+
+Returns the printer name.
+
+See also:  2224TypeOfPrn
+;
+;------------------------------------------------------------
+!TOPIC 2226 PrnError
+!NOINDEX
+function 2212BasePrinter.PrnError : Word;
+
+Returns the last error and resets to zero.
+
+See also:  2228PrnErrorOp  2227PrnRawError
+;
+;------------------------------------------------------------
+!TOPIC 2227 PrnRawError
+!NOINDEX
+function 2212BasePrinter.PrnRawError : Word;
+
+Returns the raw error code of the last operation.
+
+See also:  2226PrnError  2228PrnErrorOp
+;
+;------------------------------------------------------------
+!TOPIC 2228 PrnErrorOp
+!NOINDEX
+function 2212BasePrinter.PrnErrorOp : PrnCallType;
+
+Returns the type of the last operation.
+
+See also:  2226PrnError
+;
+;------------------------------------------------------------
+!TOPIC 2229 PrnLastPut
+!NOINDEX
+function 2212BasePrinter.PrnLastPut : Word;
+
+Returns the number of characters successfully written by last
+PrnPutBlock.
+
+See also:  2226PrnError  2228PrnErrorOp  2214PrnPutChar
+;
+;------------------------------------------------------------
+!TOPIC 2230 XlatCharItem
+!NOINDEX
+procedure 2212BasePrinter.XlatCharItem(CharIndex, Character : Char);
+
+Change the character associated with the Ascii code of CharIndex to
+Character.
+
+See also:
+   2231ClearXlatCharTable    2232NewXlatCharTable
+   2263XlatCharTable
+;
+;------------------------------------------------------------
+!TOPIC 2231 ClearXlatCharTable
+!NOINDEX
+procedure 2212BasePrinter.ClearXlatCharTable;
+
+Clears the character translation table (the default state).
+
+See also:  2232NewXlatCharTable  2230XlatCharItem
+;
+;------------------------------------------------------------
+!TOPIC 2232 NewXlatCharTable
+!NOINDEX
+procedure 2212BasePrinter.NewXlatCharTable(var Table : XlatCharTable);
+
+Sets entire translation table.
+
+See also:  2222CharXlat  2231ClearXlatCharTable  2230XlatCharItem
+;
+;------------------------------------------------------------
+!TOPIC 2233 Load,BasePrinter
+!NOINDEX
+constructor 2212BasePrinter.Load(var S : IdStream);
+
+Load a BasePrinter from a stream. The stream registration procedure for
+BasePrinter is BasePrinterStream.
+
+See also:  2241BiosPrinter.Init  2236DosPrinter.Init  2234Store
+;
+;------------------------------------------------------------
+!TOPIC 2234 Store,BasePrinter
+!NOINDEX
+procedure 2212BasePrinter.Store(var S : IdStream);
+
+Store a BasePrinter in a stream.  The stream registration procedure for
+BasePrinter is BasePrinterStream.
+
+See also:  2241BiosPrinter.Init  2236DosPrinter.Init  2233Load
+;
+;------------------------------------------------------------
+!TOPIC 2235 DosPrinter
+!NOINDEX
+2211OpPrnLow.DosPrinter = object(2212BasePrinter)
+!LINE
+DosPrinterPtr = ^DosPrinter;
+
+The DosPrinter object uses standard DOS function calls to send characters
+to a DOS file or character device. DOS character devices include ones like
+PRN, LPT1, CON, and AUX.
+
+There are pros and cons to using DOS services for printer output.
+Advantages include:
+
+!NOWRAP
+- switching output between a file and device is transparent to the
+  application
+- it's cleaner to use DOS rather than a lower level like the BIOS
+- tends to work better with unsophisticated print spoolers and older
+  networks
+
+Among the disadvantages are:
+
+- printer status checking is limited to the hard-coded DOS IOCTRL call
+- speed is significantly lower than BIOS-level printing
+!WRAP
+
+We believe that the disadvantages outweigh the benefits in the case of
+Object Professional, since OpPrnLow allows transparent switching between
+file output and printer output anyway, and since the PC world has clearly
+standardized at BIOS-level compatibility.
+
+  2211OpPrnlow                  2236Init                    2237Load
+  2238Store
+;
+;------------------------------------------------------------
+!TOPIC 2236 Init,DosPrinter
+!NOINDEX
+constructor 2235DosPrinter.Init(PrnName : PathStr;
+                            TypeOfPrinter : PrnType);
+
+Initializes a printer object.
+
+See also:  2213BasePrinter.Init
+;
+;------------------------------------------------------------
+!TOPIC 2237 Load,DosPrinter
+!NOINDEX
+constructor 2235DosPrinter.Load(var S : IdStream);
+
+Load a DosPrinter from a stream. The stream registration procedure for
+DosPrinter is DosPrinterStream.
+
+See also:  2233BasePrinter.Load  2238Store
+;
+;------------------------------------------------------------
+!TOPIC 2238 Store,DosPrinter
+!NOINDEX
+procedure 2235DosPrinter.Store(var S : IdStream);
+
+Store a DosPrinter in a stream. The stream registration procedure for
+DosPrinter is DosPrinterStream.
+
+See also:  2237Load  2234BasePrinter.Store
+;
+;------------------------------------------------------------
+!TOPIC 2239 FlexiblePrinter
+!NOINDEX
+2211OpPrnLow.FlexiblePrinter = object(2212BasePrinter)
+!LINE
+FlexiblePrinterPtr = ^FlexiblePrinter;
+
+This is a printer type that probably will not be used directly. It uses
+procedure and function pointers to provide a flexible and adaptable means
+of outputting characters. The reason for using pointers is that the
+object's behavior can be changed after the object has been instantiated.
+We've taken advantage of this behavior in BiosPrinter, which is derived
+from FlexiblePrinter. We won't document FlexiblePrinter in any more detail;
+if you think you need its capabilities, take a look at OPPRNLOW.PAS.
+;
+;------------------------------------------------------------
+!TOPIC 2240 BiosPrinter
+!NOINDEX
+2211OpPrnLow.BiosPrinter = object(2239FlexiblePrinter)
+!LINE
+BiosPrinterPtr = ^BiosPrinter;
+
+BiosPrinter uses BIOS interrupt $17 to communicate with the printer. The
+BIOS provides three functions for interrupt $17: function 0 to send
+characters to the printer, function 1 to reset it, and function 2 to return
+status information. The BIOS also supports three LPT devices: LPT1, LPT2
+and LPT3. You can specify any of these when you initialize a BiosPrinter
+object, and you can even switch among them later by calling the SetLptPort
+method.
+
+One of the advantages of using the BIOS for printing is that direct control
+over error handling becomes possible. The basic strategy is to call
+interrupt $17 function 2 to return a status byte just before printing each
+character. If the status byte indicates that the printer is ready then call
+function 0 to write the character, otherwise generate an error. In this way
+errors are dealt with immediately; correctable errors can be fixed and
+printing resumed with no loss of output.
+
+There is a catch, however. The status byte returned by function 2 is
+usually a direct bit-mapped image of the status lines of the computer's
+parallel port. (When the MODE command is used to redirect printing to a
+serial port, MODE's serial driver returns a byte value that simulates the
+results of the parallel port.) Even though the meaning of each bit has
+nominally been standardized, the printer manufacturers of the world (and
+the authors of the MODE command) have not agreed upon a standard set of
+byte values to indicate each possible printer condition. Worse yet, when a
+parallel port is not connected to a printer at all, the status lines are
+floating and can return arbitrary values.
+
+As a result, interpretation of the function 2 status byte is an art. To
+allow for variations, BiosPrinter lets you select among several alternate
+tests. In fact, by overriding BasePrinter's PrnXlatErrorCode method, you
+can substitute your own routine for interpreting printer errors, but that
+should rarely be necessary.
+The raw material we have to work with is the status byte, whose bits are
+defined as:
+
+!NOWRAP
+  Bit  Mask  Meaning when set   Name for mask
+  0    $01   timed out          bpTimedOut
+  1    $02   --
+  2    $04   --
+  3    $08   I/O error          bpIOError
+  4    $10   printer selected   bpSelected
+  5    $20   out of paper       bpOutOfPaper
+  6    $40   acknowledge        bpAcknowledge
+  7    $80   not busy           bpNotBusy
+!WRAP
+
+In an ideal world, we would want to assure that bits 0, 3, and 5 were clear
+and that bits 4 and 7 were set. (Bit 6, acknowledge, is set only briefly
+and is not used for status checking.) This test is too stringent, however;
+almost no printers pass it and therefore no programs use it.
+
+BiosPrinter provides five different ways to test these bits. The test to
+use is specified by passing a test number to the object's InitCustom
+constructor.
+
+!NOWRAP
+Test Description
+0 no test at all. The printer is always considered to be ready.
+
+1 This test confirms correct values for the timed out, I/O error, out of
+  paper, and not busy bits as follows:
+    ErrorCode := ErrorCode xor $80;
+    PrinterReady := ((ErrorCode and $A9) = 0);
+  This test is used by the print screen interrupt handlers of many recent
+  BIOS versions.
+
+2 Slightly looser than test 1 in that it ignores the not busy bit:
+    PrinterReady := ((ErrorCode and $29) = 0);
+  This test, used by default, has proven to work best in the majority of
+  cases
+
+3 A relaxed version of test 1 that ignores the timed out and I/O error
+  bits:
+   ErrorCode := ErrorCode xor $80;
+   PrinterReady := ((ErrorCode and $A0) = 0);
+
+4 A user-customizable test that AND's the status byte with a mask. If the
+  result equals the mask, the printer is considered to be ready:
+   PrinterReady := ((ErrorCode and Mask) = Mask);
+  Many programs use this test with a mask value of $10 (to test the
+  selected bit only) or $90 (to test selected and not busy).
+!WRAP
+
+  2246GetLptPort                2250GetTestAndMask          2249GetXlatErrorFunc
+  2241Init                      2242InitCustom              2243Load
+  2244PrnPutChar                2247SetLptPort              2251SetTestAndMask
+  2248SetXlatErrorFunc          2245Store
+;
+;------------------------------------------------------------
+!TOPIC 2241 Init,BiosPrinter
+!NOINDEX
+constructor 2240BiosPrinter.Init(LPTNumber : LPTType);
+
+Initializes a BiosPrinter object.
+
+See also:  2236DosPrinter.Init  2242InitCustom  2243Load
+;
+;------------------------------------------------------------
+!TOPIC 2242 InitCustom,BiosPrinter
+!NOINDEX
+constructor 2240BiosPrinter.InitCustom(LPTNumber : LPTType;
+                                   PrinterTestNumber, SuccessMask : Byte);
+
+Initializes a BiosPrinter with a specified printer-ready test.
+
+See also:  2236DosPrinter.Init  2241Init  2243Load
+;
+;------------------------------------------------------------
+!TOPIC 2243 Load,BiosPrinter
+!NOINDEX
+constructor 2240BiosPrinter.Load(var S : IdStream);
+
+Load a BiosPrinter from a stream. The stream registration procedure for
+BiosPrinter is BiosPrinterStream.
+;
+;------------------------------------------------------------
+!TOPIC 2244 PrnPutChar,BiosPrinter
+!NOINDEX
+procedure 2240BiosPrinter.PrnPutChar(Character : Char); virtual;
+
+Puts a character to the output device.
+;
+;------------------------------------------------------------
+!TOPIC 2245 Store,BiosPrinter
+!NOINDEX
+procedure 2240BiosPrinter.Store(var S : IdStream);
+
+Store a BiosPrinter in a stream. The stream registration procedure for
+BiosPrinter is BiosPrinterStream.
+;
+;------------------------------------------------------------
+!TOPIC 2246 GetLptPort
+!NOINDEX
+function 2240BiosPrinter.GetLptPort : LPTType;
+
+Returns the LPT port number for this printer.
+
+See also:  2247SetLptPort
+;
+;------------------------------------------------------------
+!TOPIC 2247 SetLptPort
+!NOINDEX
+procedure 2240BiosPrinter.SetLptPort(LPTNo : LPTType);
+
+Sets the LPT port number for this printer.
+
+See also:  2246GetLptPort
+;
+;------------------------------------------------------------
+!TOPIC 2248 SetXlatErrorFunc
+!NOINDEX
+procedure 2240BiosPrinter.SetXlatErrorFunc(Xlat : XlatFunc);
+
+Sets the XlatError routine.
+
+See also:  2249GetXlatErrorFunc  2221BasePrinter.PrnXlatErrorCode
+;
+;------------------------------------------------------------
+!TOPIC 2249 GetXlatErrorFunc
+!NOINDEX
+function 2240BiosPrinter.GetXlatErrorFunc : Pointer;
+
+Returns the Xlat Error routine.
+
+See also:  2248SetXlatErrorFunc
+;
+;------------------------------------------------------------
+!TOPIC 2250 GetTestAndMask
+!NOINDEX
+procedure 2240BiosPrinter.GetTestAndMask(var PrinterTestNumber, Mask : Byte);
+
+Return the printer test number and success mask.
+
+See also:  2251SetTestAndMask
+;
+;------------------------------------------------------------
+!TOPIC 2251 SetTestAndMask
+!NOINDEX
+procedure 2240BiosPrinter.SetTestAndMask(PrinterTestNumber, Mask : Byte);
+
+Set the printer test number and success mask.
+
+See also:  2250GetTestAndMask
+;
+;------------------------------------------------------------
+!TOPIC 2252 DefaultXlatCharTable
+!NOINDEX
+procedure 2211OpPrnLow.DefaultXlatCharTable(var Table : XlatCharTable);
+
+Initialize Table to default state.
+
+See also:
+    2231BasePrinter.ClearXlatCharTable  2263BasePrinter.XlatCharTable
+    2230BasePrinter.XlatCharItem
+;
+;------------------------------------------------------------
+!TOPIC 2253 AssignPrnObject
+!NOINDEX
+procedure 2211OpPrnLow.AssignPrnObject(var F : Text;
+                                   var PrinterObj : BasePrinter);
+
+Like Turbo's assign, except associates Text variable with a printer object.
+
+See also:  2241BiosPrinter.Init  2236DosPrinter.Init
+;
+;------------------------------------------------------------
+!TOPIC 2254 GetPrnObject
+!NOINDEX
+function 2211OpPrnLow.GetPrnObject(var F : Text) : BasePrinterPtr;
+
+Return a pointer to the Prn Object associated with a Text file. Returns Nil
+if not a text file associated with a Prn object.
+
+See also:  2255CallPrnStatus
+;
+;------------------------------------------------------------
+!TOPIC 2255 CallPrnStatus
+!NOINDEX
+function 2211OpPrnLow.CallPrnStatus(var F : Text) : Word;
+
+Call PrnStatus method for Text file associated with Prn Object. If not Prn
+Object TFDD, then $FFFF is returned.
+
+See also:  2253AssignPrnObject  2218BasePrinter.PrnStatus
+;
+;------------------------------------------------------------
+!TOPIC 2256 Bit masks
+!NOINDEX
+!NOSEARCH
+const
+  bpTimedOut       = $01;
+  bpIOError        = $08;
+  bpSelected       = $10;
+  bpOutOfPaper     = $20;
+  bpAcknowledge    = $40;
+  bpNotBusy        = $80;
+
+Bit masks for the BIOS interrupt $17 status byte.
+;
+;------------------------------------------------------------
+!TOPIC 2257 PrinterNotReady
+!NOINDEX
+const
+  PrinterNotReady : Word = 152;
+
+Value returned by the PrnXlatErrorCode function, and therefore by IoResult,
+when a printer error is detected.
+;
+;------------------------------------------------------------
+!TOPIC 2258 LptNames
+!NOINDEX
+const
+  LptNames : Array[LptType] of String[4] = ('LPT1', 'LPT2', 'LPT3');
+
+The names of the three LPT devices.
+;
+;------------------------------------------------------------
+!TOPIC 2259 PrnNames
+!NOINDEX
+const
+  PrnNames : Array[PrnType] of String[12] =
+    ('LPT1', 'LPT2', 'LPT3', 'PRN', 'Disk File', 'User Defined');
+
+The names of each of the printer types defined by PrnType.
+;
+;------------------------------------------------------------
+!TOPIC 2260 PrnType
+!NOINDEX
+type
+  PrnType = (LPT1, LPT2, LPT3, Prn, DiskFile, UserDefined);
+
+Defines the various types of output devices supported by objects derived from
+BasePrinter.
+;
+;------------------------------------------------------------
+!TOPIC 2261 LptType
+!NOINDEX
+type
+  LptType = LPT1..LPT3;
+
+Subset type for BiosPrinters.
+;
+;------------------------------------------------------------
+!TOPIC 2262 PrnCallType
+!NOINDEX
+type
+  PrnCallType = (OpenCall, PutCall, CloseCall,
+                 FlushCall, StatusCall, ResetCall);
+
+Defines the operations common to all BasePrinter-derived objects. A value of
+this type is passed to PrnXlatErrorCode to indicate the operation which
+generated the raw error code.
+;
+;------------------------------------------------------------
+!TOPIC 2263 XlatCharTable
+!NOINDEX
+type
+  XlatCharTable    = Array[Char] of Char;
+
+Defines the character translation table.
+;
+;------------------------------------------------------------
+!TOPIC 2264 XlatFunc
+!NOINDEX
+type
+  XlatFunc = function (Call : PrnCallType; ErrorCode : Word) : Word;
+
+Function type used to translate raw error codes into logical error codes.
+;
+;------------------------------------------------------------
+!TOPIC 2265 Declarations,OpPrnLow
+!NOINDEX
+!NOSEARCH
+OpPrnLow provides the following types, constants and variables for working
+with low-level printer objects:
+
+  2256Bit masks                 2258LptNames                2261LptType
+  2257PrinterNotReady           2262PrnCallType             2259PrnNames
+  2260PrnType                   2263XlatCharTable           2264XlatFunc
+;
+;------------------------------------------------------------
+!TOPIC 2266 Other routines,OpPrnLow
+!NOINDEX
+!NOSEARCH
+OpPrnLow provides the following non-object-oriented routines:
+
+  2211OpPrnlow                  2253AssignPrnObject         2255CallPrnStatus
+  2252DefaultXlatCharTable      2254GetPrnObject
+;
+;------------------------------------------------------------
+!TOPIC 2267 AppendDosPrinter
+!NOINDEX
+2211OpPrnLow.AppendDosPrinter = object(2235DosPrinter)
+!LINE
+AppendDosPrinterPtr = ^AppendDosPrinter;
+
+AppendDosPrinter works just like DosPrinter, with one
+exception. When printing to a file, if the specified file
+already exists, it is appended to rather than created.

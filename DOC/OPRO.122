@@ -1,0 +1,832 @@
+#
+#                            OPRO.MAK 1.22
+#             Make file used to build Object Professional 1.22
+#
+# This make file is designed to be used only with Borland's MAKE utility; it
+# does NOT work with Microsoft's MAKE. To use this file, enter
+#
+#     MAKE -fOPRO.MAK
+#
+# at the DOS command line.
+#
+# OPRO.MAK is designed to work with Turbo Pascal 5.5, 6.0, or 7.0, and
+# either Turbo Assembler 1.0+ or the Microsoft Assembler 4.0+. This is made
+# possible by MAKE's equivalent of conditional compilation directives. There
+# are several macros that must either be defined or commented out, depending
+# on what version of the compiler you have and what assembler, if any. There
+# are also several macros used to specify the directories in which certain
+# Object Professional files may be found. See the comments in the Macros
+# section of the make file, below, for further instructions.
+
+# ---------------------------------------------------- Macros
+# You may need to modify the definitions below in order for MAKE to be
+# able to find your files, including the Object Professional source and
+# compiled files, and also the compiler and assembler.
+
+# Directories where ASM and TPU files are located
+# OP*.PAS and INC files, at least, are assumed to be in the current directory
+asmdir=\oproobj       # OBJ files are to be in this directory also
+tpudir=\opro          # TPU files are read and written here
+pasdir=\opro          # Used to return to Pascal directory after assembling
+demodir=\oprodemo     # EXE files are written here
+
+# To comment out a macro, insert '#' at the beginning of the line, as is
+# being done here.
+
+# Uncomment the next line to compile the demo programs
+# MakeDemos=1
+
+# Uncomment the next line if you have an assembler
+# HaveAssembler=1
+
+# Uncomment the next line to build protected mode units and demos
+# pmode=1
+
+# Comment out the next line if you want to use MASM rather than TASM
+tasm=1
+
+!if $d(tasm)
+assemble=TASM.EXE
+!else
+assemble=MASM.EXE
+!endif
+
+# You may wish to modify these command line options. For example, you might
+# want to add '/$N+ /$E+' to activate 8087 support and floating point
+# emulation, for example. If MAKE complains about the length of the TPC
+# command line, you will need to create a TPC.CFG file in the same directory
+# as TPC.EXE, delete the /U, /O, and /I parameters in the 'compile' macro
+# below, and use the TPC.CFG file to tell the compiler where to look for
+# files. A simple TPC.CFG file might consist of the following three lines:
+#
+#     /U\opro
+#     /O\oproobj
+#     /I\opro
+
+!if $d(pmode)
+compile=BPC.EXE /CP /M /$D- /$L- /L /U$(tpudir) /O$(asmdir) /I$(pasdir)
+!else
+compile=BPC.EXE /CD /M /$D- /$L- /L /U$(tpudir) /O$(asmdir) /I$(pasdir)
+!endif
+
+# --------------------------------------- Other factors that affect compilation
+#
+# Several of the demo programs and units in Object Professional depend on
+# the state of certain conditional compilation directives that you might wish
+# to change. There are also a couple of units that are compiled differently
+# depending on whether or not the compiler directives $N+ and/or $E+ are in
+# effect. Note that all the conditional compilation directives that affect
+# units are gathered together in OPDEFINE.INC.
+#
+# On a somewhat related subject, the file OP8087e.ASM *must* be assembled
+# using Turbo Assembler, *not* MASM. It is doubtful that you would ever need
+# to reassemble it. The file OP8087.ASM can be assembled with either MASM or
+# Turbo Assembler. Note, however, that if a version of MASM prior to 5.0 is
+# used, you must use the /R command line switch in MASM.
+
+# Lead-in paths to find files (no need to change these)
+adir=$(asmdir)\       # Line must end with comment to keep \ at end
+tdir=$(tpudir)\       # Line must end with comment to keep \ at end
+ddir=$(demodir)\      # Line must end with comment to keep \ at end
+
+# Specify the file extension used for a unit (no need to change this)
+!if $d(pmode)
+uext=TPP
+!else
+uext=TPU
+!endif
+
+# --------------------------------------- Force evaluation of all dependencies
+
+!if $d(MakeDemos)
+!if $d(pmode)
+dummy: allobj alltpp tppdemo
+!else
+dummy: allobj alltpu alldemo
+!endif
+!else
+!if $d(pmode)
+dummy: allobj alltpp
+!else
+dummy: allobj alltpu
+!endif
+!endif
+
+allobj: $(adir)bcdtrans.obj $(adir)op8087.obj \
+       $(adir)opasciiz.obj $(adir)opbcd.obj \
+       $(adir)opbm.obj $(adir)opcase.obj \
+       $(adir)opcmisc.obj $(adir)opcomp.obj \
+       $(adir)opcrt.obj $(adir)opcrt2.obj \
+       $(adir)opdisk.obj $(adir)openhkbd.obj \
+       $(adir)operrhan.obj $(adir)opfast.obj \
+       $(adir)opfast2.obj $(adir)opflex.obj \
+       $(adir)opint.obj $(adir)opmaced.obj \
+       $(adir)opmacro.obj $(adir)opmemo.obj \
+       $(adir)opmouse.obj $(adir)opmouse2.obj \
+       $(adir)oppack.obj $(adir)opreplay.obj \
+       $(adir)opscan.obj $(adir)opscrap.obj \
+       $(adir)opsearch.obj $(adir)opswap.obj \
+       $(adir)opswap1.obj $(adir)optab.obj \
+       $(adir)optsr.obj $(adir)msmain.obj
+
+alltpu: $(tdir)dpmi.tpu \
+       $(tdir)op8087.tpu $(tdir)opabsfld.tpu \
+       $(tdir)opasciiz.tpu $(tdir)oproot.tpu \
+       $(tdir)opbcd.tpu $(tdir)opbrowse.tpu \
+       $(tdir)opcal.tpu $(tdir)opcalc.tpu \
+       $(tdir)opclone.tpu $(tdir)opcolor.tpu \
+       $(tdir)opconst.tpu $(tdir)opcmd.tpu \
+       $(tdir)opcrt.tpu $(tdir)opctrl.tpu \
+       $(tdir)opdate.tpu $(tdir)opdialog.tpu \
+       $(tdir)opdir.tpu $(tdir)opdevice.tpu \
+       $(tdir)opdos.tpu $(tdir)opdrag.tpu \
+       $(tdir)opedit.tpu $(tdir)opeditor.tpu \
+       $(tdir)opems.tpu $(tdir)openhkbd.tpu \
+       $(tdir)opentry.tpu $(tdir)operrhan.tpu \
+       $(tdir)opexec.tpu $(tdir)opextmem.tpu \
+       $(tdir)opfedit.tpu $(tdir)opfield.tpu \
+       $(tdir)opform.tpu $(tdir)opframe.tpu \
+       $(tdir)ophelp.tpu $(tdir)opinline.tpu \
+       $(tdir)opint.tpu $(tdir)opkey.tpu \
+       $(tdir)oplarray.tpu $(tdir)opmaced.tpu \
+       $(tdir)opmacro.tpu $(tdir)opmemo.tpu \
+       $(tdir)opmenu.tpu $(tdir)opmouse.tpu \
+       $(tdir)oppick.tpu $(tdir)opprint.tpu \
+       $(tdir)opprnlow.tpu $(tdir)opqkref.tpu \
+       $(tdir)opreplay.tpu $(tdir)opsedit.tpu \
+       $(tdir)opselect.tpu $(tdir)opsort.tpu \
+       $(tdir)opstrdev.tpu $(tdir)opstring.tpu \
+       $(tdir)opswap1.tpu $(tdir)opswap.tpu \
+       $(tdir)opswitch.tpu $(tdir)optsr.tpu \
+       $(tdir)opxms.tpu
+
+alltpp: $(tdir)dpmi.tpp \
+       $(tdir)opabsfld.tpp $(tdir)op8087.tpp \
+       $(tdir)opasciiz.tpp $(tdir)oproot.tpp \
+       $(tdir)opbcd.tpp $(tdir)opbrowse.tpp \
+       $(tdir)opcal.tpp $(tdir)opcalc.tpp \
+       $(tdir)opclone.tpp $(tdir)opcolor.tpp \
+       $(tdir)opconst.tpu $(tdir)opcmd.tpp \
+       $(tdir)opcrt.tpp $(tdir)opctrl.tpp \
+       $(tdir)opdate.tpp $(tdir)opdialog.tpp \
+       $(tdir)opdir.tpp $(tdir)opdevice.tpp \
+       $(tdir)opdos.tpp $(tdir)opdrag.tpp \
+       $(tdir)opedit.tpp $(tdir)opeditor.tpp \
+       $(tdir)openhkbd.tpp $(tdir)opentry.tpp \
+       $(tdir)operrhan.tpp $(tdir)opexec.tpp \
+       $(tdir)opfedit.tpp $(tdir)opfield.tpp \
+       $(tdir)opform.tpp $(tdir)opframe.tpp \
+       $(tdir)ophelp.tpp $(tdir)opinline.tpp \
+       $(tdir)opint.tpp $(tdir)opkey.tpp \
+       $(tdir)oplarray.tpp $(tdir)opmaced.tpp \
+       $(tdir)opmacro.tpp $(tdir)opmemo.tpp \
+       $(tdir)opmenu.tpp $(tdir)opmouse.tpp \
+       $(tdir)oppick.tpp $(tdir)opprint.tpp \
+       $(tdir)opprnlow.tpp $(tdir)opqkref.tpp \
+       $(tdir)opreplay.tpp $(tdir)opsedit.tpp \
+       $(tdir)opselect.tpp $(tdir)opsort.tpp \
+       $(tdir)opstrdev.tpp $(tdir)opstring.tpp \
+       $(tdir)opswitch.tpu $(tdir)opwindow.tpp
+
+alldemo: $(ddir)best.exe $(ddir)browse.exe \
+       $(ddir)dialog1.exe $(ddir)dialog2.exe \
+       $(ddir)dialog3.exe $(ddir)dialog4.exe \
+       $(ddir)editor.exe $(ddir)entry.exe \
+       $(ddir)makehelp.exe $(ddir)memo.exe \
+       $(ddir)pscreen.exe $(ddir)ptime.exe \
+       $(ddir)smacs.exe $(ddir)winwow.exe \
+       $(ddir)entry.hlp $(ddir)formtest.exe
+
+tppdemo: $(ddir)best.exe $(ddir)browse.exe \
+       $(ddir)dialog1.exe $(ddir)dialog2.exe \
+       $(ddir)dialog3.exe $(ddir)dialog4.exe \
+       $(ddir)editor.exe $(ddir)entry.exe \
+       $(ddir)makehelp.exe $(ddir)memo.exe \
+       $(ddir)winwow.exe $(ddir)entry.hlp \
+       $(ddir)formtest.exe
+
+# ---------------------------------------------------- Implicit rules
+
+!if $d(HaveAssembler)
+.asm.obj:
+        @ cd $(asmdir)
+          $(assemble) $.;
+        @ cd $(pasdir)
+!endif
+
+.pas.exe:
+        @ cd $(demodir)
+          $(compile) $.
+        @ cd $(pasdir)
+
+.pas.tpu:
+        $(compile) $.
+
+.pas.tpp:
+        $(compile) $.
+
+# ---------------------------------------------------- Assembly Language Source
+
+!if $d(HaveAssembler)
+
+$(adir)bcdtrans.obj: $(adir)bcdtrans.asm \
+        $(adir)opcommon.asm $(adir)opbcdlow.asm
+
+$(adir)msmain.obj: $(adir)msmain.asm
+
+$(adir)op8087.obj: $(adir)op8087.asm \
+        $(adir)opcommon.asm
+
+!if $d(tasm)
+$(adir)op8087e.obj: $(adir)op8087e.asm \
+        $(adir)opcommon.asm
+!endif
+
+$(adir)opasciiz.obj: $(adir)opasciiz.asm \
+        $(adir)opcommon.asm
+
+$(adir)opbcd.obj: $(adir)opbcd.asm \
+        $(adir)opcommon.asm $(adir)opbcdlow.asm \
+        $(adir)bcdarith.asm $(adir)bcdcomp.asm \
+        $(adir)bcdconv.asm
+
+$(adir)opbm.obj: $(adir)opbm.asm \
+        $(adir)opcommon.asm
+
+$(adir)opcase.obj: $(adir)opcase.asm \
+        $(adir)opcommon.asm
+
+$(adir)opcmisc.obj: $(adir)opcmisc.asm \
+        $(adir)opcommon.asm
+
+$(adir)opcomp.obj: $(adir)opcomp.asm \
+        $(adir)opcommon.asm
+
+$(adir)opcrt.obj: $(adir)opcrt.asm \
+        $(adir)opcommon.asm
+
+$(adir)opcrt2.obj: $(adir)opcrt2.asm \
+        $(adir)opcommon.asm
+
+$(adir)opdisk.obj: $(adir)opdisk.asm \
+        $(adir)opcommon.asm
+
+$(adir)openhkbd.obj: $(adir)openhkbd.asm \
+        $(adir)opcommon.asm
+
+$(adir)operrhan.obj: $(adir)operrhan.asm \
+        $(adir)opcommon.asm
+
+$(adir)opexec.obj: $(adir)opexec.asm
+
+$(adir)opfast.obj: $(adir)opfast.asm \
+        $(adir)opcommon.asm
+
+$(adir)opfast2.obj: $(adir)opfast2.asm \
+        $(adir)opcommon.asm
+
+$(adir)opflex.obj: $(adir)opflex.asm \
+        $(adir)opcommon.asm
+
+$(adir)opint.obj: $(adir)opint.asm \
+        $(adir)opcommon.asm
+
+$(adir)opmaced.obj: $(adir)opmaced.asm \
+        $(adir)opcommon.asm
+
+$(adir)opmacro.obj: $(adir)opmacro.asm \
+        $(adir)opcommon.asm
+
+$(adir)opmemo.obj: $(adir)opmemo.asm \
+        $(adir)opcommon.asm
+
+$(adir)opmouse.obj: $(adir)opmouse.asm \
+        $(adir)opcommon.asm
+
+$(adir)opmouse2.obj: $(adir)opmouse2.asm \
+        $(adir)opcommon.asm
+
+$(adir)oppack.obj: $(adir)oppack.asm \
+        $(adir)opcommon.asm
+
+$(adir)opqkref.obj: $(adir)opqkref.asm \
+        $(adir)opcommon.asm
+
+$(adir)opreplay.obj: $(adir)opreplay.asm \
+        $(adir)opcommon.asm
+
+$(adir)opscan.obj: $(adir)opscan.asm \
+        $(adir)opcommon.asm
+
+$(adir)opscrap.obj: $(adir)opscrap.asm \
+        $(adir)opcommon.asm
+
+$(adir)opsearch.obj: $(adir)opsearch.asm \
+        $(adir)opcommon.asm
+
+$(adir)opswap.obj: $(adir)opswap.asm \
+        $(adir)opcommon.asm $(adir)opswapi.asm
+
+$(adir)opswap1.obj: $(adir)opswap1.asm \
+        $(adir)opcommon.asm
+
+$(adir)optab.obj: $(adir)optab.asm \
+        $(adir)opcommon.asm
+
+$(adir)optsr.obj: $(adir)optsr.asm \
+        $(adir)opcommon.asm
+
+!endif
+
+# ---------------------------------------------------- Library Units
+
+$(tdir)dpmi.$(uext): dpmi.pas opdefine.inc
+
+!if $d(tasm)
+$(tdir)op8087.$(uext): op8087.pas opdefine.inc \
+        $(adir)op8087.obj $(adir)op8087e.obj
+!else
+$(tdir)op8087.$(uext): op8087.pas opdefine.inc \
+        $(adir)op8087.obj
+!endif
+
+$(tdir)opabsfld.$(uext): opabsfld.pas opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opbcd.$(uext)
+
+$(tdir)opasciiz.$(uext): opasciiz.pas opdefine.inc \
+        $(adir)opasciiz.obj
+
+$(tdir)opbcd.$(uext): opbcd.pas opdefine.inc \
+        $(adir)opbcd.obj $(adir)bcdtrans.obj
+
+$(tdir)opbrowse.$(uext): opbrowse.pas \
+        opbrowse.icd opbrowse.in1 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext)
+
+$(tdir)opcal.$(uext): opcal.pas opcal.icd opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)oppick.$(uext) $(tdir)opdate.$(uext)
+
+$(tdir)opcalc.$(uext): opcalc.pas opcalc.icd opdefine.inc \
+        $(tdir)opbcd.$(uext) $(tdir)opinline.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext)
+
+$(tdir)opclone.$(uext): opclone.pas opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext)
+
+$(tdir)opcolor.$(uext): opcolor.pas opdefine.inc
+
+$(tdir)opconst.$(uext): opconst.pas opdefine.inc
+
+$(tdir)opcmd.$(uext): opcmd.pas opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)oproot.$(uext)
+
+$(tdir)opcrt.$(uext): opcrt.pas opcrt.in1 opdefine.inc \
+        $(adir)opcrt.obj $(adir)opcrt2.obj \
+        $(adir)opfast.obj $(adir)opfast2.obj \
+        $(adir)opcmisc.obj $(adir)oppack.obj \
+        $(adir)opflex.obj $(tdir)opinline.$(uext)
+
+$(tdir)opctrl.$(uext): opctrl.pas opctrl.in1 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfedit.$(uext) \
+        $(tdir)opfield.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext)
+
+$(tdir)opdate.$(uext): opdate.pas opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext)
+
+$(tdir)opdevice.$(uext): opdevice.pas opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opdos.$(uext) \
+        $(tdir)opprnlow.$(uext) $(tdir)opprint.$(uext)
+
+$(tdir)opdialog.$(uext): opdialog.pas opdialog.in1 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) $(tdir)opdrag.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)opselect.$(uext) $(tdir)opctrl.$(uext)
+
+$(tdir)opdir.$(uext): opdir.pas opdir.in1 \
+        opdir.in2 opdir.in3 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opdate.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)oppick.$(uext)
+
+$(tdir)opdos.$(uext): opdos.pas opdos.in1 opdefine.inc \
+        $(tdir)opstring.$(uext) $(adir)opdisk.obj
+
+$(tdir)opdrag.$(uext): opdrag.pas opdefine.inc \
+        $(tdir)opdos.$(uext) $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext)
+
+$(tdir)opedit.$(uext): opedit.pas opedit.icd opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext)
+
+$(tdir)opeditor.$(uext): opeditor.pas \
+        opeditor.icd opeditor.in1 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext) $(tdir)opmemo.$(uext)
+
+$(tdir)opems.$(uext): opems.pas opdefine.inc
+
+$(tdir)openhkbd.$(uext): openhkbd.pas opdefine.inc \
+        $(adir)openhkbd.obj
+
+$(tdir)opentry.$(uext): opentry.pas \
+        opentry.icd opentry.in1 opentry.in2 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)oppick.$(uext) $(tdir)opselect.$(uext)
+
+$(tdir)operrhan.$(uext): operrhan.pas opdefine.inc \
+        $(adir)operrhan.obj
+
+!if $d(pmode)
+$(tdir)opexec.$(uext): opexec.pas opdefine.inc \
+        $(adir)opexec.obj
+!else
+$(tdir)opexec.$(uext): opexec.pas opdefine.inc \
+        $(adir)opexec.obj $(tdir)opxms.$(uext)
+!endif
+
+$(tdir)opextmem.$(uext): opextmem.pas opdefine.inc
+
+$(tdir)opfedit.$(uext): opfedit.pas opfedit.in1 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opcmd.$(uext)
+
+$(tdir)opfield.$(uext): opfield.pas opfield.in1 opfield.in2 \
+        opfield.in3 opfield.in4 opfield.in5 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opabsfld.$(uext)
+
+$(tdir)opform.$(uext): opform.pas opform.in1 \
+        opform.in2 opform.in3 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opdos.$(uext) \
+        $(tdir)opdate.$(uext) $(tdir)opbcd.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opprnlow.$(uext) \
+        $(tdir)opdevice.$(uext) $(tdir)opprint.$(uext)
+
+$(tdir)opframe.$(uext): opframe.pas \
+        opframe.in1 opframe.in2 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext)
+
+$(tdir)ophelp.$(uext): ophelp.pas opdefine.inc \
+        ophelp.icd ophelp.in1 ophelp.in2 ophelp.in3 \
+        $(tdir)opstring.$(uext) $(tdir)opinline.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opdos.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)oppick.$(uext) $(tdir)opcmd.$(uext)
+
+$(tdir)opinline.$(uext): opinline.pas opdefine.inc
+
+$(tdir)opint.$(uext): opint.pas opdefine.inc \
+        $(adir)opint.obj
+
+$(tdir)opkey.$(uext): opkey.pas opdefine.inc \
+
+!if $d(pmode)
+$(tdir)oplarray.$(uext): oplarray.pas \
+        oplarray.in1 oplarray.in2 oplarray.in3 \
+        oplarray.in4 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)oproot.$(uext)
+!else
+$(tdir)oplarray.$(uext): oplarray.pas \
+        oplarray.in1 oplarray.in2 oplarray.in3 \
+        oplarray.in4 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opems.$(uext) $(tdir)opxms.$(uext)
+!endif
+
+$(tdir)opmaced.$(uext): opmaced.pas \
+        opmaced.icd opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opint.$(uext) \
+        $(tdir)opmacro.$(uext) $(adir)opmaced.obj
+
+$(tdir)opmacro.$(uext): opmacro.pas opdefine.inc \
+        $(tdir)opint.$(uext) $(adir)opmacro.obj
+
+$(tdir)opmemo.$(uext): opmemo.pas \
+        opmemo.icd opmemo.in1 opdefine.inc \
+        $(adir)opmemo.obj $(tdir)opinline.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext)
+
+$(tdir)opmenu.$(uext): opmenu.pas \
+        opmenu.icd opmenu.in1 opmenu.in2 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext)
+
+$(tdir)opmouse.$(uext): opmouse.pas opdefine.inc \
+        $(adir)opmouse.obj $(adir)opmouse2.obj \
+        $(tdir)opcrt.$(uext)
+
+$(tdir)oppick.$(uext): oppick.pas \
+        oppick.icd oppick.in1 oppick.in2 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext)
+
+$(tdir)opprnlow.$(uext): opprnlow.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opinline.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opdos.$(uext)
+
+$(tdir)opprint.$(uext): opprint.pas opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opdos.$(uext) \
+        $(tdir)opprnlow.$(uext)
+
+$(tdir)opqkref.$(uext): opqkref.pas opqkref.icd opdefine.inc \
+        $(adir)opqkref.obj $(adir)opscan.obj \
+        $(tdir)opstring.$(uext) $(tdir)opinline.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext)
+
+$(tdir)opreplay.$(uext): opreplay.pas opdefine.inc \
+        $(adir)opreplay.obj $(adir)opscrap.obj
+
+$(tdir)oproot.$(uext): oproot.pas opdefine.inc \
+        oproot.in2 oproot.in3 oproot.in4 \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext)
+
+$(tdir)opsedit.$(uext): opsedit.pas opsedit.icd opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext)
+
+$(tdir)opselect.$(uext): opselect.pas \
+        opselect.icd opselect.in1 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext)
+
+$(tdir)opsort.$(uext): opsort.pas opdefine.inc
+
+$(tdir)opstrdev.$(uext): opstrdev.pas opdefine.inc
+
+$(tdir)opstring.$(uext): opstring.pas opdefine.inc \
+        $(adir)opcase.obj $(adir)opcomp.obj \
+        $(adir)opsearch.obj $(adir)optab.obj \
+        $(adir)opbm.obj
+
+$(tdir)opswap.$(uext): opswap.pas opdefine.inc \
+        $(adir)opswap.obj
+
+$(tdir)opswap1.$(uext): opswap1.pas opdefine.inc \
+        $(tdir)opxms.$(uext)
+
+$(tdir)opswitch.$(uext): opswitch.pas opdefine.inc \
+        $(tdir)dpmi.$(uext) $(tdir)opcrt.$(uext)
+
+$(tdir)optsr.$(uext): optsr.pas opdefine.inc \
+        $(tdir)opint.$(uext) $(adir)optsr.obj
+
+$(tdir)opwindow.$(uext): opwindow.pas opwindow.in1 opwindow.in2 \
+        opwindow.in3 opwindow.in4 opdefine.inc \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext)
+
+$(tdir)opxms.$(uext): opxms.pas opdefine.inc
+
+# ---------------------------------------------------- Demo programs
+
+$(ddir)best.exe: $(ddir)best.pas opdefine.inc \
+        $(tdir)opcrt.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opselect.$(uext) $(tdir)opentry.$(uext)
+
+$(ddir)browse.exe: $(ddir)browse.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext) $(tdir)opbrowse.$(uext) \
+        $(tdir)opedit.$(uext)
+
+$(ddir)dialog1.exe: $(ddir)dialog1.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opselect.$(uext) $(tdir)opctrl.$(uext) \
+        $(tdir)opdialog.$(uext)
+
+$(ddir)dialog2.exe: $(ddir)dialog2.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opselect.$(uext) $(tdir)opctrl.$(uext) \
+        $(tdir)opdialog.$(uext)
+
+$(ddir)dialog3.exe: $(ddir)dialog3.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opselect.$(uext) $(tdir)opctrl.$(uext) \
+        $(tdir)opdialog.$(uext) $(tdir)oppick.$(uext)
+
+$(ddir)dialog4.exe: $(ddir)dialog4.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opfield.$(uext) \
+        $(tdir)opselect.$(uext) $(tdir)opctrl.$(uext) \
+        $(tdir)opdialog.$(uext) $(tdir)oppick.$(uext) \
+        $(tdir)opdir.$(uext) $(ddir)fdialog.pas
+
+$(ddir)editor.exe: $(ddir)editor.pas opdefine.inc \
+        $(tdir)opcmd.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opedit.$(uext) $(tdir)opmemo.$(uext) \
+        $(tdir)opeditor.$(uext)
+
+$(ddir)entry.exe: $(ddir)entry.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opmouse.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)opmemo.$(uext) $(tdir)opabsfld.$(uext) \
+        $(tdir)opfield.$(uext) $(tdir)opselect.$(uext) \
+        $(tdir)opentry.$(uext) $(tdir)oppick.$(uext)
+
+$(ddir)formtest.exe: $(ddir)formtest.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opbcd.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opabsfld.$(uext) $(tdir)opprnlow.$(uext) \
+        $(tdir)opprint.$(uext) $(tdir)opdevice.$(uext) \
+        $(tdir)opform.$(uext)
+
+$(ddir)helpdrag.exe: $(ddir)helpdrag.pas opdefine.inc \
+        $(tdir)opconst.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)oppick.$(uext) $(tdir)ophelp.$(uext)
+
+$(ddir)makehelp.exe: $(ddir)makehelp.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opwindow.$(uext) $(tdir)oppick.$(uext) \
+        $(tdir)ophelp.$(uext)
+
+$(ddir)memo.exe: $(ddir)memo.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)oproot.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opmemo.$(uext)
+
+$(ddir)pickdrag.exe: $(ddir)pickdrag.pas opdefine.inc \
+        $(tdir)opconst.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opmouse.$(uext) $(tdir)opcmd.$(uext) \
+        $(tdir)opframe.$(uext) $(tdir)opwindow.$(uext) \
+        $(tdir)oppick.$(uext)
+
+$(ddir)psmain.$(uext): opdefine.inc $(ddir)psmain.pas
+        @ cd $(demodir)
+          $(compile) $&
+        @ cd $(pasdir)
+
+$(ddir)pscreen.exe: $(ddir)pscreen.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(ddir)psmain.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opedit.$(uext) $(tdir)opswap.$(uext)
+
+$(ddir)ptime.exe: $(ddir)ptime.pas opdefine.inc \
+        $(tdir)opstring.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opdate.$(uext) \
+        $(tdir)opsedit.$(uext) $(tdir)opint.$(uext) \
+        $(tdir)optsr.$(uext)
+
+$(ddir)smacs.exe: $(ddir)smacs.pas opdefine.inc \
+        $(adir)opscan.obj $(tdir)openhkbd.$(uext) \
+        $(tdir)opinline.$(uext) $(tdir)opstring.$(uext) \
+        $(tdir)opdos.$(uext) $(tdir)opcrt.$(uext) \
+        $(tdir)opcmd.$(uext) $(tdir)opedit.$(uext) \
+        $(tdir)opint.$(uext) $(tdir)optsr.$(uext) \
+        $(tdir)opmacro.$(uext) $(tdir)opmaced.$(uext)
+
+$(ddir)winwow.exe: $(ddir)winwow.pas opdefine.inc \
+        $(tdir)opconst.$(uext) \
+        $(tdir)opstring.$(uext) $(tdir)oproot.$(uext) \
+        $(tdir)opcrt.$(uext) $(tdir)opframe.$(uext) \
+        $(tdir)opwindow.$(uext)
+
+# ---------------------------------------------------- Other Stuff
+
+# Build help file for ENTRY
+
+$(ddir)entry.hlp: $(ddir)entry.txt
+  $(ddir)makehelp -q $(ddir)entry.txt
+

@@ -1,0 +1,560 @@
+;
+;------------------------------------------------------------
+!TOPIC 2871 OpTsr
+The main purpose of the OpTsr unit is to provide a TSR management system
+that is easy to use and solid as a rock. By following a few simple
+guidelines, you should be able to write reliable memory resident programs
+just as easily as non-resident ones. The following is a simple example:
+
+!NOWRAP
+{$S-,I-,R-}
+{$M 2048,0,655360}
+program HelloWorld;
+uses
+  Dos, OpInt, OpTsr;
+const
+  HotKey = $080F; {code for Alt-Tab}
+
+  {$F+}
+  procedure EntryPoint(var Regs : Registers);
+  begin
+    WriteLn('Hello world!');
+  end;
+  {$F-}
+
+begin
+  if DefinePop(HotKey, EntryPoint, Ptr(SSeg,SPtr), True) then begin
+    WriteLn('Pop up loaded, press <Alt><Tab> to activate.');
+    PopupsOn;
+    StayRes(ParagraphsToKeep, 0);
+  end;
+
+  WriteLn('Unable to go resident');
+end.
+!WRAP
+
+The routines in OpTsr generally fall into one of the following categories:
+
+  2900Declarations              2912Disabling TSRs          2913Going resident
+  2914Hotkeys                   2915Miscellaneous           2916Modules
+  2917Popups
+;
+;------------------------------------------------------------
+!TOPIC 2872 ParagraphsToKeep,OpTsr
+!NOINDEX
+function 2871OpTsr.ParagraphsToKeep : Word;
+
+Returns the number of paragraphs currently being used for code, data, stack,
+and heap. Its main use is to help you calculate the value to be passed as
+the ParasToKeep parameter to StayRes.
+
+See also:  2873MaxParagraphsToKeep  2874StayRes
+;
+;------------------------------------------------------------
+!TOPIC 2873 MaxParagraphsToKeep,OpTsr
+!NOINDEX
+function 2871OpTsr.MaxParagraphsToKeep : Word;
+
+Maximum number of paragraphs to keep when going resident. This function is
+used internally to determine the maximum legal value of the ParasToKeep
+parameter passed to StayRes.
+
+See also:  2872ParagraphsToKeep
+;
+;------------------------------------------------------------
+!TOPIC 2874 StayRes
+!NOINDEX
+procedure 2871OpTsr.StayRes(ParasToKeep : Word; ExitCode : Byte);
+
+This routine 1) releases all memory allocated to a program except
+ParasToKeep (number of paragraphs to keep, usually calculated using
+ParagraphsToKeep); 2) adjusts the heap manager's data structures so that
+memory can be allocated dynamically after going resident; 3) restores the
+interrupt vectors grabbed by the Turbo runtime library; and 4) calls the DOS
+Keep function ($31), passing it ParasToKeep and ExitCode (almost always 0)
+as parameters. Returns only if unable to go resident.
+
+See also:  2873MaxParagraphsToKeep  2872ParagraphsToKeep  2875PopupsOn
+;
+;------------------------------------------------------------
+!TOPIC 2875 PopupsOn,OpTsr
+!NOINDEX
+procedure 2871OpTsr.PopupsOn;
+
+Turns popups on. In TSRs, it should be called just prior to going resident.
+In conjunction with PopupsOff, it also allows you to avoid conflicts among
+popups in programs that contain more than one.
+
+See also:  2909PopupsEnabledPtr  2876PopupsOff
+;
+;------------------------------------------------------------
+!TOPIC 2876 PopupsOff,OpTsr
+!NOINDEX
+procedure 2871OpTsr.PopupsOff;
+
+Turns popups off.
+
+See also:  2909PopupsEnabledPtr  2875PopupsOn
+;
+;------------------------------------------------------------
+!TOPIC 2877 DefinePopProc
+!NOINDEX
+function 2871OpTsr.DefinePopProc(var Handle : Byte; Routine : PopupProc;
+                             StackPtr : Pointer) : Boolean;
+
+Defines a routine that can be triggered by calling SetPopTicker. Routine is
+a pointer to the popup. StackPtr points to the end of the stack to be used
+by the popup. It is assumed that the popup needs access to DOS services.
+Handle is a number assigned to the popup by DefinePopProc; this number is
+needed in order to call SetPopTicker. Returns False if no more Popup handles
+are available.
+
+See also:
+  2879DefinePop                 2878DeletePopProc           2902PopupProc
+  2883SetPopTicker
+;
+;------------------------------------------------------------
+!TOPIC 2878 DeletePopProc
+!NOINDEX
+procedure 2871OpTsr.DeletePopProc(Handle : Byte);
+
+Deletes a popup routine defined with DefinePopProc.  Its handle may then
+be used for other popups.
+
+See also:  2877DefinePopProc  2880DeletePop
+;
+;------------------------------------------------------------
+!TOPIC 2879 DefinePop,OpTsr
+!NOINDEX
+function 2871OpTsr.DefinePop(HotKey : Word; Routine : PopupProc;
+                         StackPtr : Pointer; DosWait : Boolean) : Boolean;
+
+Defines a popup routine associated with a particular hotkey. Routine is a
+pointer to the popup. StackPtr points to the end of the stack to be used by
+the popup. DosWait indicates whether or not the popup needs access to DOS
+services. Returns False if no more Popup handles are available.
+
+See also:
+  2877DefinePopProc             2880DeletePop               2914Hotkeys
+  2902PopupProc
+;
+;------------------------------------------------------------
+!TOPIC 2880 DeletePop
+!NOINDEX
+procedure 2871OpTsr.DeletePop(HotKey : Word);
+
+Deletes the popup routine associated with HotKey.  Its handle may then
+be used for other popups.
+
+See also:  2879DefinePop  2878DeletePopProc
+;
+;------------------------------------------------------------
+!TOPIC 2881 ChangeHotKey,OpTsr
+!NOINDEX
+function 2871OpTsr.ChangeHotKey(OldHotKey, NewHotKey : Word) : Boolean;
+
+Change a popup's hotkey from OldHotKey to NewHotKey. The scan code portion
+of the new hotkey must not conflict with the hotkey for any other popup.
+
+See also:  2882AddHotKey  2914Hotkeys
+;
+;------------------------------------------------------------
+!TOPIC 2882 AddHotKey,OpTsr
+!NOINDEX
+function 2871OpTsr.AddHotKey(PrimaryHotKey, SecondaryHotKey : Word) : Boolean;
+
+Add a second hot key for the popup with the specified primary hot key.
+
+See also:  2881ChangeHotKey  2914Hotkeys
+;
+;------------------------------------------------------------
+!TOPIC 2883 SetPopTicker,OpTsr
+!NOINDEX
+procedure 2871OpTsr.SetPopTicker(Handle : Byte; TimeOut : Word);
+
+Sets the pop ticker for the indicated procedure, clears interrupts, then
+returns. This tells the popup dispatcher to look for a good opportunity to
+call the popup associated with Handle. If TimeOut clock ticks go by without
+such an opportunity, the popup will not be called.
+
+See also:  2877DefinePopProc  2908PopTickerPtr
+;
+;------------------------------------------------------------
+!TOPIC 2884 RemovePops
+!NOINDEX
+procedure 2871OpTsr.RemovePops;
+
+Removes all popup routines from the system and releases all associated
+interrupt vectors. Called automatically when a program ends.
+
+See also:  2886DisableTSR  2885InitPops
+;
+;------------------------------------------------------------
+!TOPIC 2885 InitPops
+!NOINDEX
+procedure 2871OpTsr.InitPops;
+
+This procedure must be called before any other popup-related routines. Since
+it is called automatically when the program begins, you do not need to call
+it yourself, unless you are reinstalling popups after previously calling
+RemovePops.
+
+See also:  2884RemovePops
+;
+;------------------------------------------------------------
+!TOPIC 2886 DisableTSR,OpTsr
+!NOINDEX
+function 2871OpTsr.DisableTSR : Boolean;
+
+Disable TSR by restoring interrupt vectors and releasing memory. This does
+not halt the program. Returns False if it's not safe to disable. DisableTSR
+must not be called from a popup that does not have access to DOS services.
+
+See also:  2911ReleaseEms  2884RemovePops  2887SafeToDisable
+;
+;------------------------------------------------------------
+!TOPIC 2887 SafeToDisable,OpTsr
+!NOINDEX
+function 2871OpTsr.SafeToDisable : Boolean;
+
+Allows you to determine whether or not it is safe to disable a TSR, without
+actually committing to doing so by calling DisableTSR.
+
+See also:  2886DisableTSR
+;
+;------------------------------------------------------------
+!TOPIC 2888 InstallModule,OpTsr
+!NOINDEX
+procedure 2871OpTsr.InstallModule(var ModuleName : string;
+                              CmdEntryRoutine : Pointer);
+
+Installs a program as a resident module that can be located and accessed by
+other programs. ModuleName is a string that uniquely identifies a TSR
+module. CmdEntryRoutine, if not Nil, must point to the program's external
+interface, a pseudo-interrupt service routine that other programs can call
+using EmulateInt.
+
+See also:  1670OpInt.EmulateInt  2891ModuleInstalled  2889UninstallModule
+;
+;------------------------------------------------------------
+!TOPIC 2889 UninstallModule,OpTsr
+!NOINDEX
+procedure 2871OpTsr.UninstallModule;
+
+Uninstalls the module from the linked list of modules.
+
+See also:  2886DisableTSR  2888InstallModule
+;
+;------------------------------------------------------------
+!TOPIC 2890 ModulePtrByName,OpTsr
+!NOINDEX
+function 2871OpTsr.ModulePtrByName(var ModuleName : string) : IfcPtr;
+
+Returns a pointer to the IfcRecord for the module named ModuleName, or Nil
+if the module was not found.
+
+See also:  2901IfcRecord  2891ModuleInstalled
+;
+;------------------------------------------------------------
+!TOPIC 2891 ModuleInstalled,OpTsr
+!NOINDEX
+function 2871OpTsr.ModuleInstalled(var ModuleName : string) : Boolean;
+
+This function allows you to determine whether a particular module is
+installed. You can use it to prevent loading your own TSR's twice, as well
+as to check for the presence of another program.
+
+See also:  2890ModulePtrByName
+;
+;------------------------------------------------------------
+!TOPIC 2892 DosBusyFlag,OpTsr
+!NOINDEX
+function 2871OpTsr.DosBusyFlag : Byte;
+
+This routine, which is intended to be called from within a popup, indicates
+whether or not DOS was active at the time the popup was activated. If the
+value is 0, DOS was not active; otherwise, it was.
+
+See also:  2893DosCriticalFlag
+;
+;------------------------------------------------------------
+!TOPIC 2893 DosCriticalFlag
+!NOINDEX
+function 2871OpTsr.DosCriticalFlag : Byte;
+
+This routine, which is intended to be called from within a popup, indicates
+whether or not a DOS critical error was pending at the time the popup was
+activated. If the value is 0, DOS was not critical; otherwise, it was.
+
+See also:  2892DosBusyFlag
+;
+;------------------------------------------------------------
+!TOPIC 2894 GetPSP
+!NOINDEX
+function 2871OpTsr.GetPSP : Word;
+
+This function returns the PSP for the program that DOS thinks is currently
+active. It is intended to be used only in external interface routines.
+
+See also:  2895SetPSP
+;
+;------------------------------------------------------------
+!TOPIC 2895 SetPSP
+!NOINDEX
+procedure 2871OpTsr.SetPSP(PSP : Word);
+
+Sets current PSP. This function changes an internal DOS variable that is
+used to identify the currently active program. It is intended to be used
+only in external interface routines.
+
+See also:  2894GetPSP
+;
+;------------------------------------------------------------
+!TOPIC 2896 GrabKeyboard
+!NOINDEX
+procedure 2871OpTsr.GrabKeyboard;
+
+Enable option to regrab keyboard interrupt if necessary. The main purpose
+of this option is to allow a TSR written with OpTsr to be activated on top
+of a program that takes complete control of INT $09, such as Microsoft
+Windows.
+;
+;------------------------------------------------------------
+!TOPIC 2897 SetVecOnReturn
+!NOINDEX
+procedure 2871OpTsr.SetVecOnReturn(IntNum : Byte; ISR : Pointer);
+
+Set interrupt vector in ISR table (takes effect when popup returns).
+;
+;------------------------------------------------------------
+!TOPIC 2898 GetReturnVec
+!NOINDEX
+function 2871OpTsr.GetReturnVec(IntNum : Byte) : Pointer;
+
+Get interrupt vector in ISR table.
+;
+;------------------------------------------------------------
+!TOPIC 2899 SuppressMouseHandling
+!NOINDEX
+procedure 2871OpTsr.SuppressMouseHandling;
+
+Stops TSR routines from turning the mouse cursor on or off automatically.
+;------------------------------------------------------------
+!TOPIC 2900 Declarations,OpTsr
+!NOINDEX
+!NOSEARCH
+OpTsr declares the following types, constants, and variables:
+
+  2901IfcRecord                 2905IntXxHandle             2903MaxPopups
+  2908PopTickerPtr              2907PopupInUse              2902PopupProc
+  2909PopupsEnabledPtr          2910PopupToCallPtr          2911ReleaseEms
+  2904SideKickLoaded            2906ThisIfc
+;
+;------------------------------------------------------------
+!TOPIC 2901 IfcRecord,OpTsr
+!NOINDEX
+type
+  IfcPtr = ^IfcRecord;
+  IfcRecord =
+    record
+      NamePtr : ^string;
+      Version : Word;
+      CmdEntryPtr : Pointer;
+      PrevIfc,
+      NextIfc : IfcPtr;
+    end;
+
+A record containing data about a particular module. NamePtr points to the name
+of the module. Version is the version number of the interface. If not nil,
+CmdEntryPtr points to a routine that can be called by other programs. PrevIfc
+and NextIfc point to the previous and following entries in the linked list of
+modules.
+
+See also:  2906ThisIfc
+;
+;------------------------------------------------------------
+!TOPIC 2902 PopupProc,OpTsr
+!NOINDEX
+type
+  PopupProc = procedure(var Regs : Registers);
+
+Proper form for an OpTsr popup routine.
+
+See also:  2879DefinePop  2877DefinePopProc
+;
+;------------------------------------------------------------
+!TOPIC 2903 MaxPopups,OpTsr
+!NOINDEX
+const
+  MaxPopups = 8;
+
+Maximum number of popup routines.
+;
+;------------------------------------------------------------
+!TOPIC 2904 SideKickLoaded,OpTsr
+!NOINDEX
+const
+  SideKickLoaded : Boolean = False;
+
+Set to True by initialization code if SideKick is already loaded.
+;
+;------------------------------------------------------------
+!TOPIC 2905 IntXxHandle
+!NOINDEX
+!NOSEARCH
+const
+  Int5Handle = 1;
+  Int8Handle = 2;
+  Int9Handle = 3;
+  Int10Handle = 4;
+  Int13Handle = 5;
+  Int14Handle = 6;
+  Int16Handle = 7;
+  Int17Handle = 8;
+  Int25Handle = 9;
+  Int26Handle = 10;
+  Int28Handle = 11;
+
+These are the ISR handles used by OpTsr's interrupt handlers. (Handle 12 is
+used by OpMacro.)
+;
+;------------------------------------------------------------
+!TOPIC 2906 ThisIfc
+!NOINDEX
+var
+  ThisIfc : IfcRecord;
+
+Record containing data about a particular module.
+
+See also:  2901IfcRecord
+;
+;------------------------------------------------------------
+!TOPIC 2907 PopupInUse
+!NOINDEX
+var
+  PopupInUse : array[1..MaxPopups] of Boolean;
+
+These flags are used to keep track of which popups are currently active.
+
+See also:  2903MaxPopups
+;
+;------------------------------------------------------------
+!TOPIC 2908 PopTickerPtr
+!NOINDEX
+var
+  PopTickerPtr : ^Word;
+
+Points to a variable hidden in OpTsr that indicates if we are currently
+trying to pop up. The value of PopTickerPtr^ tells the popup manager how many
+more times to attempt to activate the popup (attempts are made 18 times a
+second).
+
+See also:  2910PopupToCallPtr  2883SetPopTicker
+;
+;------------------------------------------------------------
+!TOPIC 2909 PopupsEnabledPtr
+!NOINDEX
+var
+  PopupsEnabledPtr : ^Boolean;
+
+Points to a hidden variable that indicates if popups are enabled.
+
+See also:  2876PopupsOff  2875PopupsOn
+;
+;------------------------------------------------------------
+!TOPIC 2910 PopupToCallPtr
+!NOINDEX
+var
+  PopupToCallPtr : ^Byte;
+
+Points to a hidden variable that contains the handle of the popup waiting to
+be called if PopTickerPtr^ is non-zero.
+
+See also:  2908PopTickerPtr
+;
+;------------------------------------------------------------
+!TOPIC 2911 ReleaseEms,OpTsr
+!NOINDEX
+const
+  ReleaseEms : Boolean = False;
+
+This variable needs to be set to True if a TSR is overlayed and the overlay
+manager is storing the overlay file in EMS.
+
+See also:  2886DisableTSR
+;
+;------------------------------------------------------------
+!TOPIC 2912 Disabling TSRs,OpTsr
+!NOINDEX
+!NOSEARCH
+OpTsr provides the following routines for disabling a TSR:
+
+  2886DisableTSR                2898GetReturnVec            2887SafeToDisable
+  2897SetVecOnReturn
+;
+;------------------------------------------------------------
+!TOPIC 2913 Going resident,OpTsr
+!NOINDEX
+!NOSEARCH
+OpTsr provides the following routines for going resident:
+
+  2873MaxParagraphsToKeep       2872ParagraphsToKeep        2874StayRes
+;
+;------------------------------------------------------------
+!TOPIC 2914 Hotkeys
+!NOINDEX
+!NOSEARCH
+To specify the hotkey for your popup, you need to construct a word value
+that is bit-mapped as follows:
+
+!NOWRAP
+Bit #   Value   Meaning
+--------------------------------------
+15-12   $0000   unused -- must be zero
+11      $0800   Alt
+10      $0400   Ctrl
+9       $0200   Left shift
+8       $0100   Right shift
+7-0     $00xx   Scan code for main key
+!WRAP
+
+For example, let's say that you want your popup to activate when <Alt>,
+<LeftShift>, and <Z> are pressed. The scan code for <Z> is $2C; that gives
+us the value for the low byte, bits 0-7. If we add to that the values for
+<Alt> and <LeftShift> we get $0800 + $0200 + $002D = $0A2D.
+
+If you want to use a single key as your hotkey, you would simply set the
+high byte of the hotkey code to 0. For example, to make <SysReq> your
+hotkey, you would use $0054, since $54 is the scan code for <SysReq>.
+
+OpTsr provides the following routines for working with hotkeys:
+
+  2882AddHotKey                 2881ChangeHotKey            0003Scan Codes
+;
+;------------------------------------------------------------
+!TOPIC 2915 Miscellaneous,OpTsr
+!NOINDEX
+!NOSEARCH
+OpTsr also provides the following miscellaneous routines:
+
+  2892DosBusyFlag               2893DosCriticalFlag         2894GetPSP
+  2896GrabKeyboard              2895SetPSP                  2899SuppressMouseHandling
+;
+;------------------------------------------------------------
+!TOPIC 2916 Modules,OpTsr
+!NOINDEX
+!NOSEARCH
+OpTsr provides the following routines for working with modules:
+
+  2888InstallModule             2891ModuleInstalled         2890ModulePtrByName
+  2889UninstallModule
+;
+;------------------------------------------------------------
+!TOPIC 2917 Popups,OpTsr
+!NOINDEX
+!NOSEARCH
+OpTsr provides the following routines for working with popups:
+
+  2879DefinePop                 2877DefinePopProc           2880DeletePop
+  2878DeletePopProc             2885InitPops                2876PopupsOff
+  2875PopupsOn                  2884RemovePops              2883SetPopTicker

@@ -1,0 +1,732 @@
+;
+;------------------------------------------------------------
+!TOPIC 1681 OpLArray
+OpLArray defines several object types for managing large arrays:
+
+!NOWRAP
+1682AbstractArray
+  1703RamArray
+    1706RamRCArray
+  1709EmsArray
+    1712EmsRCArray
+  1715XmsArray
+    1718XmsRCArray
+  1721VirtualArray
+    1724PrimitiveArray
+    1726VirtualRCArray
+  1729OpArray
+!WRAP
+
+AbstractArray defines the methods provided by all of the array types in the
+hierarchy: methods to store an element, retrieve it, and so on. RamArray,
+EmsArray, XmsArray, and VirtualArray implement the storage mechanism for
+heap-based, EMS-based, XMS-based, and disk-based arrays, respectively.
+RamRCArray, EmsRCArray, XmsRCArray, and VirtualRCArray add range-checking
+capabilities. PrimitiveArray is a derivative of VirtualArray that allows
+you to specify the exact paging properties. OpArray can store the array
+using any one of the four storage mechanisms: RAM, EMS, XMS, or disk.
+
+See also:  1693Declarations  1732DisplayLErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 1682 AbstractArray
+!NOINDEX
+1681OpLArray.AbstractArray = object(2306Root)
+!LINE
+AbstractArrayPtr = ^AbstractArray;
+
+An abstract large array type from which all others are derived. AbstractArray
+provides the following methods:
+
+  1699ArrayDimensions           1691ClearA                  1685Done
+  1686ErrorA                    1694FlushA                  1698GetErrorProc
+  1683Init                      1684LoadA                   1702lOptionsAreOn
+  1701lOptionsOff               1700lOptionsOn              1695RangeError
+  1688RetA                      1690SafeRetA                1689SafeSetA
+  1687SetA                      1697SetErrorProc            1692StoreA
+  1696TypeOfArray
+;
+;------------------------------------------------------------
+!TOPIC 1683 Init,AbstractArray
+!NOINDEX
+constructor 1682AbstractArray.Init(Rows, Cols, ElementSize : Word;
+                               HeapToUse : LongInt; ArrayOptions : Byte);
+
+Make a new large array. Rows specifies the maximum number of rows in the
+array and Cols the maximum number of columns. Since array indices are
+0-based, the highest valid row and column is one less than the maximum
+specified. ElementSize is the size in bytes of the element to be stored in
+the array. HeapToUse is the maximum number of heap bytes to use for data
+storage. ArrayOptions is used to specify any option settings.
+
+See also:  1684LoadA  1733Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1684 LoadA,AbstractArray
+!NOINDEX
+constructor 1682AbstractArray.LoadA(HeapToUse : LongInt;
+                                ArrayOptions : Byte);
+
+Load an existing array file to construct a large array instance. LoadA
+reads a header that describes the size of the array. Based on this
+information, it attempts to allocate the necessary resources (heap, EMS, or
+XMS) to load the array. Heap usage is limited to the value specified by the
+parameter HeapToUse. ArrayOptions is used to specify any option settings.
+
+See also:  1683Init  1733Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1685 Done,AbstractArray
+!NOINDEX
+destructor 1682AbstractArray.Done; virtual;
+
+Dispose of a large array. All memory used by the array (on the heap, in
+EMS, or in XMS) is deallocated. If the array uses virtual memory, the array
+file is updated on disk and the array file is closed before disposing of
+the array.
+
+See also:  1683Init
+;
+;------------------------------------------------------------
+!TOPIC 1686 ErrorA
+!NOINDEX
+function 1682AbstractArray.ErrorA : Word;
+
+Return last error code and reset internal status variable to zero.
+
+See also:  1697SetErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 1687 SetA
+!NOINDEX
+procedure 1682AbstractArray.SetA(Row, Col : Word; var Value); virtual;
+
+Set the array element at the specified Row and Col to Value.
+
+See also:  1688RetA  1689SafeSetA
+;
+;------------------------------------------------------------
+!TOPIC 1688 RetA
+!NOINDEX
+procedure 1682AbstractArray.RetA(Row, Col : Word; var Value); virtual;
+
+Return the array element at the specified Row and Col in Value.
+
+See also:  1687SetA
+;
+;------------------------------------------------------------
+!TOPIC 1689 SafeSetA
+!NOINDEX
+procedure 1682AbstractArray.SafeSetA(Row, Col : Word; var Value); virtual;
+
+Set the array element at the specified Row and Col to Value, and safely
+deal with out-of-range coordinates.
+
+See also:  1688RetA  1690SafeRetA  1687SetA
+;
+;------------------------------------------------------------
+!TOPIC 1690 SafeRetA
+!NOINDEX
+procedure 1682AbstractArray.SafeRetA(Row, Col : Word; var Value); virtual;
+
+Return the array element at the specified Row and Col in Value, and safely
+deal with out-of-range coordinates.
+
+See also:  1688RetA  1689SafeSetA  1687SetA
+;
+;------------------------------------------------------------
+!TOPIC 1691 ClearA
+!NOINDEX
+procedure 1682AbstractArray.ClearA(var Value;
+                               Initialize : InitType); virtual;
+
+Initialize all array elements to Value. Initialize can be either ExactInit
+or FastInit.
+
+See also:  1739InitType
+;
+;------------------------------------------------------------
+!TOPIC 1692 StoreA
+!NOINDEX
+procedure 1682AbstractArray.StoreA(FileName : String); virtual;
+
+Store a large array in a file of the specified name.
+
+See also:  1684LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1693 Declarations,OpLArray
+!NOINDEX
+!NOSEARCH
+OpLArray declares the following types, constants, and variables:
+
+  1740ArrayType                 1741AutoPriority            1734DefaultPriority
+  1735DefBeepOnError            1742EmsAvailable            1737IdString
+  1739InitType                  1736MaxHeapBlock            1733Option flags
+  1738VArrayID                  1743XmsAvailable
+;
+;------------------------------------------------------------
+!TOPIC 1694 FlushA
+!NOINDEX
+procedure 1682AbstractArray.FlushA; virtual;
+
+Flushes any changes to disk (if array is using virtual memory).
+;
+;------------------------------------------------------------
+!TOPIC 1695 RangeError
+!NOINDEX
+function 1682AbstractArray.RangeError(Row, Col : Word) : Boolean; virtual;
+
+Returns True if the specified Row or Col is out of range.
+
+See also:  1688RetA  1687SetA
+;
+;------------------------------------------------------------
+!TOPIC 1696 TypeOfArray
+!NOINDEX
+function 1682AbstractArray.TypeOfArray : ArrayType;
+
+Returns the type of the array; useful only for arrays declared to be of
+type OpArray.
+;
+;------------------------------------------------------------
+!TOPIC 1697 SetErrorProc,AbstractArray
+!NOINDEX
+procedure 1682AbstractArray.SetErrorProc(EP : ErrorProc);
+
+Sets up a user error procedure.
+
+See also:  1732DisplayLErrorProc  1686ErrorA  1698GetErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 1698 GetErrorProc
+!NOINDEX
+procedure 1682AbstractArray.GetErrorProc(var EP : ErrorProc);
+
+Get current user error procedure.
+
+See also:  1697SetErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 1699 ArrayDimensions
+!NOINDEX
+procedure 1682AbstractArray.ArrayDimensions(var Rows, Cols : Word);
+
+Returns the dimensions of the array.
+
+See also:  1684LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1700 lOptionsOn
+!NOINDEX
+procedure 1682AbstractArray.lOptionsOn(OptionCodes : Word);
+
+Turn specified array option(s) on.
+
+See also:  1702lOptionsAreOn  1701lOptionsOff  1733Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1701 lOptionsOff
+!NOINDEX
+procedure 1682AbstractArray.lOptionsOff(OptionCodes : Word);
+
+Turn specified array option(s) off.
+
+See also:  1702lOptionsAreOn  1700lOptionsOn  1733Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1702 lOptionsAreOn
+!NOINDEX
+function 1682AbstractArray.lOptionsAreOn(OptionCodes : Word) : Boolean;
+
+Return True if specified array option(s) are enabled.
+
+See also:  1701lOptionsOff  1700lOptionsOn  1733Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1703 RamArray
+!NOINDEX
+1681OpLArray.RamArray = object(1682AbstractArray)
+!LINE
+RamArrayPtr = ^RamArray;
+
+A large array that stores data in normal RAM.
+
+See also:  1704Init  1705LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1704 Init,RamArray
+!NOINDEX
+constructor 1703RamArray.Init(Rows, Cols, ElementSize : Word;
+                          HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in normal RAM.
+
+See also:  1683AbstractArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1705 LoadA,RamArray
+!NOINDEX
+constructor 1703RamArray.LoadA(FileName : String; HeapToUse : LongInt;
+                           ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+normal RAM.
+
+See also:  1684AbstractArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1706 RamRCArray
+!NOINDEX
+1681OpLArray.RamRCArray = object(1703RamArray)
+!LINE
+RamRCArrayPtr = ^RamRCArray;
+
+A large array that stores data in normal RAM and performs range checking on
+array indices.
+
+See also:  1707Init  1708LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1707 Init,RamRCArray
+!NOINDEX
+constructor 1706RamRCArray.Init(Rows, Cols, ElementSize : Word;
+                            HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in normal RAM and performs range
+checking on array indices.
+
+See also:  1683AbstractArray.Init  1704RamArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1708 LoadA,RamRCArray
+!NOINDEX
+constructor 1706RamRCArray.LoadA(FileName : String; HeapToUse : LongInt;
+                             ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+normal RAM and performs range checking on array indices.
+
+See also:  1684AbstractArray.LoadA  1705RamArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1709 EmsArray
+!NOINDEX
+1681OpLArray.EmsArray = object(1682AbstractArray)
+!LINE
+EmsArrayPtr = ^EmsArray;
+
+A large array that stores data in EMS memory.
+
+See also:  1710Init  1711LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1710 Init,EmsArray
+!NOINDEX
+constructor 1709EmsArray.Init(Rows, Cols, ElementSize : Word;
+                          HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in EMS memory.
+
+See also:  1683AbstractArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1711 LoadA,EmsArray
+!NOINDEX
+constructor 1709EmsArray.LoadA(FileName : String; HeapToUse : LongInt;
+                           ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+EMS memory.
+
+See also:  1684AbstractArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1712 EmsRCArray
+!NOINDEX
+1681OpLArray.EmsRCArray = object(1709EmsArray)
+!LINE
+EmsRCArrayPtr = ^EmsRCArray;
+
+A large array that stores data in EMS memory and performs range checking on
+array indices.
+
+See also:  1713Init  1714LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1713 Init,EmsRCArray
+!NOINDEX
+constructor 1712EmsRCArray.Init(Rows, Cols, ElementSize : Word;
+                            HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in EMS memory and performs range
+checking on array indices.
+
+See also:  1683AbstractArray.Init  1710EmsArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1714 LoadA,EmsRCArray
+!NOINDEX
+constructor 1712EmsRCArray.LoadA(FileName : String; HeapToUse : LongInt;
+                             ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+EMS memory and performs range checking on array indices.
+
+See also:  1684AbstractArray.LoadA  1711EmsArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1715 XmsArray
+!NOINDEX
+1681OpLArray.XmsArray = object(1682AbstractArray)
+!LINE
+XmsArrayPtr = ^XmsArray;
+
+A large array that stores data in XMS memory.
+
+See also:  1716Init  1717LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1716 Init,XmsArray
+!NOINDEX
+constructor 1715XmsArray.Init(Rows, Cols, ElementSize : Word;
+                          HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in XMS memory.
+
+See also:  1683AbstractArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1717 LoadA,XmsArray
+!NOINDEX
+constructor 1715XmsArray.LoadA(FileName : String; HeapToUse : LongInt;
+                           ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+XMS memory.
+
+See also:  1684AbstractArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1718 XmsRCArray
+!NOINDEX
+1681OpLArray.XmsRCArray = object(1715XmsArray)
+!LINE
+XmsRCArrayPtr = ^XmsRCArray;
+
+A large array that stores data in XMS memory and performs range checking on
+array indices.
+
+See also:  1719Init  1720LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1719 Init,XmsRCArray
+!NOINDEX
+constructor 1718XmsRCArray.Init(Rows, Cols, ElementSize : Word;
+                            HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in XMS memory and performs range
+checking on array indices.
+
+See also:  1683AbstractArray.Init  1716XmsArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1720 LoadA,XmsRCArray
+!NOINDEX
+constructor 1718XmsRCArray.LoadA(FileName : String; HeapToUse : LongInt;
+                             ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+XMS memory and performs range checking on array indices.
+
+See also:  1684AbstractArray.LoadA  1717XmsArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1721 VirtualArray
+!NOINDEX
+1681OpLArray.VirtualArray = object(1682AbstractArray)
+!LINE
+VirtualArrayPtr = ^VirtualArray;
+
+A large array that stores data in virtual memory.
+
+See also:  1722Init  1723LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1722 Init,VirtualArray
+!NOINDEX
+constructor 1721VirtualArray.Init(Rows, Cols, ElementSize : Word;
+                              FileName : String; HeapToUse : LongInt;
+                              ArrayOptions : Byte);
+
+Initialize a large array that stores data in virtual memory.
+
+See also:  1683AbstractArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1723 LoadA,VirtualArray
+!NOINDEX
+constructor 1721VirtualArray.LoadA(FileName : String; HeapToUse : LongInt;
+                               ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+virtual memory.
+
+See also:  1684AbstractArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1724 PrimitiveArray
+!NOINDEX
+1681OpLArray.PrimitiveArray = object(1721VirtualArray)
+!LINE
+PrimitiveArrayPtr = ^PrimitiveArray;
+
+A large array that stores data in virtual memory. The programmer is given
+complete control over the internal page structure of the array.
+
+See also:  1725Init
+;
+;------------------------------------------------------------
+!TOPIC 1725 Init,PrimitiveArray
+!NOINDEX
+constructor 1724PrimitiveArray.Init(RowsInPage, ColsInPage : Word;
+                                PagesDown, PagesAcross : Word;
+                                ElementSize : Word; FileName : string;
+                                HeapToUse : LongInt; ArrayOptions : Byte);
+
+Initialize a large array that stores data in virtual memory. Based on the
+parameters passed to Init, the total number of rows in the array is
+PagesDown*RowsInPage, and the number of columns is PagesAcross*ColsInPage.
+The total number of pages is PagesDown*PagesAcross, and the size in bytes
+of each page is RowsInPage*ColsInPage*ElementSize.
+
+See also:  1683AbstractArray.Init  1722VirtualArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1726 VirtualRCArray
+!NOINDEX
+1681OpLArray.VirtualRCArray = object(1721VirtualArray)
+!LINE
+VirtualRCArrayPtr = ^VirtualRCArray;
+
+A large array that stores data in virtual memory and performs range checking
+on array indices.
+
+See also:  1727Init  1728LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1727 Init,VirtualRCArray
+!NOINDEX
+constructor 1726VirtualRCArray.Init(Rows, Cols, ElementSize : Word;
+                                FileName : String; HeapToUse : LongInt;
+                                ArrayOptions : Byte);
+
+Initialize a large array that stores data in virtual memory and performs range
+checking on array indices.
+
+See also:  1683AbstractArray.Init  1722VirtualArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1728 LoadA,VirtualRCArray
+!NOINDEX
+constructor 1726VirtualRCArray.LoadA(FileName : String;
+                                 HeapToUse : LongInt;
+                                 ArrayOptions : Byte);
+
+Load data from the specified file into a large array that stores data in
+virtual memory and performs range checking on array indices.
+
+See also:  1684AbstractArray.LoadA  1723VirtualArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1729 OpArray
+!NOINDEX
+1681OpLArray.OpArray = object(1682AbstractArray)
+!LINE
+OpArrayPtr = ^OpArray;
+
+A large array that stores data in normal RAM, EMS, or virtual memory.
+
+See also:  1730Init  1731LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1730 Init,OpArray
+!NOINDEX
+constructor 1729OpArray.Init(Rows, Cols, ElementSize : Word;
+                         FileName : String; HeapToUse : LongInt;
+                         ArrayOptions : Byte;
+                         var Priority : AutoPriority);
+
+Initialize a large array that stores data in normal RAM, EMS, or virtual
+memory. The Priority parameter determines the order in which the
+constructor attempts to use machine resources to allocate the array.
+
+See also:
+  1740ArrayType                 1741AutoPriority            1734DefaultPriority
+  1683AbstractArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1731 LoadA,OpArray
+!NOINDEX
+constructor 1729OpArray.LoadA(FileName : String; HeapToUse : LongInt;
+                          ArrayOptions : Byte;
+                          var Priority : AutoPriority);
+
+Load data from the specified file into a large array that stores data in
+normal RAM, EMS, or virtual memory.
+
+See also:  1684AbstractArray.LoadA
+;
+;------------------------------------------------------------
+!TOPIC 1732 DisplayLErrorProc
+!NOINDEX
+procedure 1681OpLArray.DisplayLErrorProc(UnitCode : Byte;
+                                     var ErrorCode : Word;
+                                     ErrorMsg : String);
+
+An error procedure that displays a standard message for each large array
+error. Does not halt on errors.
+
+See also:  1698AbstractArray.GetErrorProc  1697AbstractArray.SetErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 1733 Option flags,OpArray
+!NOINDEX
+!NOSEARCH
+The following options may be set for large arrays:
+
+!NOWRAP
+lKeepDiskCurrent = $0001;
+lDeleteFile      = $0002;
+lRangeCheck      = $0004;
+!WRAP
+
+If lKeepDiskCurrent is active, the VirtualArray updates the disk every time
+an array element is changed. If lDeleteFile is set, the Done method of the
+VirtualArray object deletes the associated disk file. lRangeCheck affects
+only the OpArray object: it determines whether array indices are
+range-checked.
+
+See also:
+  1702AbstractArray.lOptionsAreOn  1701AbstractArray.lOptionsOff
+  1700AbstractArray.lOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1734 DefaultPriority
+!NOINDEX
+const
+  {$IFDEF SupportXms}
+  DefaultPriority : AutoPriority = (
+    lRamArray, lEMSArray, lXmsArray, lVirtualArray);
+  {$ELSE}
+  DefaultPriority  : AutoPriority = (lRamArray, lEMSArray, lVirtualArray);
+  {$ENDIF}
+
+Use this constant to initialize an OpArray object with the best possible
+performance given available system resources.
+
+See also:  1740ArrayType  1741AutoPriority  1730OpArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1735 DefBeepOnError
+!NOINDEX
+const
+  DefBeepOnError : Boolean = True;
+
+Determines whether the built-in error handlers will beep on an error.
+Affects both the default error handler and DisplayLErrorProc.
+
+See also:  1732DisplayLErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 1736 MaxHeapBlock
+!NOINDEX
+const
+  MaxHeapBlock = 65519;
+
+Largest single block on heap, less one.
+;
+;------------------------------------------------------------
+!TOPIC 1737 IdString
+!NOINDEX
+const
+  IdString : string[6] = 'LARRAY';
+
+The identification string written at the beginning of large array files
+created by OpLArray.
+
+See also:  1684AbstractArray.LoadA  1692AbstractArray.StoreA  1738VArrayID
+;
+;------------------------------------------------------------
+!TOPIC 1738 VArrayID
+!NOINDEX
+const
+  VArrayID : String[6] = 'VARRAY';
+
+The identification string written at the beginning of large array files
+created by TpVArray (from Turbo Professional).
+
+See also:  1737IdString  1684AbstractArray.LoadA  1692AbstractArray.StoreA
+;
+;------------------------------------------------------------
+!TOPIC 1739 InitType
+!NOINDEX
+type
+  InitType = (ExactInit, FastInit);
+
+Defines initialization options for arrays. Passing the ExactInit value to
+ClearA causes it to initialize each array element to an exact value of the
+proper type. Passing FastInit causes it to set every byte of the array to
+the first byte of the initialization value.
+
+See also:  1691AbstractArray.ClearA
+;
+;------------------------------------------------------------
+!TOPIC 1740 ArrayType
+!NOINDEX
+type
+  ArrayType = (lNoArray, lRamArray, lEMSArray, lVirtualArray);
+
+Enumerates the categories of large arrays.
+
+See also:  1741AutoPriority  1734DefaultPriority
+;
+;------------------------------------------------------------
+!TOPIC 1741 AutoPriority
+!NOINDEX
+const
+  {$IFDEF SupportXms}
+  MaxPriority    = 4;
+  {$ELSE}
+  MaxPriority    = 3;
+  {$ENDIF}
+type
+  AutoPriority = array[1..MaxPriority] of ArrayType;
+
+Defines a priority list for an object of type OpArray.
+
+See also:  1740ArrayType  1734DefaultPriority  1730OpArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1742 EmsAvailable
+!NOINDEX
+var
+  EmsAvailable : Boolean;
+
+Set to True by OpLArray's initialization code if any EMS memory is
+available.
+
+See also:  1710EmsArray.Init  1730OpArray.Init
+;
+;------------------------------------------------------------
+!TOPIC 1743 XmsAvailable
+!NOINDEX
+var
+  {$IFDEF SupportXms}
+  XmsAvailable : Boolean;
+  {$ENDIF}
+
+Set to True by OpLArray's initialization code if any XMS memory is
+available.
+
+See also:  1710EmsArray.Init  1730OpArray.Init

@@ -1,0 +1,832 @@
+;
+;------------------------------------------------------------
+!TOPIC 834 OpDos
+The OpDos complements the standard DOS unit. When combined, these two units
+contain most of the routines you should ever need to harness the power of DOS
+and the BIOS. The components of OpDos are divided into the following
+categories:
+
+  0892Disk Management           0893DOS Environment/Shell   0894File Management
+  0895Miscellaneous             0896Printing                0897Declarations
+;
+;------------------------------------------------------------
+!TOPIC 835 DosVersion
+!NOINDEX
+function 0834OpDos.DosVersion : Word;
+
+Returns the DOS version number. High byte has major version number, low
+byte has minor version number. Eg., DOS 3.1 => $0301.
+;
+;------------------------------------------------------------
+!TOPIC 836 NumberOfDrives
+!NOINDEX
+function 0834OpDos.NumberOfDrives : Byte;
+
+Returns the number of logical drives.
+;
+;------------------------------------------------------------
+!TOPIC 837 SelectDrive
+!NOINDEX
+procedure 0834OpDos.SelectDrive(Drive : Char);
+
+Selects the specified drive as default if possible.
+
+See also:  0838DefaultDrive  0836NumberOfDrives  0842SelectPhantom
+;
+;------------------------------------------------------------
+!TOPIC 838 DefaultDrive
+!NOINDEX
+function 0834OpDos.DefaultDrive : Char;
+
+Returns the default drive as an uppercase letter.
+
+See also:  0836NumberOfDrives  0837SelectDrive
+;
+;------------------------------------------------------------
+!TOPIC 839 ValidDrive
+!NOINDEX
+function 0834OpDos.ValidDrive(Drive : Char) : Boolean;
+
+Return True if the specified drive is valid.
+
+See also:  0837SelectDrive  0840IsPhantom
+;
+;------------------------------------------------------------
+!TOPIC 840 IsPhantom
+!NOINDEX
+function 0834OpDos.IsPhantom(Drive : Char) : Boolean;
+
+Return True if the specified drive is a phantom drive.  The return from this
+function is only meaningful under DOS 3.2 or greater.
+
+See also:  0839ValidDrive  0841PhantomExists
+;
+;------------------------------------------------------------
+!TOPIC 841 PhantomExists
+!NOINDEX
+function 0834OpDos.PhantomExists : Boolean
+
+This routine calls IsPhantom for drive A and drive B.  If IsPhantom
+returns True for either of these drives, PhantomExists returns True,
+otherwise it returns False.
+
+See also:  0840IsPhantom
+;
+;------------------------------------------------------------
+!TOPIC 842 SelectPhantom
+!NOINDEX
+procedure 0834OpDos.SelectPhantom(Drive : Char);
+
+This routine allows you to select a phantom drive without DOS's
+"Insert diskette for drive..." message popping up.  This routine
+swaps assigns the drive letter of the current floppy to the phantom
+drive and makes the drive specified in Drive active, just like
+0837SelectDrive does.
+
+See also:  0840IsPhantom
+;
+;------------------------------------------------------------
+!TOPIC 843 GetDiskInfo
+!NOINDEX
+function 0834OpDos.GetDiskInfo(Drive : Byte;
+                           var ClustersAvailable, TotalClusters,
+                           BytesPerSector,
+                           SectorsPerCluster : Word) : Boolean;
+
+Return technical info about the specified drive.
+
+See also:  0845ReadDiskSectors  0846WriteDiskSectors
+;
+;------------------------------------------------------------
+!TOPIC 844 GetDiskClass
+!NOINDEX
+function 0834OpDos.GetDiskClass(Drive : Char;
+                            var SubstDriveChar : Char) : DiskClass;
+
+Return the disk class for the drive with the specified letter.
+;
+;------------------------------------------------------------
+!TOPIC 845 ReadDiskSectors
+!NOINDEX
+function 0834OpDos.ReadDiskSectors(Drive : Word; FirstSect : Longint;
+                               NumSects : Word; var Buf) : Boolean;
+
+Read absolute disk sectors.
+
+See also:  0843GetDiskInfo  0846WriteDiskSectors
+;
+;------------------------------------------------------------
+!TOPIC 846 WriteDiskSectors
+!NOINDEX
+function 0834OpDos.WriteDiskSectors(Drive : Word; FirstSect : Longint;
+                                NumSects : Word; var Buf) : Boolean;
+
+Write absolute disk sectors.
+
+See also:  0843GetDiskInfo  0845ReadDiskSectors
+;
+;------------------------------------------------------------
+!TOPIC 847 GetFileMode
+!NOINDEX
+function 0834OpDos.GetFileMode(FName : string; var Attr : Word) : Byte;
+
+Returns a file's attribute in Attr and the DOS error code as the function
+result.
+;
+;------------------------------------------------------------
+!TOPIC 848 FlushDosBuffers
+!NOINDEX
+function 0834OpDos.FlushDosBuffers(var F) : Boolean;
+
+Flush DOS's buffers for the specified file.
+
+See also:  0867TextFlush
+;
+;------------------------------------------------------------
+!TOPIC 849 FileHandlesLeft
+!NOINDEX
+function 0834OpDos.FileHandlesLeft : Byte;
+
+Return the number of available file handles.
+
+See also:  0850FileHandlesOpen
+;
+;------------------------------------------------------------
+!TOPIC 850 FileHandlesOpen
+!NOINDEX
+function 0834OpDos.FileHandlesOpen(CountDevices : Boolean) : Byte;
+
+Return the number of open files owned by a program.
+
+See also:  0849FileHandlesLeft
+;
+;------------------------------------------------------------
+!TOPIC 851 SetDta
+!NOINDEX
+procedure 0834OpDos.SetDta(DTAptr : Pointer);
+
+Set the DOS DTA to point to DTAptr.
+
+See also:  0852GetDta
+;
+;------------------------------------------------------------
+!TOPIC 852 GetDta
+!NOINDEX
+procedure 0834OpDos.GetDta(var DTAptr : Pointer);
+
+Return the DOS DTA pointer.
+
+See also:  0851SetDta
+;
+;------------------------------------------------------------
+!TOPIC 853 ParsePath
+!NOINDEX
+function 0834OpDos.ParsePath(var InputPath, SearchPath,
+                         LeadInPath : string) : Boolean;
+
+Takes a user entered path, trims blanks, and returns a valid global
+search path and a valid lead-in path.
+;
+;------------------------------------------------------------
+!TOPIC 854 PrintInstalled
+!NOINDEX
+function 0834OpDos.PrintInstalled : Boolean;
+
+Returns True if PRINT.COM is installed.
+
+See also:
+  0857CancelAllPrintFiles       0856CancelPrintFile         0859EndPrintStatus
+  0858GetPrintStatus            0855SubmitPrintFile
+;
+;------------------------------------------------------------
+!TOPIC 855 SubmitPrintFile
+!NOINDEX
+function 0834OpDos.SubmitPrintFile(FileName : string) : Byte;
+
+This procedure submits a file to the PC-DOS 3.0 or greater concurrent print
+utility.
+
+See also:  0854PrintInstalled
+;
+;------------------------------------------------------------
+!TOPIC 856 CancelPrintFile
+!NOINDEX
+procedure 0834OpDos.CancelPrintFile(FileMask : string);
+
+Cancels the files matched by the file mask passed in FileMask.
+
+See also:  0857CancelAllPrintFiles
+;
+;------------------------------------------------------------
+!TOPIC 857 CancelAllPrintFiles
+!NOINDEX
+procedure 0834OpDos.CancelAllPrintFiles;
+
+Cancels all files in the print queue.
+
+See also:  0856CancelPrintFile
+;
+;------------------------------------------------------------
+!TOPIC 858 GetPrintStatus
+!NOINDEX
+function 0834OpDos.GetPrintStatus(var QPtr : Pointer) : Byte;
+
+Suspends printing, returns current error status, puts pointer to the
+filename queue in the QPtr variable. Filenames in the queue are 64-byte
+ASCIIZ strings. The end of the queue is marked by a name starting with a
+null.
+
+See also:  0030OpAsciiz.Asc2Str  0859EndPrintStatus
+;
+;------------------------------------------------------------
+!TOPIC 859 EndPrintStatus
+!NOINDEX
+procedure 0834OpDos.EndPrintStatus;
+
+Releases the spooler from the GetPrintStatus procedure.
+
+See also:  0030OpAsciiz.Asc2Str  0858GetPrintStatus
+;
+;------------------------------------------------------------
+!TOPIC 860 GetEnvironmentString
+!NOINDEX
+function 0834OpDos.GetEnvironmentString(SearchString : string) : string;
+
+Return a string from the environment.
+;
+;------------------------------------------------------------
+!TOPIC 861 SetBlock
+!NOINDEX
+function 0834OpDos.SetBlock(var Paragraphs : Word) : Boolean;
+
+Change size of DOS memory block allocated to this program.
+
+See also:  0863ExecDos
+;
+;------------------------------------------------------------
+!TOPIC 862 NoExecDosProc
+!NOINDEX
+procedure 0834OpDos.NoExecDosProc(ActionCode : ActionCodeType; Param : Word);
+
+Do-nothing ExecDosProc.
+
+See also:  0863ExecDos
+;
+;------------------------------------------------------------
+!TOPIC 863 ExecDos
+!NOINDEX
+function 0834OpDos.ExecDos(Command : string; UseSecond : Boolean;
+                       EDP : ExecDosProc) : Integer;
+
+Execute any DOS command. Call with Command = '' for a new shell. If
+UseSecond is false, Command must be the full pathname of a program to be
+executed. EDP is a procedure to display status, save/restore the screen,
+etc. ExecDos return codes are as follows:
+
+     0 : Success
+    -1 : Insufficient memory to store free list
+    -2 : DOS setblock error before EXEC call
+    -3 : DOS setblock error after EXEC call  -- critical error!
+    -4 : Insufficient memory to run DOS command
+  else   a DOS error code
+
+See also:
+  0872ExistOnPath               0904MinSpaceForDos          0891ShellWithPrompt
+  0905StackSafetyMargin
+;
+;------------------------------------------------------------
+!TOPIC 864 TextSeek
+!NOINDEX
+function 0834OpDos.TextSeek(var F : Text; Target : LongInt) : Boolean;
+
+Do a Seek for a text file opened for input. Returns False in case of I/O
+error.
+
+See also:  0865TextFileSize  0866TextPos
+;
+;------------------------------------------------------------
+!TOPIC 865 TextFileSize
+!NOINDEX
+function 0834OpDos.TextFileSize(var F : Text) : LongInt;
+
+Return the size of text file F. Returns -1 in case of I/O error.
+
+See also:  0866TextPos  0864TextSeek
+;
+;------------------------------------------------------------
+!TOPIC 866 TextPos
+!NOINDEX
+function 0834OpDos.TextPos(var F : Text) : LongInt;
+
+Return the current position of the logical file pointer (that is, the
+position of the physical file pointer, adjusted to account for buffering).
+Returns -1 in case of I/O error.
+
+See also:  0865TextFileSize  0864TextSeek
+;
+;------------------------------------------------------------
+!TOPIC 867 TextFlush
+!NOINDEX
+function 0834OpDos.TextFlush(var F : Text) : Boolean;
+
+Flush the buffer(s) for a text file. Returns False in case of I/O error.
+
+See also:  0864TextSeek
+;
+;------------------------------------------------------------
+!TOPIC 868 OpenStdDev
+!NOINDEX
+function 0834OpDos.OpenStdDev(var F : Text; StdHandle : Word) : Boolean;
+
+Assign the text file to a standard DOS device: 0, 1, 2, or 4.
+;
+;------------------------------------------------------------
+!TOPIC 869 HandleIsConsole
+!NOINDEX
+function 0834OpDos.HandleIsConsole(Handle : Word) : Boolean;
+
+Return true if handle is the console device.
+;
+;------------------------------------------------------------
+!TOPIC 870 SetRawMode
+!NOINDEX
+procedure 0834OpDos.SetRawMode(var F : Text; On : Boolean);
+
+Set "raw" mode on or off for the specified text file (must be a device).
+;
+;------------------------------------------------------------
+!TOPIC 871 ExistFile
+!NOINDEX
+function 0834OpDos.ExistFile(FName : string) : Boolean;
+
+Return true if file is found.
+
+See also:  0872ExistOnPath
+;
+;------------------------------------------------------------
+!TOPIC 872 ExistOnPath
+!NOINDEX
+function 0834OpDos.ExistOnPath(FName : string;
+                           var FullName : string) : Boolean;
+
+Return true if FName is found in a) current directory b) program's
+directory (DOS 3.X only) c) any DOS path directory and return full path
+name to file.
+
+See also:  0871ExistFile
+;
+;------------------------------------------------------------
+!TOPIC 873 IsDirectory
+!NOINDEX
+function 0834OpDos.IsDirectory(FName : String) : Boolean;
+
+Return true if FName is a directory.
+
+See also:  0839ValidDrive
+;
+;------------------------------------------------------------
+!TOPIC 874 SameFile
+!NOINDEX
+function 0834OpDos.SameFile(FilePath1,FilePath2 : String;
+                        var ErrorCode : Word) : Boolean;
+
+Return true if FilePath1 and FilePath2 refer to the same physical file.
+Error codes:
+  0 - Success (no error)
+  1 - Invalid FilePath
+
+See also:  0875CopyFile
+;
+;------------------------------------------------------------
+!TOPIC 875 CopyFile
+!NOINDEX
+function 0834OpDos.CopyFile(SrcPath, DestPath : String;
+                        Buffer : Pointer; BufferSize : Word) : Word;
+
+Copy the file specified by SrcPath into DestPath. DestPath must specify a
+complete filename, it may not be the name of a directory without the file
+portion. This a low level routine, and the input pathnames are not checked for
+validity. Buffer must already exist.
+
+See also:  0874SameFile
+;
+;------------------------------------------------------------
+!TOPIC 876 TimeMs
+!NOINDEX
+function 0834OpDos.TimeMs : LongInt;
+
+Return time of day in milliseconds since midnight.
+;
+;------------------------------------------------------------
+!TOPIC 877 MasterEnv
+!NOINDEX
+procedure 0834OpDos.MasterEnv(var Env : EnvRec);
+
+Return master environment record.
+
+See also:  0878CommandEnv  0879CurrentEnv  0881NewEnv  0887SetEnvStr
+;
+;------------------------------------------------------------
+!TOPIC 878 CommandEnv
+!NOINDEX
+procedure 0834OpDos.CommandEnv(var Env : EnvRec);
+
+Return environment record for last copy of COMMAND.COM in memory.
+
+See also:  0877MasterEnv
+;
+;------------------------------------------------------------
+!TOPIC 879 CurrentEnv
+!NOINDEX
+procedure 0834OpDos.CurrentEnv(var Env : EnvRec);
+
+Return current environment record.
+
+See also:  0877MasterEnv  0881NewEnv
+;
+;------------------------------------------------------------
+!TOPIC 880 ParentEnv
+!NOINDEX
+procedure 0834OpDos.ParentEnv(var Env : EnvRec);
+
+Return environment record of program's parent.
+
+See also:  0877MasterEnv
+;
+;------------------------------------------------------------
+!TOPIC 881 NewEnv
+!NOINDEX
+procedure 0834OpDos.NewEnv(var Env : EnvRec; Size : Word);
+
+Allocate a new environment on the heap.
+
+See also:
+  0878CommandEnv                0884CopyEnv                 0879CurrentEnv
+  0882DisposeEnv                0877MasterEnv               0883SetCurrentEnv
+;
+;------------------------------------------------------------
+!TOPIC 882 DisposeEnv
+!NOINDEX
+procedure 0834OpDos.DisposeEnv(var Env : EnvRec);
+
+Deallocate an environment previously allocated on heap.
+
+See also:  0881NewEnv
+;
+;------------------------------------------------------------
+!TOPIC 883 SetCurrentEnv
+!NOINDEX
+procedure 0834OpDos.SetCurrentEnv(Env : EnvRec);
+
+Specify a different environment for the current program.
+
+See also:  0881NewEnv  0891ShellWithPrompt
+;
+;------------------------------------------------------------
+!TOPIC 884 CopyEnv
+!NOINDEX
+procedure 0834OpDos.CopyEnv(Src, Dest : EnvRec);
+
+Copy contents of Src environment to Dest environment.
+
+See also:  0881NewEnv  0890SetProgramStr
+;
+;------------------------------------------------------------
+!TOPIC 885 EnvFree
+!NOINDEX
+function 0834OpDos.EnvFree(Env : EnvRec) : Word;
+
+Return bytes free in environment.
+
+See also:  0887SetEnvStr
+;
+;------------------------------------------------------------
+!TOPIC 886 GetEnvStr
+!NOINDEX
+function 0834OpDos.GetEnvStr(Env : EnvRec; Search : string) : string;
+
+Return a string from the environment.
+
+See also:  0887SetEnvStr
+;
+;------------------------------------------------------------
+!TOPIC 887 SetEnvStr
+!NOINDEX
+function 0834OpDos.SetEnvStr(Env : EnvRec;
+                         Search, Value : string) : Boolean;
+
+Set environment string, returning true if successful.
+;
+;------------------------------------------------------------
+!TOPIC 888 DumpEnv
+!NOINDEX
+procedure 0834OpDos.DumpEnv(Env : EnvRec);
+
+Dump the environment to the screen.
+
+See also:  0887SetEnvStr
+;
+;------------------------------------------------------------
+!TOPIC 889 GetProgramStr
+!NOINDEX
+function 0834OpDos.GetProgramStr(Env : EnvRec) : string;
+
+Return the name of the program that owns Env, '' if DOS < 3.0 or unknown.
+
+See also:  0890SetProgramStr
+;
+;------------------------------------------------------------
+!TOPIC 890 SetProgramStr
+!NOINDEX
+function 0834OpDos.SetProgramStr(Env : EnvRec; Path : string) : Boolean;
+
+Add a program name to the end of an environment if sufficient space.
+
+See also:  0889GetProgramStr  0881NewEnv  0887SetEnvStr
+;
+;------------------------------------------------------------
+!TOPIC 891 ShellWithPrompt
+!NOINDEX
+function 0834OpDos.ShellWithPrompt(Prompt : string;
+                               EDP : ExecDosProc) : Integer;
+
+Shell to DOS with a new prompt.
+
+See also:  0863ExecDos
+;
+;------------------------------------------------------------
+!TOPIC 892 Disk Management
+!NOINDEX
+!NOSEARCH
+OpDos provides the following routines for managing disk drives:
+
+  0838DefaultDrive              0908DeleteVolumeLabel       0844GetDiskClass
+  0843GetDiskInfo               0910GetMediaID              0907GetVolumeLabel
+  0836NumberOfDrives            0845ReadDiskSectors         0837SelectDrive
+  0911SetMediaID                0909SetVolumeLabel          0839ValidDrive
+  0846WriteDiskSectors          0840IsPhantom               0841PhantomExists
+  0842SelectPhantom
+;
+;------------------------------------------------------------
+!TOPIC 893 DOS Environment/Shell
+!NOINDEX
+!NOSEARCH
+OpDos provides the following routines for managing the DOS environment and
+creating non-swapping DOS shells:
+
+  0884CopyEnv                   0879CurrentEnv              0882DisposeEnv
+  0888DumpEnv                   0885EnvFree                 0863ExecDos
+  0860GetEnvironmentString      0886GetEnvStr               0889GetProgramStr
+  0877MasterEnv                 0881NewEnv                  0862NoExecDosProc
+  0880ParentEnv                 0883SetCurrentEnv           0887SetEnvStr
+  0890SetProgramStr             0891ShellWithPrompt
+;
+;------------------------------------------------------------
+!TOPIC 894 File Management
+!NOINDEX
+!NOSEARCH
+OpDos provides the following routines for managing DOS files:
+
+  0875CopyFile                  0871ExistFile               0872ExistOnPath
+  0849FileHandlesLeft           0850FileHandlesOpen         0848FlushDosBuffers
+  0847GetFileMode               0869HandleIsConsole         0873IsDirectory
+  0868OpenStdDev                0853ParsePath               0874SameFile
+  0870SetRawMode                0865TextFileSize            0867TextFlush
+  0866TextPos                   0864TextSeek
+;
+;------------------------------------------------------------
+!TOPIC 895 Miscellaneous,OpDos
+!NOINDEX
+!NOSEARCH
+OpDos provides the following miscellaneous DOS capabilities:
+
+  0835DosVersion                0852GetDta                  0861SetBlock
+  0851SetDta                    0876TimeMs
+;
+;------------------------------------------------------------
+!TOPIC 896 Printing
+!NOINDEX
+!NOSEARCH
+OpDos provides the following capabilities for access the DOS print spooler:
+
+  0857CancelAllPrintFiles       0856CancelPrintFile         0859EndPrintStatus
+  0858GetPrintStatus            0854PrintInstalled          0855SubmitPrintFile
+;
+;------------------------------------------------------------
+!TOPIC 897 Declarations,OpDos
+!NOINDEX
+!NOSEARCH
+OpDos interfaces the following types, constants and variables:
+
+  0903Action codes              0898ActionCodeType          0899DiskClass
+  0900EnvRec                    0902ExecDosProc             0904MinSpaceForDos
+  0905StackSafetyMargin         0906Standard file handles   0901MediaIDType
+;
+;------------------------------------------------------------
+!TOPIC 898 ActionCodeType,OpDos
+!NOINDEX
+type
+  ActionCodeType = ExecSaveScreen..ExecRestoreScreen;
+
+An ExecDos action code.
+
+See also:  0903Action codes  0902ExecDosProc
+;
+;------------------------------------------------------------
+!TOPIC 899 DiskClass
+!NOINDEX
+type
+  DiskClass = (
+    Floppy360, Floppy720, Floppy12, Floppy144, OtherFloppy, Bernoulli,
+    HardDisk, RamDisk, SubstDrive, UnknownDisk, InvalidDrive,
+    NovellDrive, CDRomDisk);
+
+This enumerated type defines the eight classes of disks that can be
+identified by GetDiskClass, as well as several types indicating that a
+particular error occurred. The meaning of each value is described briefly
+below:
+
+!NOWRAP
+Floppy360     A 360K, 5 1/4 floppy disk
+Floppy720     A 720K, 3 1/2 floppy disk
+Floppy12      A 1.2 meg, 5 1/4 floppy disk
+Floppy144     A 1.44 meg, 3 1/2 floppy disk
+OtherFloppy   Another kind of floppy disk (e.g. a single-sided disk)
+Bernoulli     A Bernoulli drive
+HardDisk      Any hard disk
+RamDisk       A RAM disk created with VDISK.SYS, RAMDRIVE.SYS, etc.
+SubstDrive    A logical drive created by SUBST or ASSIGN
+UnknownDisk   A drive that could not be classified
+InvalidDrive  Indicates that the drive does not exist or isn't ready
+NovellDrive   A drive on a Novell NetWare file server
+CDRomDisk     A CD-ROM running MSCDEX
+!WRAP
+
+See also:  0844GetDiskClass
+;
+;------------------------------------------------------------
+!TOPIC 900 EnvRec
+!NOINDEX
+type
+  EnvRec =
+    record
+      EnvSeg : Word;     {Segment of the environment}
+      EnvLen : Word;     {Usable length of the environment}
+      EnvPtr : Pointer;  {Nil except when allocated on heap}
+    end;
+
+This type is used to package information about the DOS environment. EnvSeg
+is the segment address of the environment. At this address starts a list of
+null-terminated strings that may extend for up to 32K characters. EnvLen is
+the maximum usable length of that environment (not the amount currently in
+use). EnvPtr is normally nil. It is used only when you allocate new
+environment space from the Turbo Pascal heap, and even then you won't want
+to refer to the EnvPtr field directly.
+
+If an error occurs in any routine that works with EnvRec's, the EnvSeg
+field will be set to zero. You shouldn't continue processing with an
+environment record if EnvSeg is zero.
+
+See also:  0884CopyEnv  0881NewEnv
+;
+;------------------------------------------------------------
+!TOPIC 901 MediaIDType
+!NOINDEX
+type
+  MediaIDType =
+    record
+      InfoLevel    : Word;
+      SerialNumber : LongInt;
+      VolumeLabel  : array[0..10] of Char;
+      FileSystemID : array[0..7] of Char;
+    end;
+
+Record type for Get/SetMediaID.
+
+See also:  0910GetMediaID  0911SetMediaID
+;
+;------------------------------------------------------------
+!TOPIC 902 ExecDosProc
+!NOINDEX
+type
+  ExecDosProc = procedure(ActionCode : ActionCodeType; Param : Word);
+
+A user-written routine that performs various actions during a call to ExecDos
+or ShellWithPrompt.
+
+See also:  0903Action codes  0898ActionCodeType
+;
+;------------------------------------------------------------
+!TOPIC 903 Action codes
+!NOINDEX
+!NOSEARCH
+const
+  ExecSaveScreen    = 0;
+  ExecShowMemory    = 1;
+  ExecPauseAfterRun = 2;
+  ExecRestoreScreen = 3;
+
+Action codes passed by ExecDos (or ShellWithPrompt) to a routine of type
+ExecDosProc. The ExecSaveScreen code is passed first, at an opportune time
+for saving the screen (using SaveWindow, for example). Note that the screen
+buffer to be used must have been allocated before the call to ExecDos. The
+ExecShowMemory code is passed just before DOS is called. At the same time,
+a second parameter (a Word) is passed, indicating the approximate amount of
+memory available (in kilobytes). The ExecPauseAfterRun code is passed when
+the Exec call returns. You may want to use this opportunity to ask the user
+to "Press any key...", to avoid wiping out the contents of the screen
+before the user can see them. The ExecRestoreScreen code is passed
+immediately after that, giving you a chance to restore the screen.
+
+See also:  0898ActionCodeType  0863ExecDos
+;
+;------------------------------------------------------------
+!TOPIC 904 MinSpaceForDos
+!NOINDEX
+const
+  MinSpaceForDos : Word = 20000;
+
+Minimum number of bytes for DOS shell to run. If ExecDos cannot free up
+this much space for DOS before the call, it will abort.
+
+See also:  0863ExecDos
+;
+;------------------------------------------------------------
+!TOPIC 905 StackSafetyMargin
+!NOINDEX
+const
+  StackSafetyMargin : Word = 1000;
+
+Used by ExecDos when moving the free list downward in memory. If
+SizeOf(free list) + StackSafetyMargin <= SP (current stack pointer), the
+free list will be stored at the bottom of the stack, otherwise on the heap.
+
+See also:  0863ExecDos
+;
+;------------------------------------------------------------
+!TOPIC 906 Standard file handles
+!NOINDEX
+!NOSEARCH
+const
+  StdInHandle   = 0;
+  StdOutHandle  = 1;
+  StdErrHandle  = 2;
+  StdPrnHandle  = 4;
+
+Standard DOS file handles (standard input, standard output, standard error
+output, standard printer).
+;
+;------------------------------------------------------------
+!TOPIC 907 GetVolumeLabel
+!NOINDEX
+function 0834OpDos.GetVolumeLabel(Drive : Char;
+                              var VolName : VolumeNameStr) : Word;
+
+Gets the volume label for Drive. Returns 0 for success, or DOS error
+code.
+
+See also:  0909SetVolumeLabel  0908DeleteVolumeLabel
+;
+;------------------------------------------------------------
+!TOPIC 908 DeleteVolumeLabel
+!NOINDEX
+function 0834OpDos.DeleteVolumeLabel(Drive : Char) : Word;
+
+Deletes an existing volume label on Drive. Returns 0 for success,
+or DOS error code.
+
+See also:  0909SetVolumeLabel  0907GetVolumeLabel
+;
+;------------------------------------------------------------
+!TOPIC 909 SetVolumeLabel
+!NOINDEX
+function 0834OpDos.SetVolumeLabel(Drive : Char;
+                              VolName : VolumeNameStr) : Word;
+
+Set the volume label for Drive to VolName. All 11 characters in VolName
+are significant, so the string should always be padded to 11 characters.
+Returns 0 for success, or DOS error code.
+
+See also:  0907GetVolumeLabel  0908DeleteVolumeLabel
+;
+;------------------------------------------------------------
+!TOPIC 910 GetMediaID
+!NOINDEX
+function 0834OpDos.GetMediaID(Drive : Char;
+                          var MediaIDRec : 0901MediaIDType) : Word;
+
+Returns the DOS 5 Media ID record which includes the disk's serial number
+and volume label. Returns 0 for success, or DOS error code.
+
+See also:  0911SetMediaID
+;
+;------------------------------------------------------------
+!TOPIC 911 SetMediaID
+!NOINDEX
+function 0834OpDos.SetMediaID(Drive : Char;
+                          var MediaIDRec : 0901MediaIDType) : Word;
+
+Sets the DOS 5 Media ID record which includes the disk's serial number
+and volume label. Returns 0 for success, or DOS error code.
+
+See also:  0910GetMediaID

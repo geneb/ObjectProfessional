@@ -1,0 +1,1947 @@
+;
+;------------------------------------------------------------
+!TOPIC 290 OpCrt
+OpCrt is a plug-in replacement for Turbo Pascal's standard Crt unit.
+Although completely compatible with Crt where it counts, OpCrt offers an
+impressive array of extensions and enhancements. You'll find routines to move
+the cursor and change its shape; read characters and strings from the screen;
+write directly to video memory at top speed; save and restore windows; switch
+in and out of the EGA's 43-line mode and the VGA's 50-line mode without
+clearing the screen; poll the keyboard; the list goes on and on. OpCrt also
+allows you to write to any video page on a color adapter (even with WriteLn),
+and it supports multitaskers such as DesqView and OmniView.
+
+  0291ColorSet                  0413Color control           0414Cursor control
+  0415Fast screen I/O           0416Keyboard input          0417Miscellaneous
+  0418Scrolling                 0419Video modes             0420Windows
+  0477Declarations
+;
+;------------------------------------------------------------
+!TOPIC 291 ColorSet
+!NOINDEX
+0290OpCrt.ColorSet = object
+
+This is the only object type defined by OpCrt. It provides the video control
+for all of Object Professional's objects that need to manipulate colors. It
+contains 31 pairs of 0464video attributes, specifying color preferences for
+everything from window frames to delimiters (for protected data entry fields)
+to marked blocks (in a text editor). Unlike other objects in Object
+Professional, a ColorSet doesn't really "do" anything. Although it has
+numerous methods (all static), the methods do nothing more than change the
+values of its data fields. The job of a ColorSet is simply to act as a
+receptacle, a place to store color choices, which can be conveniently passed
+to other objects as a group.
+
+A ColorSet will almost always be declared in the form of a typed constant
+such as the following:
+
+const
+  MyColorSet : ColorSet = (
+   TextColor       : $1E; TextMono       : $0F;
+   CtrlColor       : $1C; CtrlMono       : $07;
+   FrameColor      : $13; FrameMono      : $07;
+   HeaderColor     : $3F; HeaderMono     : $70;
+   ShadowColor     : $08; ShadowMono     : $70;
+   HighlightColor  : $4F; HighlightMono  : $70;
+   PromptColor     : $30; PromptMono     : $07;
+   SelPromptColor  : $30; SelPromptMono  : $07;
+   ProPromptColor  : $30; ProPromptMono  : $07;
+   FieldColor      : $31; FieldMono      : $0F;
+   SelFieldColor   : $31; SelFieldMono   : $0F;
+   ProFieldColor   : $17; ProFieldMono   : $07;
+   ScrollBarColor  : $13; ScrollBarMono  : $07;
+   SliderColor     : $13; SliderMono     : $0F;
+   HotSpotColor    : $30; HotSpotMono    : $70;
+   BlockColor      : $3E; BlockMono      : $0F;
+   MarkerColor     : $5F; MarkerMono     : $70;
+   DelimColor      : $31; DelimMono      : $0F;
+   SelDelimColor   : $31; SelDelimMono   : $0F;
+   ProDelimColor   : $31; ProDelimMono   : $0F;
+   SelItemColor    : $3E; SelItemMono    : $70;
+   ProItemColor    : $17; ProItemMono    : $07;
+   HighItemColor   : $1F; HighItemMono   : $0F;
+   AltItemColor    : $1F; AltItemMono    : $0F;
+   AltSelItemColor : $3F; AltSelItemMono : $70;
+   FlexAHelpColor  : $1F; FlexAHelpMono  : $0F;
+   FlexBHelpColor  : $1F; FlexBHelpMono  : $0F;
+   FlexCHelpColor  : $1B; FlexCHelpMono  : $70;
+   UnselXrefColor  : $1E; UnselXrefMono  : $09;
+   SelXrefColor    : $5F; SelXrefMono    : $70;
+   MouseColor      : $4F; MouseMono      : $70);
+
+The values on the left (xxxColor) specify the 0464video attributes to be used on
+color displays; those on the right (xxxMono) are to be used on monochrome or
+black and white displays.
+
+As indicated above, the only thing you can really do with a ColorSet is pass
+it as a parameter to another object's constructor. For example:
+
+MyStackWindow.InitCustom(2, 2, 79, 24, MyColorSet, wBordered);
+
+The following methods are used to change the video attributes of an
+existing ColorSet:
+
+    0307SetBlockAttr                      0293SetCtrlAttr
+    0309SetDelimAttr                      0301SetFieldAttr
+    0317SetFlexAHelpAttr                  0318SetFlexBHelpAttr
+    0319SetFlexCHelpAttr                  0294SetFrameAttr
+    0295SetHeaderAttr                     0297SetHighlightAttr
+    0314SetHighlightItemAttr              0306SetHotSpotAttr
+    0308SetMarkerAttr                     0322SetMouseAttr
+    0298SetPromptAttr                     0311SetProtectedDelimAttr
+    0303SetProtectedFieldAttr             0313SetProtectedItemAttr
+    0300SetProtectedPromptAttr            0304SetScrollBarAttr
+    0310SetSelectedDelimAttr              0302SetSelectedFieldAttr
+    0312SetSelectedItemAttr               0315SetAltItemAttr
+    0316SetAltSelItemAttr                 0299SetSelectedPromptAttr
+    0321SetSelXrefAttr                    0296SetShadowAttr
+    0305SetSliderAttr                     0292SetTextAttr
+    0320SetUnselXrefAttr
+;
+;------------------------------------------------------------
+!TOPIC 292 SetTextAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetTextAttr(Color, Mono : Byte);
+
+Set attributes for ordinary text.
+;
+;------------------------------------------------------------
+!TOPIC 293 SetCtrlAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetCtrlAttr(Color, Mono : Byte);
+
+Set attributes for control characters.
+;
+;------------------------------------------------------------
+!TOPIC 294 SetFrameAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetFrameAttr(Color, Mono : Byte);
+
+Set attributes for window frames.
+;
+;------------------------------------------------------------
+!TOPIC 295 SetHeaderAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetHeaderAttr(Color, Mono : Byte);
+
+Set attributes for window headers.
+;
+;------------------------------------------------------------
+!TOPIC 296 SetShadowAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetShadowAttr(Color, Mono : Byte);
+
+Set attributes for window shadows.
+;
+;------------------------------------------------------------
+!TOPIC 297 SetHighlightAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetHighlightAttr(Color, Mono : Byte);
+
+Set attributes used to highlight found text.
+;
+;------------------------------------------------------------
+!TOPIC 298 SetPromptAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetPromptAttr(Color, Mono : Byte);
+
+Set attributes for entry field prompts.
+;
+;------------------------------------------------------------
+!TOPIC 299 SetSelectedPromptAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetSelectedPromptAttr(Color, Mono : Byte);
+
+Set attributes for selected entry field prompts.
+;
+;------------------------------------------------------------
+!TOPIC 300 SetProtectedPromptAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetProtectedPromptAttr(Color, Mono : Byte);
+
+Set attributes for protected entry field prompts.
+;
+;------------------------------------------------------------
+!TOPIC 301 SetFieldAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetFieldAttr(Color, Mono : Byte);
+
+Set attributes for unselected entry fields.
+;
+;------------------------------------------------------------
+!TOPIC 302 SetSelectedFieldAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetSelectedFieldAttr(Color, Mono : Byte);
+
+Set attributes for selected entry field fields.
+;
+;------------------------------------------------------------
+!TOPIC 303 SetProtectedFieldAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetProtectedFieldAttr(Color, Mono : Byte);
+
+Set attributes for protected entry fields.
+;
+;------------------------------------------------------------
+!TOPIC 304 SetScrollBarAttr
+!NOINDEX
+procedure 0291ColorSet.SetScrollBarAttr(Color, Mono : Byte);
+
+Set attributes for scroll bars.
+;
+;------------------------------------------------------------
+!TOPIC 305 SetSliderAttr
+!NOINDEX
+procedure 0291ColorSet.SetSliderAttr(Color, Mono : Byte);
+
+Set attributes for sliders in scroll bars.
+;
+;------------------------------------------------------------
+!TOPIC 306 SetHotSpotAttr
+!NOINDEX
+procedure 0291ColorSet.SetHotSpotAttr(Color, Mono : Byte);
+
+Sets attributes for mouse hot spots.
+;
+;------------------------------------------------------------
+!TOPIC 307 SetBlockAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetBlockAttr(Color, Mono : Byte);
+
+Set attributes for marked blocks.
+;
+;------------------------------------------------------------
+!TOPIC 308 SetMarkerAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetMarkerAttr(Color, Mono : Byte);
+
+Set attributes for text markers.
+;
+;------------------------------------------------------------
+!TOPIC 309 SetDelimAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetDelimAttr(Color, Mono : Byte);
+
+Set attributes for unselected entry field delimiters.
+;
+;------------------------------------------------------------
+!TOPIC 310 SetSelectedDelimAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetSelectedDelimAttr(Color, Mono : Byte);
+
+Set attributes for selected entry field delimiters.
+;
+;------------------------------------------------------------
+!TOPIC 311 SetProtectedDelimAttr,ColorSet
+!NOINDEX
+procedure 0291ColorSet.SetProtectedDelimAttr(Color, Mono : Byte);
+
+Set attributes for protected entry field delimiters.
+;
+;------------------------------------------------------------
+!TOPIC 312 SetSelectedItemAttr
+!NOINDEX
+procedure 0291ColorSet.SetSelectedItemAttr(Color, Mono : Byte);
+
+Set attributes for selected pick and menu items.
+;
+;------------------------------------------------------------
+!TOPIC 313 SetProtectedItemAttr
+!NOINDEX
+procedure 0291ColorSet.SetProtectedItemAttr(Color, Mono : Byte);
+
+Set attributes for protected pick and menu items.
+;
+;------------------------------------------------------------
+!TOPIC 314 SetHighlightItemAttr
+!NOINDEX
+procedure 0291ColorSet.SetHighlightItemAttr(Color, Mono : Byte);
+
+Set attributes for highlighted selection characters for menu items.
+;
+;------------------------------------------------------------
+!TOPIC 315 SetAltItemAttr
+!NOINDEX
+procedure 0291ColorSet.SetAltItemAttr(Color, Mono : Byte);
+
+Set attributes for alternate pick items.
+;
+;------------------------------------------------------------
+!TOPIC 316 SetAltSelItemAttr
+!NOINDEX
+procedure 0291ColorSet.SetAltSelItemAttr(Color, Mono : Byte);
+
+Set attributes for alternate selected pick items.
+;
+;------------------------------------------------------------
+!TOPIC 317 SetFlexAHelpAttr
+!NOINDEX
+procedure 0291ColorSet.SetFlexAHelpAttr(Color, Mono : Byte);
+
+Set attributes for help text surrounded by ^A.
+;
+;------------------------------------------------------------
+!TOPIC 318 SetFlexBHelpAttr
+!NOINDEX
+procedure 0291ColorSet.SetFlexBHelpAttr(Color, Mono : Byte);
+
+Set attributes for help text surrounded by ^B.
+;
+;------------------------------------------------------------
+!TOPIC 319 SetFlexCHelpAttr
+!NOINDEX
+procedure 0291ColorSet.SetFlexCHelpAttr(Color, Mono : Byte);
+
+Set attributes for help text surrounded by ^C.
+;
+;------------------------------------------------------------
+!TOPIC 320 SetUnselXrefAttr
+!NOINDEX
+procedure 0291ColorSet.SetUnselXrefAttr(Color, Mono : Byte);
+
+Set attributes for unselected cross-references in help text.
+;
+;------------------------------------------------------------
+!TOPIC 321 SetSelXrefAttr
+!NOINDEX
+procedure 0291ColorSet.SetSelXrefAttr(Color, Mono : Byte);
+
+Set attributes for selected cross-references in help text.
+;
+;------------------------------------------------------------
+!TOPIC 322 SetMouseAttr
+!NOINDEX
+procedure 0291ColorSet.SetMouseAttr(Color, Mono : Byte);
+
+Set attributes for mouse cursor.
+;
+;------------------------------------------------------------
+!TOPIC 323 MakeHiddenAttr
+!NOINDEX
+function 0290OpCrt.MakeHiddenAttr(A : Byte) : Byte;
+
+Make foreground and background colors the same.
+;
+;------------------------------------------------------------
+!TOPIC 324 TextMode
+!NOINDEX
+procedure 0290OpCrt.TextMode(Mode : Word);
+
+Switch to/set text mode.
+;
+;------------------------------------------------------------
+!TOPIC 325 Window
+!NOINDEX
+procedure 0290OpCrt.Window(XLow, YLow, XHigh, YHigh : Byte);
+
+Set current window coordinates.
+;
+;------------------------------------------------------------
+!TOPIC 326 ClrScr
+!NOINDEX
+procedure 0290OpCrt.ClrScr;
+
+Clear the current window.
+;
+;------------------------------------------------------------
+!TOPIC 327 ClrEol
+!NOINDEX
+procedure 0290OpCrt.ClrEol;
+
+Clear the remainder of the current screen line.
+;
+;------------------------------------------------------------
+!TOPIC 328 InsLine
+!NOINDEX
+procedure 0290OpCrt.InsLine;
+
+Insert a new line at the position of the cursor.
+
+See also:  0329DelLine  0356ScrollWindowDown
+;
+;------------------------------------------------------------
+!TOPIC 329 DelLine
+!NOINDEX
+procedure 0290OpCrt.DelLine;
+
+Delete current screen line.
+
+See also:  0328InsLine  0355ScrollWindowUp
+;
+;------------------------------------------------------------
+!TOPIC 330 GoToXY
+!NOINDEX
+procedure 0290OpCrt.GoToXY(X, Y : Byte);
+
+Move cursor to column X, row Y, relative to Window.
+
+See also:  0345GotoXYAbs
+;
+;------------------------------------------------------------
+!TOPIC 331 WhereX
+!NOINDEX
+function 0290OpCrt.WhereX : Byte;
+
+Return column coordinate of cursor, relative to Window.
+
+See also:  0348WhereXAbs  0346WhereXY  0332WhereY
+;
+;------------------------------------------------------------
+!TOPIC 332 WhereY
+!NOINDEX
+function 0290OpCrt.WhereY : Byte;
+
+Return row coordinate of cursor, relative to Window.
+
+See also:  0331WhereX  0346WhereXY
+;
+;------------------------------------------------------------
+!TOPIC 333 TextColor
+!NOINDEX
+procedure 0290OpCrt.TextColor(Color : Byte);
+
+Set foreground color for screen writes.
+
+See also:  0334TextBackground
+;
+;------------------------------------------------------------
+!TOPIC 334 TextBackground
+!NOINDEX
+procedure 0290OpCrt.TextBackground(Color : Byte);
+
+Set background color for screen writes.
+
+See also:  0333TextColor
+;
+;------------------------------------------------------------
+!TOPIC 335 LowVideo
+!NOINDEX
+procedure 0290OpCrt.LowVideo;
+
+Select low intensity.
+
+See also:  0336HighVideo  0337NormVideo
+;
+;------------------------------------------------------------
+!TOPIC 336 HighVideo
+!NOINDEX
+procedure 0290OpCrt.HighVideo;
+
+Select high intensity.
+
+See also:  0335LowVideo  0337NormVideo
+;
+;------------------------------------------------------------
+!TOPIC 337 NormVideo
+!NOINDEX
+procedure 0290OpCrt.NormVideo;
+
+Select 0464video attribute used at start of program.
+
+See also:  0336HighVideo  0335LowVideo
+;
+;------------------------------------------------------------
+!TOPIC 338 KeyPressed
+!NOINDEX
+function 0290OpCrt.KeyPressed : Boolean;
+
+Return true if a key has been pressed.
+
+See also:  0407CheckKbd  0339ReadKey
+;
+;------------------------------------------------------------
+!TOPIC 339 ReadKey
+!NOINDEX
+function 0290OpCrt.ReadKey : Char;
+
+Read a character from the keyboard.
+
+See also:  0407CheckKbd  0406ReadKeyWord
+;
+;------------------------------------------------------------
+!TOPIC 340 AssignCrt
+!NOINDEX
+procedure 0290OpCrt.AssignCrt(var F : Text);
+
+Routes input and output through OpCrt routines.
+
+See also:  0412ReInitCrt
+;
+;------------------------------------------------------------
+!TOPIC 341 Delay
+!NOINDEX
+procedure 0290OpCrt.Delay(MS : Word);
+
+Delay for MS milliseconds.
+
+See also:  0478DelayCalibrate  0458OneMs
+;
+;------------------------------------------------------------
+!TOPIC 342 Sound
+!NOINDEX
+procedure 0290OpCrt.Sound(Hz : Word);
+
+Turn on the sound at the designated frequency.
+
+See also:  0343NoSound
+;
+;------------------------------------------------------------
+!TOPIC 343 NoSound
+!NOINDEX
+procedure 0290OpCrt.NoSound;
+
+Turn off the sound.
+
+See also:  0342Sound
+;
+;------------------------------------------------------------
+!TOPIC 344 GetCrtMode
+!NOINDEX
+function 0290OpCrt.GetCrtMode : Byte;
+
+Get the current video mode. Also reinitializes internal variables. May
+reset: CurrentMode, ScreenWidth, ScreenHeight, CurrentPage, and VideoSegment.
+
+See also:  0399Font8x8Selected  0412ReInitCrt
+;
+;------------------------------------------------------------
+!TOPIC 345 GotoXYAbs
+!NOINDEX
+procedure 0290OpCrt.GotoXYAbs(X, Y : Byte);
+
+Move cursor to column X, row Y. No error checking done.
+
+See also:
+  0330GoToXY                    0348WhereXAbs               0346WhereXY
+  0347WhereYAbs
+;
+;------------------------------------------------------------
+!TOPIC 346 WhereXY
+!NOINDEX
+function 0290OpCrt.WhereXY : Word;
+
+Return absolute row and column coordinates of cursor. High byte has current
+row (Y), low byte has current column (X).
+
+See also:  0348WhereXAbs  0349WhereXYdirect  0347WhereYAbs
+;
+;------------------------------------------------------------
+!TOPIC 347 WhereYAbs
+!NOINDEX
+function 0290OpCrt.WhereYAbs : Byte;
+
+Return absolute row coordinate of cursor.
+
+See also:  0346WhereXY  0332WhereY
+;
+;------------------------------------------------------------
+!TOPIC 348 WhereXAbs
+!NOINDEX
+function 0290OpCrt.WhereXAbs : Byte;
+
+Return absolute column coordinate of cursor.
+
+See also:  0331WhereX  0346WhereXY
+;
+;------------------------------------------------------------
+!TOPIC 349 WhereXYdirect
+!NOINDEX
+procedure 0290OpCrt.WhereXYdirect(var X, Y : Byte);
+
+Read the current position of the cursor directly from the CRT controller.
+
+See also:  0345GotoXYAbs  0346WhereXY
+;
+;------------------------------------------------------------
+!TOPIC 350 SetVisiblePage
+!NOINDEX
+procedure 0290OpCrt.SetVisiblePage(PageNum : Byte);
+
+Set current video page.
+
+See also:  0351SetActivePage
+;
+;------------------------------------------------------------
+!TOPIC 351 SetActivePage
+!NOINDEX
+procedure 0290OpCrt.SetActivePage(PageNo : Byte);
+
+Selects the video page that will be written to with subsequent operations
+on the screen.
+
+See also:  0354ClearPage  0350SetVisiblePage
+;
+;------------------------------------------------------------
+!TOPIC 352 GetPageSegment
+!NOINDEX
+function 0290OpCrt.GetPageSegment(PageNo : Byte) : Word;
+
+Get the video segment corresponding to the specified video page.
+
+See also:  0353GetPagePointer  3072VirtScreen.Init
+;
+;------------------------------------------------------------
+!TOPIC 353 GetPagePointer
+!NOINDEX
+function 0290OpCrt.GetPagePointer(PageNo : Byte) : Pointer;
+
+Get a pointer to the start of the specified video page.
+
+See also:  0352GetPageSegment
+;
+;------------------------------------------------------------
+!TOPIC 354 ClearPage
+!NOINDEX
+procedure 0290OpCrt.ClearPage(PageNo : Byte);
+
+Clear the specified video page with TextChar and TextAttr.
+
+See also:  0351SetActivePage  0350SetVisiblePage
+;
+;------------------------------------------------------------
+!TOPIC 355 ScrollWindowUp
+!NOINDEX
+procedure 0290OpCrt.ScrollWindowUp(XLo, YLo, XHi, YHi, Lines : Byte);
+
+Scrolls the designated window up the specified number of lines.
+
+See also:  0329DelLine  0356ScrollWindowDown  0356ScrollWindowDown
+;
+;------------------------------------------------------------
+!TOPIC 356 ScrollWindowDown
+!NOINDEX
+procedure 0290OpCrt.ScrollWindowDown(XLo, YLo, XHi, YHi, Lines : Byte);
+
+Scrolls the designated window down the specified number of lines.
+
+See also:  0328InsLine  0355ScrollWindowUp  0355ScrollWindowUp
+;
+;------------------------------------------------------------
+!TOPIC 357 CursorTypeSL
+!NOINDEX
+function 0290OpCrt.CursorTypeSL : Word;
+
+High byte has starting scan line, low byte has ending.
+
+See also:
+  0359CursorEndLine             0358CursorStartLine         0467CursorType
+  0369GetCursorState            0360SetCursorSize
+;
+;------------------------------------------------------------
+!TOPIC 358 CursorStartLine
+!NOINDEX
+function 0290OpCrt.CursorStartLine : Byte;
+
+Returns the starting scan line of the cursor.
+
+See also:  0359CursorEndLine  0357CursorTypeSL
+;
+;------------------------------------------------------------
+!TOPIC 359 CursorEndLine
+!NOINDEX
+function 0290OpCrt.CursorEndLine : Byte;
+
+Returns the ending scan line of the cursor.
+
+See also:  0358CursorStartLine  0357CursorTypeSL
+;
+;------------------------------------------------------------
+!TOPIC 360 SetCursorSize
+!NOINDEX
+procedure 0290OpCrt.SetCursorSize(Startline, EndLine : Byte);
+
+Sets the cursor's starting and ending scan lines.
+
+See also:
+  0363BlockCursor               0362FatCursor               0364HiddenCursor
+  0361NormalCursor
+;
+;------------------------------------------------------------
+!TOPIC 361 NormalCursor
+!NOINDEX
+procedure 0290OpCrt.NormalCursor;
+
+Set normal scan lines for cursor based on current video mode.
+
+See also:
+  0363BlockCursor               0362FatCursor               0364HiddenCursor
+  0360SetCursorSize
+;
+;------------------------------------------------------------
+!TOPIC 362 FatCursor
+!NOINDEX
+procedure 0290OpCrt.FatCursor;
+
+Set larger scan lines for cursor based on current video mode.
+
+See also:
+  0363BlockCursor               0364HiddenCursor            0361NormalCursor
+  0360SetCursorSize
+;
+;------------------------------------------------------------
+!TOPIC 363 BlockCursor
+!NOINDEX
+procedure 0290OpCrt.BlockCursor;
+
+Set scan lines for a block cursor.
+
+See also:
+  0362FatCursor                 0364HiddenCursor            0361NormalCursor
+  0360SetCursorSize
+;
+;------------------------------------------------------------
+!TOPIC 364 HiddenCursor
+!NOINDEX
+procedure 0290OpCrt.HiddenCursor;
+
+Hide the cursor.
+
+See also:
+  0363BlockCursor               0362FatCursor               0361NormalCursor
+  0360SetCursorSize
+;
+;------------------------------------------------------------
+!TOPIC 365 SetCursorType
+!NOINDEX
+procedure 0290OpCrt.SetCursorType(CT : CursorType);
+
+Sets the cursor shape to the specified type.
+
+See also:
+  0363BlockCursor               0366ClassifyCursorType      0362FatCursor
+  0364HiddenCursor              0361NormalCursor
+;
+;------------------------------------------------------------
+!TOPIC 366 ClassifyCursorType
+!NOINDEX
+function 0290OpCrt.ClassifyCursorType : CursorType;
+
+Classify cursor type based on scan lines.
+
+See also:  0365SetCursorType
+;
+;------------------------------------------------------------
+!TOPIC 367 ReadCharAtCursor
+!NOINDEX
+function 0290OpCrt.ReadCharAtCursor : Char;
+
+Returns character at the current cursor location on the selected page.
+
+See also:  0378FastRead
+;
+;------------------------------------------------------------
+!TOPIC 368 ReadAttrAtCursor
+!NOINDEX
+function 0290OpCrt.ReadAttrAtCursor : Byte;
+
+Returns attribute at the current cursor location on the selected page.
+
+See also:  0379ReadAttribute  0367ReadCharAtCursor
+;
+;------------------------------------------------------------
+!TOPIC 369 GetCursorState
+!NOINDEX
+procedure 0290OpCrt.GetCursorState(var XY, ScanLines : Word);
+
+Return the current position and size of the cursor.
+
+See also:  0370RestoreCursorState
+;
+;------------------------------------------------------------
+!TOPIC 370 RestoreCursorState
+!NOINDEX
+procedure 0290OpCrt.RestoreCursorState(XY, ScanLines : Word);
+
+Reset the cursor to a position and size saved with GetCursorState.
+
+See also:  0369GetCursorState
+;
+;------------------------------------------------------------
+!TOPIC 371 FastWrite
+!NOINDEX
+procedure 0290OpCrt.FastWrite(St : string; Row, Col : Word; Attr : Byte);
+
+Write St at Row,Col in Attr (0464video attributes) without snow.
+;
+;------------------------------------------------------------
+!TOPIC 372 FastText
+!NOINDEX
+procedure 0290OpCrt.FastText(St : string; Row, Col : Word);
+
+Write St at Row,Col without changing the underlying 0464video attributes.
+
+See also:  0371FastWrite
+;
+;------------------------------------------------------------
+!TOPIC 373 FastVert
+!NOINDEX
+procedure 0290OpCrt.FastVert(St : string; Row, Col : Word; Attr : Byte);
+
+Write St vertically at Row,Col in Attr (0464video attributes).
+
+See also:  0371FastWrite
+;
+;------------------------------------------------------------
+!TOPIC 374 FastFill
+!NOINDEX
+procedure 0290OpCrt.FastFill(Number : Word; Ch : Char;
+                         Row, Col : Word; Attr : Byte);
+
+Fill Number Chs at Row,Col in Attr (0464video attributes) without snow.
+;
+;------------------------------------------------------------
+!TOPIC 375 FastFillVert
+!NOINDEX
+procedure 0290OpCrt.FastFillVert(Number : Word; Ch : Char;
+                             Row, Col : Word; Attr : Byte);
+
+Fill Number Chs vertically at Row,Col in Attr (0464video attributes)
+without snow.
+;
+;------------------------------------------------------------
+!TOPIC 376 FastCenter
+!NOINDEX
+procedure 0290OpCrt.FastCenter(St : string; Row, Attr : Byte);
+
+Write St centered on window Row in Attr (0464video attributes) without snow.
+
+See also:  0377FastFlush
+;
+;------------------------------------------------------------
+!TOPIC 377 FastFlush
+!NOINDEX
+procedure 0290OpCrt.FastFlush(St : string; Row, Attr : Byte);
+
+Write St flush right on window Row in Attr (0464video attributes) without snow.
+
+See also:  0376FastCenter
+;
+;------------------------------------------------------------
+!TOPIC 378 FastRead
+!NOINDEX
+procedure 0290OpCrt.FastRead(Number : Byte; Row, Col : Word; var St : string);
+
+Read Number characters from the screen into St starting at Row,Col.
+
+See also:  0367ReadCharAtCursor
+;
+;------------------------------------------------------------
+!TOPIC 379 ReadAttribute
+!NOINDEX
+procedure 0290OpCrt.ReadAttribute(Number : Byte; Row, Col : Word;
+                              var St : string);
+
+Read Number attributes from the screen into St starting at Row,Col.
+
+See also:
+  0378FastRead                  0383FastWriteAttr           0368ReadAttrAtCursor
+  0380WriteAttribute
+;
+;------------------------------------------------------------
+!TOPIC 380 WriteAttribute
+!NOINDEX
+procedure 0290OpCrt.WriteAttribute(St : String; Row, Col : Word);
+
+Write string of attributes St at Row,Col without changing characters.
+
+See also:  0379ReadAttribute
+;
+;------------------------------------------------------------
+!TOPIC 381 ChangeAttribute
+!NOINDEX
+procedure 0290OpCrt.ChangeAttribute(Number : Word; Row, Col : Word;
+                                Attr : Byte);
+
+Change Number 0464video attributes to Attr starting at Row,Col.
+;
+;------------------------------------------------------------
+!TOPIC 382 MoveScreen
+!NOINDEX
+procedure 0290OpCrt.MoveScreen(var Source, Dest; Length : Word);
+
+Move Length words from Source to Dest without snow.
+
+See also:  0388RestoreWindow  0387SaveWindow
+;
+;------------------------------------------------------------
+!TOPIC 383 FastWriteAttr
+!NOINDEX
+procedure 0290OpCrt.FastWriteAttr(St : String; Row, Col : Word;
+                              AttrSt : String);
+
+Write St at Row,Col using attributes in AttrSt.
+
+See also:  0384FlexWrite  0379ReadAttribute
+;
+;------------------------------------------------------------
+!TOPIC 384 FlexWrite
+!NOINDEX
+procedure 0290OpCrt.FlexWrite(St : string; Row, Col : Word;
+                          var FAttrs : 0435FlexAttrs);
+
+Write St at Row,Col with flexible color handling.
+
+See also:  0371FastWrite  0383FastWriteAttr  0385FlexLen
+;
+;------------------------------------------------------------
+!TOPIC 385 FlexLen
+!NOINDEX
+function 0290OpCrt.FlexLen(S : string) : Byte;
+
+Return actual (visible) length of a flex string.
+
+See also:  0384FlexWrite
+;
+;------------------------------------------------------------
+!TOPIC 386 FastWriteCtrl
+!NOINDEX
+procedure 0290OpCrt.FastWriteCtrl(St : String; Row, Col : Word;
+                              Attr, Ctrl : Byte);
+
+Write St at Row,Col in Attr (0464video attributes) without snow. Control
+characters displayed in Ctrl as upper-case letters.
+
+See also:  0371FastWrite
+;
+;------------------------------------------------------------
+!TOPIC 387 SaveWindow
+!NOINDEX
+function 0290OpCrt.SaveWindow(XLow, YLow, XHigh, YHigh : Byte;
+                          Allocate : Boolean;
+                          var Covers : Pointer) : Boolean;
+
+Allocate buffer space if requested and save window contents.
+
+See also:  0388RestoreWindow
+;
+;------------------------------------------------------------
+!TOPIC 388 RestoreWindow
+!NOINDEX
+procedure 0290OpCrt.RestoreWindow(XLow, YLow, XHigh, YHigh : Byte;
+                              Deallocate : Boolean;
+                              var Covers : Pointer);
+
+Restore screen contents and deallocate buffer space if requested.
+
+See also:  0387SaveWindow
+;
+;------------------------------------------------------------
+!TOPIC 389 ClearWindow
+!NOINDEX
+procedure 0290OpCrt.ClearWindow(XLow, YLow, XHigh, YHigh : Word;
+                            Ch : Char; A : Byte);
+
+Clear a window using the specified character and attribute.
+;
+;------------------------------------------------------------
+!TOPIC 390 FrameWindow
+!NOINDEX
+procedure 0290OpCrt.FrameWindow(LeftCol, TopRow, RightCol, BotRow : Word;
+                            FAttr, HAttr : Byte; Header : string);
+
+Draws a frame around a window.
+
+See also:  0432FrameChars
+;
+;------------------------------------------------------------
+!TOPIC 391 StoreWindowCoordinates
+!NOINDEX
+procedure 0290OpCrt.StoreWindowCoordinates(var WC : WindowCoordinates);
+
+Store the window coordinates for the active window.
+
+See also:  0392RestoreWindowCoordinates
+;
+;------------------------------------------------------------
+!TOPIC 392 RestoreWindowCoordinates
+!NOINDEX
+procedure 0290OpCrt.RestoreWindowCoordinates(WC : WindowCoordinates);
+
+Restore previously saved window coordinates.
+
+See also:  0391StoreWindowCoordinates
+;
+;------------------------------------------------------------
+!TOPIC 393 MapColor
+!NOINDEX
+function 0290OpCrt.MapColor(C : Byte) : Byte;
+
+Map a 0464video attribute for visibility on mono/BW displays.
+
+See also:  0394UseColor
+;
+;------------------------------------------------------------
+!TOPIC 394 UseColor
+!NOINDEX
+function 0290OpCrt.UseColor : Boolean;
+
+Returns True if color video attributes should be used.
+
+See also:  0465ColorChoice  0395ColorMono  0473DefColorChoice
+;
+;------------------------------------------------------------
+!TOPIC 395 ColorMono
+!NOINDEX
+function 0290OpCrt.ColorMono(Color, Mono : Byte) : Byte;
+
+Choose between color and monochrome 0464video attributes.
+
+See also:  0394UseColor
+;
+;------------------------------------------------------------
+!TOPIC 396 MapMono
+!NOINDEX
+function 0290OpCrt.MapMono(Color, Mono : Byte) : Byte;
+
+Return a mapped color 0464video attribute if Mono = $FF.
+
+See also:  0393MapColor
+;
+;------------------------------------------------------------
+!TOPIC 397 SetBlink
+!NOINDEX
+procedure 0290OpCrt.SetBlink(On : Boolean);
+
+Enable text mode attribute blinking if On is True.
+;
+;------------------------------------------------------------
+!TOPIC 398 SetCrtBorder
+!NOINDEX
+procedure 0290OpCrt.SetCrtBorder(Attr : Byte);
+
+Set border to background color if card type and mode allow.
+;
+;------------------------------------------------------------
+!TOPIC 399 Font8x8Selected
+!NOINDEX
+function 0290OpCrt.Font8x8Selected : Boolean;
+
+Return True if EGA or VGA is active and in 8x8 font.
+
+See also:  0400SelectFont8x8
+;
+;------------------------------------------------------------
+!TOPIC 400 SelectFont8x8
+!NOINDEX
+procedure 0290OpCrt.SelectFont8x8(On : Boolean);
+
+Toggle 8x8 font on or off.
+
+See also:  0399Font8x8Selected
+;
+;------------------------------------------------------------
+!TOPIC 401 HercPresent
+!NOINDEX
+function 0290OpCrt.HercPresent : Boolean;
+
+Return true if a Hercules graphics card is present.
+
+See also:  0404HercModeTestWorks  0452WhichHerc
+;
+;------------------------------------------------------------
+!TOPIC 402 SwitchInColorCard
+!NOINDEX
+procedure 0290OpCrt.SwitchInColorCard(ColorOn : Boolean);
+
+Activate or deactivate colors on a Hercules InColor card.
+
+See also:  0405SetHercMode
+;
+;------------------------------------------------------------
+!TOPIC 403 HercGraphicsMode
+!NOINDEX
+function 0290OpCrt.HercGraphicsMode : Boolean;
+
+Return True if a Hercules card is in graphics mode.
+
+See also:  0404HercModeTestWorks
+;
+;------------------------------------------------------------
+!TOPIC 404 HercModeTestWorks
+!NOINDEX
+function 0290OpCrt.HercModeTestWorks : Boolean;
+
+Return True if HercGraphicsMode will work.
+
+See also:  0403HercGraphicsMode
+;
+;------------------------------------------------------------
+!TOPIC 405 SetHercMode
+!NOINDEX
+procedure 0290OpCrt.SetHercMode(GraphMode : Boolean; GraphPage : Byte);
+
+Set Hercules card to graphics mode or text mode, and activate specified
+graphics page (if switching to graphics mode).
+
+See also:  0401HercPresent  0402SwitchInColorCard
+;
+;------------------------------------------------------------
+!TOPIC 406 ReadKeyWord
+!NOINDEX
+function 0290OpCrt.ReadKeyWord : Word;
+
+Waits for keypress, then returns scan and character codes together.
+
+See also:  0407CheckKbd  0339ReadKey
+;
+;------------------------------------------------------------
+!TOPIC 407 CheckKbd
+!NOINDEX
+function 0290OpCrt.CheckKbd(var KeyCode : Word) : Boolean;
+
+Returns True (and the key codes) if a keystroke is waiting.
+
+See also:  0338KeyPressed
+;
+;------------------------------------------------------------
+!TOPIC 408 KbdFlags
+!NOINDEX
+function 0290OpCrt.KbdFlags : Byte;
+
+Returns keyboard status flags as a bit-coded byte. Although this value can
+be obtained directly by using an absolute variable (at $40:$17), the
+KbdFlags uses the more reliable method of executing BIOS interrupt $16,
+function 2. The meaning of the individual bits in the flags byte are shown
+below.
+
+Bit  Val  Meaning
+ 7   $80  Insert on
+ 6   $40  Caps Lock on
+ 5   $20  Num Lock on
+ 4   $10  Scroll Lock on
+ 3   $08  <Alt> depressed
+ 2   $04  <Ctrl> depressed
+ 1   $02  <LeftShift> depressed
+ 0   $01  <RightShift> depressed
+
+See also:  0338KeyPressed
+;
+;------------------------------------------------------------
+!TOPIC 409 EnhancedKbdInstalled
+!NOINDEX
+function 0290OpCrt.EnhancedKbdInstalled : Boolean;
+
+Returns True if an enhanced keyboard is installed.
+
+See also:  1129OpEnhKbd  0463UseEnhancedKbd
+;
+;------------------------------------------------------------
+!TOPIC 410 StuffKey
+!NOINDEX
+procedure 0290OpCrt.StuffKey(W : Word);
+
+Stuff one key into the keyboard buffer.
+
+See also:  0411StuffString
+;
+;------------------------------------------------------------
+!TOPIC 411 StuffString
+!NOINDEX
+procedure 0290OpCrt.StuffString(S : string);
+
+Stuff the contents of S into the keyboard buffer (maximum of 15 characters).
+
+See also:  0410StuffKey
+;
+;------------------------------------------------------------
+!TOPIC 412 ReInitCrt
+!NOINDEX
+procedure 0290OpCrt.ReInitCrt;
+
+Reinitialize OpCrt's internal variables. For TSR's or programs with
+DOS shells. May reset: CurrentMode, ScreenWidth, ScreenHeight,WindMin/WindMax,
+CurrentPage, CurrentDisplay, CheckSnow, and VideoSegment.
+
+See also:  0863OpDos.ExecDos  0344GetCrtMode
+;
+;------------------------------------------------------------
+!TOPIC 413 Color control
+!NOINDEX
+!NOSEARCH
+OpCrt contains a number of constants, typed constants and routines for
+controlling capabilities for controlling video colors:
+
+  0468AutoMapMono               0429Blink                   0465ColorChoice
+  0469ColorMap                  0466ColorMapTable           0395ColorMono
+  0336HighVideo                 0335LowVideo                0323MakeHiddenAttr
+  0393MapColor                  0396MapMono                 0337NormVideo
+  0397SetBlink                  0398SetCrtBorder            0334TextBackground
+  0333TextColor                 0394UseColor                0464Video Attributes
+;
+;------------------------------------------------------------
+!TOPIC 414 Cursor control
+!NOINDEX
+!NOSEARCH
+OpCrt capabilities for cursor control:
+
+  0363BlockCursor               0366ClassifyCursorType      0359CursorEndLine
+  0358CursorStartLine           0467CursorType              0357CursorTypeSL
+  0362FatCursor                 0369GetCursorState          0330GoToXY
+  0345GotoXYAbs                 0364HiddenCursor            0361NormalCursor
+  0370RestoreCursorState        0360SetCursorSize           0365SetCursorType
+  0331WhereX                    0348WhereXAbs               0346WhereXY
+  0349WhereXYdirect             0332WhereY                  0347WhereYAbs
+;
+;------------------------------------------------------------
+!TOPIC 415 Fast screen I/O
+!NOINDEX
+!NOSEARCH
+OpCrt capabilities for fast screen reading and writing:
+
+  0381ChangeAttribute           0327ClrEol                  0326ClrScr
+  0376FastCenter                0374FastFill                0375FastFillVert
+  0377FastFlush                 0378FastRead                0372FastText
+  0373FastVert                  0371FastWrite               0383FastWriteAttr
+  0386FastWriteCtrl             0385FlexLen                 0384FlexWrite
+  0382MoveScreen                0368ReadAttrAtCursor        0379ReadAttribute
+  0367ReadCharAtCursor          0462TextChar                0380WriteAttribute
+;
+;------------------------------------------------------------
+!TOPIC 416 Keyboard input
+!NOINDEX
+!NOSEARCH
+OpCrt capabilities for keyboard input:
+
+    0456BufLen                            0437CheckBreak
+    0438CheckEOF                          0407CheckKbd
+    0445CtrlBreakFlag                     0409EnhancedKbdInstalled
+    0408KbdFlags                          0338KeyPressed
+    0339ReadKey                           0406ReadKeyWord
+    0475SaveCtrlC                         0410StuffKey
+    0411StuffString                       0463UseEnhancedKbd
+;
+;------------------------------------------------------------
+!TOPIC 417 Miscellaneous,OpCrt
+!NOINDEX
+!NOSEARCH
+OpCrt miscellaneous capabilities:
+
+  0471DefaultPadChar            0470DefaultPasswordChar     0341Delay
+  0478DelayCalibrate            0343NoSound                 0458OneMs
+  0342Sound
+;
+;------------------------------------------------------------
+!TOPIC 418 Scrolling
+!NOINDEX
+!NOSEARCH
+OpCrt scrolling capabilities:
+
+  0431BiosScroll                0329DelLine                 0328InsLine
+  0356ScrollWindowDown          0355ScrollWindowUp
+;
+;------------------------------------------------------------
+!TOPIC 419 Video modes
+!NOINDEX
+!NOSEARCH
+OpCrt provides the following routines and data structures for controlling
+video modes and other general screen characteristics:
+
+  0340AssignCrt                 0431BiosScroll              0429Blink
+  0456BufLen                    0423BW40                    0425BW80
+  0437CheckBreak                0438CheckEOF                0440CheckSnow
+  0354ClearPage                 0424CO40                    0426CO80
+  0445CtrlBreakFlag             0450CurrentDisplay          0447CurrentMode
+  0446CurrentPage               0430DetectMultitasking      0439DirectVideo
+  0461DisplayOverride           0433DisplayType             0451EnhancedDisplay
+  0435FlexAttrs                 0428Font8x8                 0399Font8x8Selected
+  0422FrameArray                0432FrameChars              0421FrameCharType
+  0390FrameWindow               0344GetCrtMode              0353GetPagePointer
+  0352GetPageSegment            0434HercCardType            0474HercExceptionReg
+  0403HercGraphicsMode          0404HercModeTestWorks       0401HercPresent
+  0453InTextMode                0444LastMode                0427Mono
+  0457MultiTaskingOn            0454NormalAttr              0412ReInitCrt
+  0449ScreenHeight              0448ScreenWidth             0400SelectFont8x8
+  0351SetActivePage             0405SetHercMode             0350SetVisiblePage
+  0402SwitchInColorCard         0324TextMode                0455VideoSegment
+  0476VirtualHeight             0459VirtualSegment          0460VirtualWidth
+  0452WhichHerc
+;
+;------------------------------------------------------------
+!TOPIC 420 Windows
+!NOINDEX
+!NOSEARCH
+OpCrt capabilities for non-object-oriented windows:
+
+See also:
+    0389ClearWindow                       0390FrameWindow
+    0388RestoreWindow                     0392RestoreWindowCoordinates
+    0387SaveWindow                        0356ScrollWindowDown
+    0355ScrollWindowUp                    0391StoreWindowCoordinates
+    0325Window
+;
+;---------------------------------------------------------------------------
+!TOPIC 421 FrameCharType
+!NOINDEX
+type
+  FrameCharType = frTL..frRR;
+
+An array of characters used for drawing frames around windows. The
+FrameCharType consists of the following constants:
+
+  frTL = 0;
+  frBL = 1;
+  frTR = 2;
+  frBR = 3;
+  frTT = 4;
+  frBB = 5;
+  frLL = 6;
+  frRR = 7;
+
+See also:  0422FrameArray
+;
+;---------------------------------------------------------------------------
+!TOPIC 422 FrameArray
+!NOINDEX
+type
+  FrameArray = array[0421FrameCharType] of Char;
+
+Type used to store the characters that form a window frame.
+
+See also:  0421FrameCharType
+;
+;---------------------------------------------------------------------------
+!TOPIC 423 BW40
+!NOINDEX
+const
+  BW40 = 0;
+
+Black and white 40-column video mode.
+
+See also:  0447CurrentMode  0324TextMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 424 CO40
+!NOINDEX
+const
+  CO40 = 1;
+  C40  = 1;
+
+Color 40-column video mode.
+
+See also:  0447CurrentMode  0324TextMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 425 BW80
+!NOINDEX
+const
+  BW80 = 2;
+
+Black and white 80-column video mode.
+
+See also:  0447CurrentMode  0324TextMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 426 CO80
+!NOINDEX
+const
+  CO80 = 3;
+  C80 = CO80;
+
+Color 80-column video mode.
+
+See also:  0447CurrentMode  0324TextMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 427 Mono
+!NOINDEX
+const
+  Mono = 7;
+
+Monochrome 80-column video mode.
+
+See also:  0447CurrentMode  0324TextMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 428 Font8x8
+!NOINDEX
+const
+  Font8x8 = 256;
+
+Adding this to other video mode constants (usually BW80 or CO80) and passing
+the result to TextMode causes the screen to switch to 43 or 50 line mode on
+an EGA or VGA.
+
+See also:  0324TextMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 429 Blink
+!NOINDEX
+const
+  Blink = 128;
+
+Adding this constant to one of the color constants and passing the result to
+TextColor causes the ensuing text to blink, unless the video adapter's
+blink capability has been disabled.
+
+See also:  0333TextColor  0333TextColor
+;
+;---------------------------------------------------------------------------
+!TOPIC 430 DetectMultitasking
+!NOINDEX
+const
+  DetectMultitasking : Boolean = False;
+
+Set to True to allow programs to run as background tasks under DesqView or
+OmniView. Must be set False for TSR's. Must call ReinitCRT after changing.
+
+See also:  0412ReInitCrt
+;
+;---------------------------------------------------------------------------
+!TOPIC 431 BiosScroll
+!NOINDEX
+const
+  BiosScroll : Boolean = True;
+
+Set to False to use OpCrt routines for clean scrolling. Avoids some bugs in
+older video BIOS ROM's.
+;
+;---------------------------------------------------------------------------
+!TOPIC 432 FrameChars
+!NOINDEX
+const
+  FrameChars : 0422FrameArray = 'ÕÔ¸¾ÍÍ³³';
+
+Default frame characters used to draw frames around windows.
+
+See also:  0422FrameArray
+;
+;---------------------------------------------------------------------------
+!TOPIC 433 DisplayType
+!NOINDEX
+type
+  DisplayType = (MonoHerc, CGA, MCGA, EGA, VGA, PGC);
+
+The types of video adapters that OpCrt's initialization code can detect.
+
+See also:  0450CurrentDisplay  0451EnhancedDisplay
+;
+;---------------------------------------------------------------------------
+!TOPIC 434 HercCardType
+!NOINDEX
+type
+  HercCardType = (HercNone, HercPlain, HercPlus, HercInColor);
+
+The types of Hercules video adapters that OpCrt's initialization code can
+detect.
+
+See also:  0452WhichHerc
+;
+;---------------------------------------------------------------------------
+!TOPIC 435 FlexAttrs
+!NOINDEX
+type
+  FlexAttrs = array[0..3] of Byte;
+
+Specifies four different 0464video attributes for FlexWriting--the first
+used by default, the second used after ^A, the third after ^B, the fourth
+after ^C.
+
+See also:  0384FlexWrite
+;
+;---------------------------------------------------------------------------
+!TOPIC 436 WindowCoordinates
+!NOINDEX
+type
+  WindowCoordinates = record XL, YL, XH, YH : Byte; end;
+
+Record used to save and restore window coordinates.
+;
+;---------------------------------------------------------------------------
+!TOPIC 437 CheckBreak
+!NOINDEX
+var
+  CheckBreak : Boolean;
+
+True to enable Ctrl-Break checking.
+
+See also:  0445CtrlBreakFlag  0445CtrlBreakFlag  0475SaveCtrlC
+;
+;---------------------------------------------------------------------------
+!TOPIC 438 CheckEOF
+!NOINDEX
+var
+  CheckEOF : Boolean;
+
+True to enable Ctrl-Z checking.
+;
+;---------------------------------------------------------------------------
+!TOPIC 439 DirectVideo
+!NOINDEX
+var
+  DirectVideo : Boolean;
+
+True to write directly to screen with WriteLn statements, or False to use
+BIOS services.
+;
+;---------------------------------------------------------------------------
+!TOPIC 440 CheckSnow
+!NOINDEX
+var
+  CheckSnow : Boolean;
+
+True to prevent snow on CGA's.
+
+See also:  0439DirectVideo
+;
+;---------------------------------------------------------------------------
+!TOPIC 441 TextAttr
+!NOINDEX
+var
+  TextAttr : Byte;
+
+Current 0464video attribute for Write and ClrScr statements.
+;
+;---------------------------------------------------------------------------
+!TOPIC 442 WindMin
+!NOINDEX
+var
+  WindMin : Word;
+
+Current window XLow and YLow in 0..79, 0..24 format.
+;
+;---------------------------------------------------------------------------
+!TOPIC 443 WindMax
+!NOINDEX
+var
+  WindMax : Word;
+
+Current window XHigh and YHigh in 1..25, 1..80 format.
+;
+;---------------------------------------------------------------------------
+!TOPIC 444 LastMode
+!NOINDEX
+var
+  LastMode : Word;
+
+Current video mode in low byte, 8x8 flag in high byte.
+
+See also:  0447CurrentMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 445 CtrlBreakFlag
+!NOINDEX
+var
+  CtrlBreakFlag : Boolean;
+
+Set to true when Ctrl-Break pressed.
+
+See also:  0437CheckBreak  0437CheckBreak
+;
+;---------------------------------------------------------------------------
+!TOPIC 446 CurrentPage
+!NOINDEX
+var
+  CurrentPage : Byte;
+
+Current video page for text writes and display.
+
+See also:  0350SetVisiblePage
+;
+;---------------------------------------------------------------------------
+!TOPIC 447 CurrentMode
+!NOINDEX
+var
+  CurrentMode : Byte absolute LastMode;
+
+Current video mode (strips off 8x8 indicator).
+
+See also:  0444LastMode
+;
+;---------------------------------------------------------------------------
+!TOPIC 448 ScreenWidth
+!NOINDEX
+var
+  ScreenWidth : Word;
+
+Current width of screen, typically 80.
+
+See also:  0449ScreenHeight
+;
+;---------------------------------------------------------------------------
+!TOPIC 449 ScreenHeight
+!NOINDEX
+var
+  ScreenHeight : Word;
+
+Current height of screen, typically 25, 43, or 50.
+
+See also:  0448ScreenWidth
+;
+;---------------------------------------------------------------------------
+!TOPIC 450 CurrentDisplay
+!NOINDEX
+var
+  CurrentDisplay : 0433DisplayType;
+
+The currently selected display adapter.
+
+See also:  0451EnhancedDisplay
+;
+;---------------------------------------------------------------------------
+!TOPIC 451 EnhancedDisplay
+!NOINDEX
+var
+  EnhancedDisplay : DisplayType;
+
+Meaningful only if it is set to MCGA, VGA, or EGA. It is useful primarily
+in detecting situations where two adapters are installed, a plain
+monochrome adapter and an EGA attached to a color monitor, for example. In
+such a case EnhancedDisplay would be set to EGA, even though
+0450CurrentDisplay was set to MonoHerc. This information is especially
+needed by memory resident programs that support the 43- and 50-line modes
+(which use the 8x8 font) available on the EGA and VGA, respectively. See
+SMACS.PAS for an example. If an MCGA, VGA, or EGA is not installed,
+EnhancedDisplay will be set to MonoHerc.
+
+See also:  0450CurrentDisplay
+;
+;---------------------------------------------------------------------------
+!TOPIC 452 WhichHerc
+!NOINDEX
+var
+  WhichHerc : 0434HercCardType;
+
+Type of Hercules card installed.
+;
+;---------------------------------------------------------------------------
+!TOPIC 453 InTextMode
+!NOINDEX
+var
+  InTextMode : Boolean;
+
+Set to false when in graphics mode.
+;
+;---------------------------------------------------------------------------
+!TOPIC 454 NormalAttr
+!NOINDEX
+var
+  NormalAttr : Byte;
+
+0464Video attribute used for 0337NormVideo.
+;
+;---------------------------------------------------------------------------
+!TOPIC 455 VideoSegment
+!NOINDEX
+var
+  VideoSegment : Word;
+
+Current segment for video memory.
+;
+;---------------------------------------------------------------------------
+!TOPIC 456 BufLen
+!NOINDEX
+var
+  BufLen : Word;
+
+Maximum length of string for Read and ReadLn. Reset to 126 after each read.
+;
+;---------------------------------------------------------------------------
+!TOPIC 457 MultiTaskingOn
+!NOINDEX
+var
+  MultiTaskingOn : Boolean;
+
+Set to True if 0430DetectMultitasking is True and a multitasker (DesqView or
+OmniView) is detected.
+;
+;---------------------------------------------------------------------------
+!TOPIC 458 OneMs
+!NOINDEX
+var
+  OneMS : Word;
+
+Loop count used for a 1 ms delay.
+
+See also:  0341Delay  0478DelayCalibrate
+;
+;---------------------------------------------------------------------------
+!TOPIC 459 VirtualSegment
+!NOINDEX
+var
+  VirtualSegment : Word;
+
+This variable is normally equal to VideoSegment, but it is sometimes changed
+by OpWindow to allow FastWrite and other screen writing routines to be used
+on virtual screens.
+
+See also:  0476VirtualHeight  0460VirtualWidth
+;
+;---------------------------------------------------------------------------
+!TOPIC 460 VirtualWidth
+!NOINDEX
+var
+  VirtualWidth : Word;
+
+This variable is normally equal to ScreenWidth, but it is sometimes changed by
+OpWindow to allow FastWrite and other screen writing routines to be used on
+virtual screens.
+
+See also:  0476VirtualHeight
+;
+;---------------------------------------------------------------------------
+!TOPIC 461 DisplayOverride
+!NOINDEX
+const
+  DisplayOverride : ShortInt = -1;
+
+Because auto-detection of display adapters is an imperfect art, this
+variable is provided as a means of overriding it. It is initialized to -1,
+which enables auto-detection. If you need to force OpCrt to treat, say,
+an EGA as a CGA, you can set DisplayOverride to the ordinal value of the
+appropriate DisplayType--"DisplayOverride := Ord(CGA);"--then call
+ReinitCrt. The more common use for this variable is to force OpCrt to
+recognize an adapter as an EGA or VGA in cases where auto-detection has
+failed to identify it correctly. This should rarely be necessary, however.
+
+See also:  0433DisplayType  0412ReInitCrt
+;
+;---------------------------------------------------------------------------
+!TOPIC 462 TextChar
+!NOINDEX
+const
+  TextChar : Char = ' ';
+
+Background character used by ClrScr, ScrollWindowUp, and ScrollWindowDown.
+Gets reset to ' ' automatically after each use.
+
+See also:  0326ClrScr  0356ScrollWindowDown  0355ScrollWindowUp
+;
+;---------------------------------------------------------------------------
+!TOPIC 463 UseEnhancedKbd
+!NOINDEX
+const
+  UseEnhancedKbd : Boolean = False;
+
+If this variable is set to True, all keyboard calls in OpCrt (ReadKey,
+ReadKeyWord, KeyPressed, etc.) will use the BIOS's special enhanced
+keyboard functions, allowing them to recognize the keys found only on
+enhanced keyboards, such as <F11> and <F12>.
+
+See also:  1129OpEnhKbd  0409EnhancedKbdInstalled
+;
+;---------------------------------------------------------------------------
+!TOPIC 464 Video attributes
+!NOINDEX
+!NOSEARCH
+Definition of Video attribute:
+
+When running in text mode, the video memory on a PC is divided into a
+series of rows (usually 25) and columns (usually 80). For each of these
+locations on the screen, there are two bytes of data: one contains the
+character at that location, and the other contains its color
+characteristics. These characteristics are described in a bit-mapped byte
+known as a video attribute, which has four components:
+
+!NOWRAP
+ÚÄÄÄÂÄÄÄÂÄÄÄÂÄÄÄÂÄÄÄÂÄÄÄÂÄÄÄÂÄÄÄ¿
+³ 7 ³ 6 ³ 5 ³ 4 ³ 3 ³ 2 ³ 1 ³ 0 ³ÄÄ Bit numbers
+ÀÄÄÄÁÄÄÄÁÄÄÄÁÄÄÄÁÄÄÄÁÄÄÄÁÄÄÄÁÄÄÄÙ
+  ³   ³   ³   ³   ³   ³   ³   ³
+  ³   ³   ³   ³   ³   ÀÄÄÄÁÄÄÄÁÄÄÄÄ Foreground color
+  ³   ³   ³   ³   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Intensity bit (foreground only)
+  ³   ÀÄÄÄÁÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Background color
+  ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Blink bit (or background intensity)
+!WRAP
+;
+;---------------------------------------------------------------------------
+!TOPIC 465 ColorChoice
+!NOINDEX
+type
+  ColorChoice = (UseDefault, ForceColor, ForceMono);
+
+Type of DefColorChoice, which influences the result returned by the UseColor
+function, which is called whenever a choice between color and monochrome
+attributes must be made. The normal setting is UseDefault, which means that
+the choice is based on the current video mode and/or the display type.
+ForceColor forces color attributes to be chosen; ForceMono forces monochrome
+attributes to be chosen.
+
+See also:  0473DefColorChoice  0394UseColor
+;
+;---------------------------------------------------------------------------
+!TOPIC 466 ColorMapTable
+!NOINDEX
+type
+  ColorMapTable = array[0..255] of Byte;
+
+A table used to map color 0464video attributes for monochrome or black and
+white displays.
+
+See also:  0469ColorMap  0395ColorMono
+;
+;---------------------------------------------------------------------------
+!TOPIC 467 CursorType
+!NOINDEX
+type
+  CursorType = (cuNormal, cuFat, cuBlock, cuHidden, cuUnknown);
+
+Standard cursor shapes defined by OpCrt. cuNormal is the thin cursor,
+normally two scan lines high, that is the default on PC's and compatibles.
+cuFat is a slightly fatter cursor, usually three lines high. cuBlock is a
+"block cursor," a full screen line (8-14 scan lines) in height. cuHidden is a
+hidden cursor. cuUnknown is used internally to classify "non-standard" cursor
+shapes.
+
+!NOWRAP
+InsertCursor   : CursorType = cuFat;
+OvertypeCursor : CursorType = cuNormal;
+CtrlCharCursor : CursorType = cuBlock;
+!WRAP
+
+These three constants are used by OpSEdit, OpEdit, and OpMemo to
+determine the shape of the cursor while editing in insert and overtype modes,
+and when waiting for a control character to be entered after the ccCtrlChar
+command has been issued. The default settings call for a thin cursor in
+overtype mode, a slightly fatter cursor in insert mode, and a block cursor
+while waiting for a control character.
+
+See also:  0357CursorTypeSL
+;
+;---------------------------------------------------------------------------
+!TOPIC 468 AutoMapMono
+!NOINDEX
+const
+  AutoMapMono = $FF;
+
+When passed as the second parameter to the MapMono routine, or any routine
+that calls MapMono, this value indicates that the monochrome attribute
+should be selected automatically using a translation table (ColorMap).
+
+See also:  0393MapColor  0394UseColor
+;
+;---------------------------------------------------------------------------
+!TOPIC 469 ColorMap
+!NOINDEX
+const
+  ColorMap : ColorMapTable = (...);
+
+A translation table used to convert color 0464video attributes into
+monochrome video attributes. This table is used by MapColor, MapMono, and the
+PackedWindow.MapColors method (OpWindow).
+
+See also:  0466ColorMapTable  0395ColorMono
+;
+;---------------------------------------------------------------------------
+!TOPIC 470 DefaultPasswordChar
+!NOINDEX
+const
+  DefualtPasswordChar= ^G;
+
+The default character used to represent text when a line/field editor is in
+"password mode." Used by OpEdit and OpEntry not used by OpCrt itself.
+
+See also:  1136OpEntry  0941OpEdit
+;
+;---------------------------------------------------------------------------
+!TOPIC 471 DefaultPadChar
+!NOINDEX
+const
+  DefaultPadChar = ' ';
+
+The default character used to pad strings (visually) being edited with a line
+or field editor. Used by OpEdit and OpEntry; not used by OpCrt itself.
+
+See also:  1136OpEntry  0941OpEdit
+;
+;---------------------------------------------------------------------------
+!TOPIC 472 DefaultColorSet
+!NOINDEX
+const
+  DefaultColorSet : ColorSet = (...);
+
+The default colors for all screen-oriented objects.
+
+See also:  0291ColorSet
+;
+;---------------------------------------------------------------------------
+!TOPIC 473 DefColorChoice
+!NOINDEX
+const
+  DefColorChoice : ColorChoice = UseDefault;
+
+Influences the behavior of the UseColor function.
+
+See also:  0465ColorChoice  0394UseColor
+;
+;---------------------------------------------------------------------------
+!TOPIC 474 HercExceptionReg
+!NOINDEX
+const
+  HercExceptionReg : Byte = $27;
+
+This variable is a hook that makes it possible to use OpCrt as the basis for
+a more complete set of routines for programming the newer Hercules graphics
+cards. It is needed because the Exception Register on a RamFont card is a
+write-only register. HercExceptionReg retains the value of the last byte
+written to this port, allowing you (in theory) to independently program the
+three functions controlled by the Exception Register without affecting the
+other bits.
+;
+;---------------------------------------------------------------------------
+!TOPIC 475 SaveCtrlC
+!NOINDEX
+var
+  SaveCtrlC : Boolean;
+
+Used to save the state of DOS's break checking option. OpCrt forces break
+checking off when a program begins, and restores it to its former state when a
+program ends. See the Turbo Pascal manual's discussion of the GetCBreak and
+SetCBreak routines for details.
+
+See also:  0437CheckBreak
+;
+;---------------------------------------------------------------------------
+!TOPIC 476 VirtualHeight
+!NOINDEX
+var
+  VirtualHeight : Word;
+
+This variable is normally equal to ScreenHeight, but it is sometimes changed
+by OpWindow to allow certain screen writing routines to be used on virtual
+screens.
+
+See also:  0460VirtualWidth
+;
+;------------------------------------------------------------
+!TOPIC 477 Declarations,OpCrt
+!NOINDEX
+!NOSEARCH
+OpCrt provides the following types, constants and variables:
+
+    0468AutoMapMono                       0431BiosScroll
+    0429Blink                             0456BufLen
+    0423BW40                              0425BW80
+    0437CheckBreak                        0438CheckEOF
+    0440CheckSnow                         0424CO40
+    0426CO80                              0465ColorChoice
+    0469ColorMap                          0466ColorMapTable
+    0445CtrlBreakFlag                     0450CurrentDisplay
+    0447CurrentMode                       0446CurrentPage
+    0467CursorType                        0472DefaultColorSet
+    0471DefaultPadChar                    0470DefaultPasswordChar
+    0473DefColorChoice                    0430DetectMultitasking
+    0439DirectVideo                       0461DisplayOverride
+    0433DisplayType                       0451EnhancedDisplay
+    0435FlexAttrs                         0428Font8x8
+    0422FrameArray                        0432FrameChars
+    0421FrameCharType                     0434HercCardType
+    0474HercExceptionReg                  0453InTextMode
+    0444LastMode                          0427Mono
+    0457MultiTaskingOn                    0454NormalAttr
+    0458OneMs                             0475SaveCtrlC
+    0449ScreenHeight                      0448ScreenWidth
+    0441TextAttr                          0462TextChar
+    0463UseEnhancedKbd                    0464Video Attributes
+    0455VideoSegment                      0476VirtualHeight
+    0459VirtualSegment                    0460VirtualWidth
+    0452WhichHerc                         0443WindMax
+    0442WindMin                           0436WindowCoordinates
+;
+;------------------------------------------------------------
+!TOPIC 478 DelayCalibrate
+!NOINDEX
+procedure 0290OpCrt.DelayCalibrate;
+
+Reexecute delay calibration code.
+
+See also:  0341Delay  0458OneMs

@@ -1,0 +1,2788 @@
+AbsBCD  14-4
+AbstractArray  8-165
+AbstractField  6-15
+AbstractFrame  4-28
+AbstractHelpWindow  4-408
+AbstractSelector  6-76
+AbstractWindow  4-62
+Action#codes  10-4
+ActionCodeType (OPDOS)  10-3
+ActionCodeType (OPEXEC)  10-42
+Activate  4-193
+ActivateWrite  4-128
+ActiveChild  4-129
+ActiveFramePtr  4-64
+ActiveItemPtr  4-347
+ActiveListPtr  4-347
+ActiveSubPtr  4-347
+ActiveWinPtr  4-348
+Add (StringDict)  8-73
+Add (StringSet)  8-83
+AddAnyHeader  4-30
+AddArrayField  6-135
+AddBackSlash  9-3
+AddBCD  14-4
+AddBcdField (EntryScreen)  6-136
+AddBcdField (PrintedForm)  7-78
+AddBooleanField (EntryScreen)  6-139
+AddBooleanField (PrintedForm)  7-78
+AddBox  7-80
+AddBoxField  6-77
+AddBoxFieldCustom  6-77
+AddByteField (EntryScreen)  6-135
+AddByteField (PrintedForm)  7-78
+AddCenteredTextField  6-78
+AddCharField (EntryScreen)  6-139
+AddCharField (PrintedForm)  7-78
+AddCheckBox  6-218
+AddCheckBoxAt  6-218
+AddCheckBoxes  6-219
+AddChild  4-129
+AddChoiceField  6-141
+AddCommand  3-97
+AddCompField (EntryScreen)  6-136
+AddCompField (PrintedForm)  7-78
+AddCustomHeader (Frame)  4-30
+AddCustomHeader (Menu)  4-344
+AddCustomScrollBar  4-31
+AddCustomShadow  4-32
+AddDateField (EntryScreen)  6-136
+AddDateField (PrintedForm)  7-78
+AddDateStField  6-136
+AddDblField (EntryScreen)  6-136
+AddDblField (PrintedForm)  7-78
+AddDirective  7-81
+AddEditControl  6-220
+AddExtField (EntryScreen)  6-136
+AddExtField (PrintedForm)  7-78
+AddField  6-109
+AddForm  7-115
+AddFramedSubMenu  4-348
+AddHeader (Frame)  4-33
+AddHeader (Menu)  4-344
+AddHeaderColor (Frame)  4-34
+AddHeaderColor (Menu)  4-344
+AddHotBar  4-34
+AddHotHeader  4-35
+AddHotKey (OPSWAP1)  11-51
+AddHotKey (OPTSR)  11-24
+AddHotRegion  4-35
+AddHotSpot  4-36
+AddIntField (EntryScreen)  6-135
+AddIntField (PrintedForm)  7-78
+AddItem  4-349
+AddItemHelp  4-349
+AddItemHelpPtr  4-350
+AddItemPtr  4-351
+AddLine  7-80
+AddLineField  6-78
+AddLineFieldCustom  6-79
+AddLongField (EntryScreen)  6-135
+AddLongField (PrintedForm)  7-78
+AddLongToPtr  14-29
+AddMaskHeader  4-272
+AddMoreHeader  4-227
+AddMoreHelpHeader  4-409
+AddMultiLineField  6-141
+AddNestedField  6-136
+AddNestedStringField  6-137
+AddNumericBcdField  6-139
+AddNumericByteField  6-139
+AddNumericCompField  6-139
+AddNumericDblField  6-139
+AddNumericExtField  6-139
+AddNumericIntField  6-139
+AddNumericLongField  6-139
+AddNumericRealField  6-139
+AddNumericSglField  6-139
+AddNumericShortField  6-139
+AddNumericWordField  6-139
+AddPickStringField  6-141
+AddPrintMode (PrintedForm)  7-41
+AddPrintMode (Printer)  7-41
+AddPushButton  6-221
+AddRadioButton  6-222
+AddRadioButtonAt  6-222
+AddRadioButtons  6-223
+AddRealField (EntryScreen)  6-135
+AddRealField (PrintedForm)  7-78
+AddRejectString  4-273
+AddScrollBar  4-36
+AddSearchHeader  4-228
+AddSecondaryCommand  3-98
+AddSeparator  4-352
+AddSeparatorColor  4-352
+AddSglField (EntryScreen)  6-136
+AddSglField (PrintedForm)  7-78
+AddShaded  7-81
+AddShadow (Frame)  4-37
+AddShadow (Menu)  4-344
+AddShadowColor (Frame)  4-37
+AddShadowColor (Menu)  4-344
+AddShadowedBoxField  6-79
+AddShadowedBoxFieldCustom  6-80
+AddShadows  4-353
+AddShortField (EntryScreen)  6-135
+AddShortField (PrintedForm)  7-78
+AddSimpleBcdField  6-137
+AddSimpleBooleanField  6-137
+AddSimpleByteField  6-137
+AddSimpleCharField  6-137
+AddSimpleCompField  6-137
+AddSimpleDblField  6-137
+AddSimpleEditControl  6-225
+AddSimpleExtField  6-137
+AddSimpleIntField  6-137
+AddSimpleLongField  6-137
+AddSimpleRealField  6-137
+AddSimpleSglField  6-137
+AddSimpleShortField  6-137
+AddSimpleStringField  6-137
+AddSimpleWordField  6-137
+AddSimpleYesNoField  6-137
+AddSpanHeader  4-38
+AddSpanHeaderColor  4-38
+AddString  8-84
+AddStringField (EntryScreen)  6-135
+AddStringField (PrintedForm)  7-78
+AddSubMenu  4-353
+AddSubMenuCustom  4-354
+AddTextField (AbstractSelector)  6-80
+AddTextField (PrintedForm) 7-78
+AddTextFieldCustom  6-81
+AddTextFieldDeluxe  6-81
+AddTimeField (EntryScreen)  6-136
+AddTimeField (PrintedForm)  7-78
+AddTopicHeader  4-409
+AddUserEditControl  6-225
+AddUserField  6-141
+AddWindowControl  6-226
+AddWindowField  6-141
+AddWordField (EntryScreen)  6-135
+AddWordField (PrintedForm)  7-78
+AddWordToPtr  14-29
+AddYesNoField (EntryScreen)  6-139
+AddYesNoField (PrintedForm)  7-78
+Adjust  4-9
+AdjustFrame  4-39
+AdjustFrameCoords  4-65
+AdjustWindow  4-66
+AdvanceLine  7-42
+AdvanceLinePreserveX  7-42
+AdvanceSingleLine  7-43
+AllFormat  4-268
+Alloc (ScreenRect)  4-10
+Alloc (VirtScreen)  4-194
+AllocateEmsPages  12-22
+AllocateExtMem  12-4
+AllocateMacro  13-4
+AllocateScreen (ScrollingEntryScreen)  6-192
+AllocateScreen (ScrollingSelector)  6-122
+AllocateSelectSet  4-228
+AllocateStack (OPINT)  11-6
+AllocateStack (OPSWAP1)  11-51
+AllocUpperMemBlock  12-4
+AllowRemovable  10-42
+AltFramePtr  4-67
+Append (DoubleList)  8-46
+Append (SingleList)  8-34
+AppendDosPrinter  7-10
+ArcTanBCD  14-4
+Array2Str  14-30
+ArrayDimensions  8-168
+ArrayType  8-166
+Asc2Str  9-39
+AscCenter  9-39
+AscCenterCh  9-39
+AscCharStr  9-40
+AscFromHeap  9-40
+AsciiCount  9-3
+AsciiPosition  9-4
+Asciiz  9-38
+AscLeftPad  9-41
+AscLeftPadCh  9-41
+AscLoCase  9-41
+AscPad  9-42
+AscPadCh  9-42
+AscToHeap  9-43
+AscTrim  9-43
+AscTrimLead  9-44
+AscTrimTrail  9-44
+AscUpCase  9-44
+asFieldProc  6-76
+AssignCrt  3-6
+AssignMacroName  13-4
+AssignNumber  4-130
+AssignPrnObject  7-26
+asTextFieldProc  6-76
+Attribute#display#constants  4-270
+AttributeSupported  12-22
+AutoDelayTicks  3-127
+AutoMapMono  3-8
+AutoPriority  8-166
+AutoRepeatTicks  3-127
+AvailableEntries  8-139
+BackSpaceChar  7-39
+BadBrowseOptions  5-62
+BadCmdOptions  3-95
+BadControlOptions  6-61
+BadDate  6-286
+BadDgFieldOptions  6-216
+BadDialogOptions  6-216
+BadDirOptions  4-270
+BadEditOptions  6-261
+BadEditorOptions  5-37
+BadEFieldOptions  6-27
+BadEntryOptions  6-164
+BadEsFieldOptions  6-164
+BadHelpOptions  4-405
+BadMemoOptions  5-7
+BadMenuOptions  4-345
+BadPathOptions  4-305
+BadPickOptions  4-225
+BadSecEditOptions  6-262
+BadSEFieldOptions  6-27
+BadSelectOptions  6-107
+BadSFieldOptions  6-19
+BadSimpEditOptions  6-275
+BadTime  6-286
+BasePrinter  7-10
+BCD  14-3
+BCDsize  14-3
+BCDtoReal  14-5
+BinaryB  9-4
+BinaryL  9-4
+BinaryW  9-5
+BiosPrinter  7-11
+BiosScroll  3-8
+Bit#masks  7-10
+BitIsSet  8-55
+BitSet  8-54
+BitsSet  8-55
+BlockCursor  3-12
+BlockMouseCursor  3-65
+BMMakeTable  9-5
+BMSearch  9-6
+BMSearchUC  9-7
+Border#types  4-27
+Box#chars  7-92
+BoxCharSet  7-93
+brOptionsAreOn  5-65
+brOptionsOff  5-65
+brOptionsOn  5-65
+BrotherM1709EpsonModeRegister  7-70
+BrotherM1709IBMModeRegister  7-70
+BrowseCommands  5-64
+BrowseEditFunc  5-63
+BrowseGetFileFunc  5-63
+Browser  5-63
+Browser#options  5-62
+BrowseStatus  5-79
+BrowseStatusProc  5-63
+BTable  9-2
+BufIdStream  8-99
+BufLen  3-10
+BufSize  4-11
+ButtonStatus  3-64
+ByteFlagIsSet  14-30
+ByteSet  4-160
+CalcWidthAndPlaces  6-15
+CallOldIsr  14-31
+CallPrnStatus  7-27
+CancelAllPrintFiles  10-5
+CancelPrintFile  10-5
+CanRecover  14-26
+Center  9-7
+CenterCh  9-8
+ChainInt  11-6
+ChangeAllScrollBars  4-68
+ChangeAttribute  3-12
+ChangeCommandHandler  4-229
+ChangeConversion (DialogBox)  6-227
+ChangeConversion (EntryScreen)  6-166
+ChangeConversion (PrintedForm)  7-98
+ChangeCtrlAttr  6-82
+ChangeDecimalChar  6-14
+ChangeDirectory  4-274
+ChangeDisplayPos  4-337
+ChangeFieldAttr  6-82
+ChangeHeader  4-69
+ChangeHeaderAttr  4-39
+ChangeHeaderString  4-40
+ChangeHelp  4-337
+ChangeHidden  6-83
+ChangeHotHeader  4-41
+ChangeHotKey (OPSWAP1)  11-51
+ChangeHotKey (OPTSR)  11-24
+ChangeInvisibility  6-83
+ChangeItemWidth  4-229
+ChangeKey  4-338
+ChangeName  4-338
+ChangeNumItems  4-230
+ChangeOrientation  4-230
+ChangePromptAttr  6-84
+ChangeProtectedFieldAttr  6-84
+ChangeProtectedPromptAttr  6-85
+ChangeProtection  6-85
+ChangeRange  6-166
+ChangeRequired  6-166
+ChangeScrollBar  4-70
+ChangeSelectedFieldAttr  6-86
+ChangeSelectedPromptAttr  6-86
+ChangeSelectPos  4-338
+ChangeStringProc  4-231
+ChangeSubPtr  4-339
+ChangeValidation (DialogBox)  6-227
+ChangeValidation (EntryScreen)  6-167
+Character#sets  6-10
+CharSet  9-2
+CharStr  9-8
+CharToMacro (OPMACRO)  13-5
+CharToMacro (OPREPLAY)  13-19
+CharXlat  7-12
+CheckBoxes  6-65
+CheckBreak  3-6
+CheckEOF  3-6
+CheckForConflict  3-98
+CheckKbd  3-13
+CheckSnow  3-6
+ChildIndex  4-130
+ChildListPtr  4-131
+ChildPtr  4-131
+CircularList  8-32
+ClassifyCursorType  3-13
+ClassifyError  4-161
+CleanPathName  9-8
+Clear (DoubleList)  8-46
+Clear (PointerStack)  8-9
+Clear (RawWindow)  4-70
+Clear (ScreenRect)  4-11
+Clear (SingleList)  8-34
+Clear (StaticQueue)  8-21
+Clear (StringArray)  8-84
+Clear (StringDict)  8-75
+Clear (VirtScreen)  4-194
+ClearA  8-168
+ClearAll  8-55
+ClearBit  8-56
+ClearByteFlag  14-31
+ClearContents  4-71
+ClearErrors (AbstractFrame)  4-41
+ClearErrors (AbstractWindow)  4-71
+ClearErrors (CommandWindow)  4-161
+ClearFirstFunc,OpFEdit  6-195
+ClearFirstFunc,OpSEdit  6-280
+ClearFlag  14-31
+ClearLongFlag  14-32
+ClearMacros  13-5
+ClearMouseEvents  3-134
+ClearPage  3-14
+ClearRejectStrings  4-275
+ClearSelected  4-231
+ClearWindow  3-14
+ClearXlatCharTable  7-12
+Cloner  14-18
+CloseFile  5-66
+CloseHotCode  READ.1ST
+ClrEol  3-6
+ClrScr  3-6
+Cluster  6-65
+ClusterItem  6-65
+CmdTable  3-96
+CodeVerRegistered  8-102
+ColonChar  6-286
+ColorChoice  3-7
+ColorMap  3-8
+ColorMapTable  3-7
+ColorMono  3-14
+ColorSet  3-48
+CommaForPeriod (OPBCD)  14-3
+CommaForPeriod (OPSTRING)  9-2
+Command#Codes  3-85
+CommandEnv  10-5
+CommandPacker  3-116
+CommandProcessor  3-96
+CommandStringPending  3-99
+CommandWindow  4-160
+CompareLetterSets  9-9
+CompareType  9-2
+CompAsc  9-45
+CompleteItemString  4-232
+CompString  9-10
+CompStruct  9-11
+CompUCAsc  9-45
+CompUCString  9-11
+ConcatAsc  9-45
+ConcatStr  9-46
+Configuration#data (OpBrowse) 5-62
+Configuration#data (OpDialog) 6-216
+Configuration#data (OpEdit)  6-262
+Configuration#data (OpEditor)  5-38
+Configuration#data (OpEntry)  6-164
+Configuration#data (OpHelp)  4-405
+Configuration#data (OpMaced)  13-14
+Configuration#data (OpMemo) 5-9
+Configuration#data (OpMenu)  4-345
+Configuration#data (OpPick)  4-225
+Configuration#data (OpSEdit)  6-276
+Configuration#data (OpSelect)  6-107
+ConflictsFound  3-117
+Control  6-62
+Control#markers  6-61
+ControlBit  8-56
+Conversion#routines  6-27
+Convert  7-94
+Coordinates (Frame)  4-42
+Coordinates (RawWindow)  4-72
+Coordinates (ScreenRect)  4-11
+CopyAsc  9-46
+CopyEnv  10-6
+CopyFile  10-7
+CopyFromScreen (ScreenRect)  4-12
+CopyFromScreen (VirtScreen)  4-195
+CopyFromWindow  4-195
+CopyPartToScreen  4-12
+CopyToScreen (ScreenRect)  4-13
+CopyToScreen (VirtScreen)  4-196
+CopyToWindow  4-196
+CosBCD  14-5
+cpGetHelp  3-100
+cpGetKey  3-100
+cpKeyPressed  3-100
+cpOptionsAreOn  3-101
+cpOptionsOff  3-101
+cpOptionsOn  3-101
+cpUserHook  3-102
+cpUserMatch  READ.1ST
+Create  8-139
+CSSwapDataType  11-50
+CtrlBreakFlag  3-10
+CurrentDisplay  3-10
+CurrentEntries  8-140
+CurrentEnv  10-7
+CurrentFieldModified  6-167
+CurrentFileName  5-66
+CurrentItem  4-354
+CurrentMacroPtr  13-18
+CurrentMode  3-10
+CurrentPage  3-10
+CurrentTime  6-289
+CurrentTimeString  6-289
+CurrentTopic  4-410
+CurrentWindow  4-62
+CurrentXrefTopic  4-410
+Cursor#masks  3-63
+CursorEndLine  3-15
+CursorInWindow  4-72
+CursorStartLine  3-15
+CursorType  3-7
+CursorTypeSL  3-15
+CurUserValue  4-42
+DataProductsRegister  7-70
+Date  6-285
+Date#pictures  6-287
+Date#range#constants  6-287
+Date1900  6-286
+Date1980  6-286
+Date2000  6-286
+DateDiff  6-289
+DateLen  6-286
+DateString  6-285
+DateStringToDate  6-290
+DateStringToDMY  6-290
+DateTimeDiff  6-291
+DateTimeRec  6-286
+DateTimeToDos READ.1ST
+DateTimeToPacked READ.1ST
+DateToDateString  6-291
+DateToDMY  6-292
+DateToSortString  6-292
+DateUpdateType  14-18
+DayOfWeek  6-292
+DayOfWeekDMY  6-293
+DaysInMonth  6-293
+DayString  6-286
+DayType  6-286
+dcOptionsAreOn  6-63
+dcOptionsOff  6-63
+dcOptionsOn  6-63
+Deactivate  4-197
+DeactivateWrite  4-132
+DeallocateEmsHandle  12-23
+DeallocateMacro  13-5
+DeallocateStack (OPINT)  11-7
+DeallocateStack (OPSWAP1)  11-51
+DecTime  6-293
+Default#dates  6-288
+DefaultColorSet  3-8
+DefaultCPI  7-39
+DefaultDialogColors  6-61
+DefaultDrive  10-8
+DefaultErrorProc  3-120
+DefaultExtension  9-12
+DefaultItem  4-355
+DefaultLPI  7-39
+DefaultLPP  7-39
+DefaultPadChar  3-8
+DefaultPasswordChar  3-8
+DefaultPath  4-355
+DefaultPoint  7-39
+DefaultPriority  8-165
+DefaultStrikes  7-39
+DefaultTopicMatch  4-412
+DefaultXlatCharTable  7-28
+DefBackChar  4-62
+DefBeepOnError  8-165
+DefBlockIndent  5-37
+DefBrowseExt  5-62
+DefBrowseOptions  5-62
+DefBufSize  14-18
+DefCmdOptions  3-95
+DefColorChoice  3-8
+DefControlOptions  6-61
+DefCursor  4-62
+DefDgFieldOptions  6-216
+DefDialogOptions  6-216
+DefDirOptions  4-270
+DefEditOptions  6-262
+DefEditorExt  5-37
+DefEditorOptions  5-38
+DefEFieldOptions  6-27
+DefEntryOptions  6-164
+DefHelpOptions  4-405
+DefinedKeys  13-3
+DefineMacro  13-6
+DefinePop (OPSWAP1)  11-53
+DefinePop (OPTSR)  11-25
+DefinePopProc  11-25
+Defines  2-9
+DefItemOptions  4-336
+DefMaxLength  5-7
+DefMemoOptions  5-7
+DefMenuOptions  4-345
+DefPadCh  7-92
+DefPadChar  6-27
+DefPasswordChar  6-27
+DefPathOptions  4-305
+DefPickOptions  4-225
+DefSecEditOptions  6-262
+DefSEFieldOptions  6-27
+DefSelectOptions  6-107
+DefSFieldOptions  6-19
+DefSimpEditOptions  6-275
+DefTabDelta  5-7
+DefWindowOptions  4-62
+DefWrapMode  6-75
+Delay  3-6
+DelayCalibrate  3-16
+Delete (DoubleList)  8-46
+Delete (SingleList)  8-35
+DeleteAsc  9-47
+DeletedEntries  8-140
+DeleteEntry  8-140
+DeletePop  11-26
+DeletePopProc  11-26
+DeleteVolumeLabel  10-8
+DelLine  3-6
+DeltaAdjustFrame  4-73
+deOptionsAreOn  8-134
+deOptionsOff  8-134
+deOptionsOn  8-134
+Deregister  7-68
+Derived#field#types  6-31
+Deselect  6-65
+DeselectItem  4-232
+Detab  9-12
+DetectMultitasking  3-8
+dgControlOptionsAreOn  6-228
+dgControlOptionsOff  6-228
+dgControlOptionsOn  6-229
+dgControlProc  6-216
+dgFieldOptionsAreOn  6-229
+dgFieldOptionsOff  6-230
+dgFieldOptionsOn  6-230
+dgOptionsAreOn  6-231
+dgOptionsOff  6-231
+dgOptionsOn  6-232
+dgSecFieldOptionsAreOn  6-232
+dgSecFieldOptionsOff  6-233
+dgSecFieldOptionsOn  6-233
+dgUserProc  6-216
+DiabloRegister  7-70
+DialogBox  6-217
+DialogColorSet  6-59
+DialogCommands  6-217
+Dimension  7-40
+diOptionsAreOn  4-275
+diOptionsOff  4-276
+diOptionsOn  4-276
+DirectorySig  8-132
+DirectVideo  3-6
+DirEntries  8-133
+DirEntry  8-132
+DirEntryName  8-132
+DirList  4-271
+DirList#options  4-270
+DirList#procedure#types  4-271
+DirRec  4-271
+DisableDividers  4-233
+DisableDoubleStrike  7-36
+DisableEventHandling  3-65
+DisableHeader  4-43
+DisablePopup  11-54
+DisableTSR (OPSWAP1)  11-51
+DisableTSR (OPTSR)  11-27
+DisallowedInReadOnlyMode  5-7
+DiskClass  10-3
+Display,PackedWindow  4-184
+DisplayAt  4-184
+DisplayInfo  4-339
+DisplayLErrorProc  8-184
+DisplayOverride  3-9
+DisplayType  3-7
+DisposeAllModes  7-43
+DisposeAsc  9-47
+DisposeEnv  10-8
+DisposeString  9-13
+DispRec  4-271
+DivBCD  14-5
+DMYtoDate  6-294
+DMYtoDateString  6-294
+Done (AbstractArray)  8-169
+Done (AbstractHelpWindow)  4-410
+Done (AbstractSelector)  6-87
+Done (BasePrinter)  7-12
+Done (BitSet)  8-56
+Done (Browser)  5-66
+Done (BufIdStream)  8-125
+Done (Cloner)  14-19
+Done (CommandProcessor)  3-102
+Done (DialogBox)  6-233
+Done (DirList)  4-277
+Done (DosIdStream)  8-122
+Done (DoubleList)  8-47
+Done (EntryScreen)  6-168
+Done (Frame)  4-43
+Done (Memo)  5-10
+Done (Menu)  4-356
+Done (OpLibrary)  8-141
+Done (PackedWindow)  4-185
+Done (PathList)  4-307
+Done (PickList)  4-233
+Done (PointerStack)  8-9
+Done (PrintedForm)  7-98
+Done (Printer)  7-44
+Done (RawWindow)  4-73
+Done (Report)  7-115
+Done (Root)  8-101
+Done (ScreenRect)  4-13
+Done (ScrollingEntryScreen)  6-192
+Done (ScrollingSelector)  6-122
+Done (SingleList)  8-35
+Done (StackWindow)  4-132
+Done (StaticQueue)  8-21
+Done (StringArray)  8-85
+Done (StringDict)  8-75
+Done (VirtScreen)  4-197
+Done (WindowStack)  4-149
+DosBusyFlag (OPSWAP1)  11-51
+DosBusyFlag (OPTSR)  11-27
+DosCriticalFlag  11-27
+DosIdStream  8-99
+DosPrinter  7-10
+DosToDateTime READ.1ST
+DosVersion  10-9
+DoubleList  8-32
+DoubleListNode  8-32
+DragProcessor  3-127
+DragProcessorStream  3-130
+Draw (AbstractHelpWindow)  4-411
+Draw (Frame)  4-44
+Draw (RawWindow)  4-74
+Draw (StackWindow)  4-133
+Draw#routines  6-27
+DrawAllSliders  4-75
+DrawBackground  6-87
+DrawField  6-87
+DrawHeader  4-44
+DrawHidden  4-133
+Drawing#characters  4-305
+DrawSlider  4-76
+DriveSet  4-300
+DumpEnv  10-9
+DupCurrentBlock  7-99
+DupCurrentPage  7-100
+EditArray  6-254
+EditBcd  6-255
+EditBoolean  6-256
+EditByte  6-255
+EditChar  6-256
+EditChoice  6-257
+EditCommands  6-262
+EditComp  6-255
+EditDate  6-256
+EditDateSt  6-256
+EditDbl  6-255
+EditExt  6-255
+EditInteger  6-255
+EditKeys  13-15
+EditLongInt  6-255
+EditMultiLine  6-257
+EditNumericBcd  6-256
+EditNumericByte  6-256
+EditNumericComp  6-256
+EditNumericDbl  6-256
+EditNumericExt  6-256
+EditNumericInteger  6-256
+EditNumericLongInt  6-256
+EditNumericReal  6-256
+EditNumericSgl  6-256
+EditNumericShortInt  6-256
+EditNumericWord  6-256
+Editor#options  5-38
+EditorCommands  5-40
+EditorEditFunc  5-39
+EditorGetFileFunc  5-39
+EditorYesNoFunc  5-39
+EditReal  6-255
+EditSgl  6-255
+EditShortInt  6-255
+EditString  6-254
+EditTime  6-256
+EditWord  6-255
+EditYesNo  6-256
+efOptionsAreOn  6-29
+efOptionsOff  6-29
+efOptionsOn  6-28
+Elements  8-21
+ElementsSorted   14-49
+EmmSigFound  12-23
+EmsActiveHandles  12-24
+EmsAllocated (OPEXEC)  10-42
+EmsAllocated (OPSWAP1)  11-50
+EmsArray  8-166
+EmsAvailable  8-167
+EmsErrorCode  12-18
+EmsErrorMessage  12-24
+EmsInstalled  12-25
+EmsOverXms  11-50
+EmsPageFramePtr  12-26
+EmsPagesAvail  12-27
+EmsPagesOwned  12-27
+EmsPtrRecord  12-19
+EmsPtrType  12-20
+EmsRCArray  8-166
+EmsResult  12-18
+EmsStatusOK  12-28
+EmsTotalPages  12-28
+EmsVersion  12-29
+EmulateInt (OPINT)  11-7
+EmulateInt (OPSWAP1)  11-51
+EnableAllAlternateOpen  4-356
+EnableAllExplosions  4-357
+EnableAllNormalOpen  4-357
+EnableAlternateOpen  4-77
+EnableDefaultFont  7-44
+EnableDividers  4-234
+EnableDoubleStrike  7-36
+EnableEnhanced  10-51
+EnableEventHandling  3-66
+EnableExplosions (Menu)  4-344
+EnableExplosions (RawWindow)  4-79
+EnableNormalOpen (Menu)  4-344
+EnableNormalOpen (RawWindow)  4-79
+EndOfMacro (OPMACRO)  13-2
+EndOfMacro (OPREPLAY)  13-17
+EndPrintStatus  10-10
+EnhancedDisplay  3-10
+EnhancedKbdInstalled  3-16
+Entab  9-14
+EntryCommands  6-165
+EntryField  6-28
+EntryScreen  6-165
+EnvFree  10-10
+EnvRec  10-3
+EpsonLQRegister  7-70
+EpsonMXRegister  7-70
+Equal  8-75
+EqualBCD  14-6
+Erase (Menu)  4-358
+Erase (RawWindow)  4-80
+Erase (StackWindow)  4-134
+EraseAllSubMenus  4-359
+EraseClear  4-360
+EraseCurrentSubMenu  4-360
+EraseHidden  4-134
+EraseSlider  4-80
+Error (Frame)  4-45
+Error (IdStream)  8-102
+Error (LargeBitSet)  8-66
+Error (PointerStack)  8-9
+Error (RawWindow)  4-81
+Error (StaticQueue)  8-22
+Error (StringDict)  8-76
+Error#class#prefixes  8-157
+Error#classes  8-157
+Error#codes,Object#Professional  8-157
+Error#messages  8-158
+Error8087  11-66
+ErrorA  8-170
+ErrorProc  8-5
+ErrorRecovery  14-27
+esFieldOptionsAreOn  6-168
+esFieldOptionsOff  6-168
+esFieldOptionsOn  6-169
+esFieldProc  6-165
+esOptionsAreOn  6-169
+esOptionsOff  6-169
+esOptionsOn  6-170
+esSecFieldOptionsAreOn  6-170
+esSecFieldOptionsOff  6-171
+esSecFieldOptionsOn  6-171
+esUserProc  6-165
+esUserValidationFunc  6-165
+EvaluateCommand (DialogBox)  6-234
+EvaluateCommand (EntryScreen)  6-172
+EvaluateMousePos  4-81
+EvaluatePos  4-82
+EvaluateStackMousePos  4-149
+EvaluateStackPos  4-150
+Exceptions8087  11-66
+ExchangeBytes  14-32
+ExchangeLongInts  14-32
+ExchangeMemoryRegion  12-29
+ExchangeStructs  14-33
+ExchangeWords  14-33
+ExecDos  10-11
+ExecDosProc  10-3
+ExecDosSwap  10-43
+ExecWithSwap  10-46
+ExistFile  10-13
+ExistOnPath  10-13
+ExpBCD  14-6
+Extent  4-83
+ExtMemAvail  12-14
+ExtMemPtr  12-3
+ExtMemTotal  12-14
+ExtractAscii  9-14
+ExtractWord  9-15
+FacitRegister  7-70
+FarCall  14-34
+FastCenter  3-17
+FastFill  3-17
+FastFillVert  3-17
+FastFlush  3-18
+FastRead  3-18
+FastText  3-19
+FastVert  3-19
+FastWrite  3-20
+FastWriteAttr  3-20
+FastWriteCtrl  3-21
+FatCursor  3-21
+FatMouseCursor  3-66
+fChangeAttribute  4-84
+fCopy  4-45
+fFastCenter  4-84
+fFastFill  4-84
+fFastFlush  4-84
+fFastRead  4-84
+fFastText  4-84
+fFastVert  4-84
+fFastWrite  4-84
+fFastWriteCtrl  4-84
+fFlexWrite  4-84
+fGetLastError  7-100
+FieldOptionsAreOn  7-101
+FieldOptionsOff  7-101
+FieldOptionsOn  7-101
+File#modes  8-98
+FileCapacity  4-277
+FileHandlesLeft  10-14
+FileHandlesOpen  10-14
+FileNeedsPacking  8-141
+FillStruct  14-34
+FillWord  14-35
+Filter  9-15
+FiltersEnhanced  10-51
+FindAnyDirectoryEntry (MemLibrary)  8-142
+FindAnyDirectoryEntry (OpLibrary)  8-142
+FindControl  6-234
+FindDefaultsEnd  14-19
+FindDefaultsStart  14-20
+FindDirectoryEntry (MemLibrary)  8-142
+FindDirectoryEntry (OpLibrary)  8-142
+FindEntryByIndex  8-143
+FindField (AbstractSelector)  6-88
+FindField (PrintedForm)  7-102
+FindFieldByName  6-88
+FindForm  7-116
+FindItem (Cluster)  6-66
+FindItem (Menu)  4-361
+FindMacroIndex  13-6
+FindNextField  7-102
+FindNextTopic  4-411
+FindTextField  6-89
+FindTopic  4-412
+FirstClear  8-57
+FirstSet  8-57
+FlagIsSet  14-35
+FlexAttrs  3-7
+FlexiblePrinter  7-10
+FlexLen  3-22
+FlexStack  4-408
+FlexStackSize  4-406
+FlexWrite  3-22
+Float  9-2
+Flush  8-125
+FlushA  8-171
+FlushDosBuffers  10-15
+Font8x8Selected  3-23
+FontStackSize  7-38
+ForceExtension  9-15
+Form (OPBCD)  14-7
+Form (OPSTRING)  9-16
+Format  4-278
+FormatMultiFile  4-278
+FormFeed  7-45
+FormFeedStr  7-39
+fPrinterPtr  7-103
+FracBCD  14-7
+Frame  4-29
+Frame#positions  4-27
+FrameArray  3-8
+FrameChars  3-9
+FrameCharType  3-8
+FrameWindow  3-23
+fReadAttribute  4-84
+FreeExtMem (OPEXTMEM)  12-15
+FreeExtMem (OPXMS)  12-5
+FreeUpperMemBlock  12-5
+FullMouseWindow  3-67
+FullPathName  9-18
+fWriteAttribute  4-84
+GenericEpsonRegister  7-70
+Get  8-103
+GetAddrMappablePages  12-30
+GetAllHandleNames  12-30
+GetBasePrinter  7-45
+GetCmdAssignment  3-103
+GetCodeAndVersion (MemLibrary) 8-143
+GetCodeAndVersion (OpLibrary) 8-143
+GetCommand  3-104
+GetCommandProcessor  4-162
+GetCommandString  3-104
+GetCPI  7-33
+GetCrtMode  3-24
+GetCurrentFont  7-45
+GetCurrentID  6-89
+GetCurrentItem  6-66
+GetCurrentItemID  6-234
+GetCursor  4-85
+GetCursorState  3-24
+GetDefaultChoice  4-235
+GetDefaultFont  7-46
+GetDiskClass  10-16
+GetDiskInfo  10-17
+GetDisplayPos  4-340
+GetDta  10-17
+GetElement  14-50
+GetEntry (MemLibrary)  8-150
+GetEntry (OpLibrary)  8-144
+GetEntryLength  8-135
+GetEntryName  8-135
+GetEntryPtr (MemLibrary)  8-150
+GetEntryPtr (OpLibrary)  8-144
+GetEntryStart  8-136
+GetEnvironmentString  10-18
+GetEnvStr  10-18
+GetErrorProc  8-171
+GetExitCommandPtr  4-162
+GetExtMem  12-15
+GetFieldAttr  7-94
+GetFieldCoordinates  6-173
+GetFieldPos  7-94
+GetFieldProc  6-108
+GetFileMode  10-19
+GetFileName  4-279
+GetFooter  7-103
+GetHandleAttr  12-31
+GetHandleInfo  12-5
+GetHandleName  12-31
+GetHardwareConfig  12-32
+GetHeader  7-104
+GetHelpAttr  4-361
+GetHelpIndex (AbstractSelector)  6-90
+GetHelpIndex (CommandWindow)  4-163
+GetHelpProc  3-96
+GetItemCols  4-236
+GetItemString  4-236
+GetKeyAssignment  3-105
+GetKeyProc  3-96
+GetKeyPtr  3-105
+GetKeyRecPtr  3-117
+GetLastChoice  4-237
+GetLastChoiceString  4-237
+GetLastCommand (CommandWindow)  4-163
+GetLastCommand (LineEditor)  6-263
+GetLastCommand (SimpleLineEditor)  6-277
+GetLastError (Cloner)  14-20
+GetLastError (CommandProcessor)  3-106
+GetLastError (CommandWindow)  4-164
+GetLastError (Frame)  4-46
+GetLastError (LineEditor)  6-263
+GetLastError (RawWindow)  4-86
+GetLastField  6-173
+GetLastHeaderIndex  4-46
+GetLastHotIndex  4-47
+GetLastKey (CommandWindow)  4-164
+GetLastKey (LineEditor)  6-263
+GetLastKey (SimpleLineEditor)  6-277
+GetLPI  7-33
+GetLPP  7-46
+GetLptPort  7-22
+GetMatchingFileCount  4-281
+GetMatchingSize  4-281
+GetMediaID  10-20
+GetMickeyCount  3-67
+GetMousePage  3-68
+GetMultiDirPtr  4-282
+GetMultiDirRec  4-282
+GetMultiFile  4-283
+GetMultiPath (DirList)  4-283
+GetMultiPath (PathList)  4-307
+GetNextCommand  4-165
+GetNumberOfMappablePages  12-32
+GetNumberOfRawPages  12-33
+GetNumItems  4-237
+GetOrientation  4-238
+GetPagePointer  3-25
+GetPageSegment  3-25
+GetPagesForAll  12-33
+GetPathName  4-308
+GetPhysicalTopMargin  7-33
+GetPoint  7-33
+GetPos (Cloner)  14-21
+GetPos (IdStream)  8-104
+GetPosition,Printer  7-46
+GetPrinterInfo  7-33
+GetPrintStatus  10-20
+GetPrnObject  7-28
+GetProgramStr  10-21
+GetPSP  11-28
+GetPtr  8-104
+GetPutProc  14-49
+GetRegisteredType  7-47
+GetReturnVec  11-28
+GetSecondaryKeyPtr  3-106
+GetSelectedCount  4-238
+GetSelectedDir  4-284
+GetSelectedDirRec  4-284
+GetSelectedFile  4-285
+GetSelectedPath (DirList)  4-285
+GetSelectedPath (PathList)  4-309
+GetSelectedSize  4-286
+GetSize  8-105
+GetSizeOfPageMap  12-34
+GetSizeOfPartialPageMap  12-34
+GetStatus (IdStream)  8-105
+GetStatus (LargeBitSet)  8-66
+GetStatus (PointerStack)  8-10
+GetStatus (StaticQueue)  8-22
+GetStatus (StringDict)  8-76
+GetString (StringArray)  8-85
+GetString (StringDict)  8-76
+GetStringPtr  8-85
+GetTestAndMask  7-22
+GetTopicChoice  4-413
+GetUserData  7-104
+GetUserPointer  8-136
+GetUserRecord (DialogBox)  6-235
+GetUserRecord (EntryScreen)  6-174
+GetUserRecord (PrintedForm)  7-105
+GetUserRecordSize (DialogBox)  6-235
+GetUserRecordSize (EntryScreen)  6-174
+GetUserRecordSize (PrintedForm)  7-105
+GetVolumeLabel  10-21
+GetXlatErrorFunc  7-23
+GetXRatio  7-47
+GetYRatio  7-47
+GlobalDisableA20  12-6
+GlobalEnableA20  12-6
+GotError  4-165
+GotoLine  5-67
+GotoLineCol  5-41
+GotoOffset (Browser)  5-67
+GotoOffset (TextEditor)  5-41
+GoToXY  3-6
+GotoXYAbs  3-25
+GrabKeyboard  11-28
+GreaterBCD  14-7
+GreaterEqualBCD  14-8
+HandleIsConsole  10-22
+HandleMousePress  3-134
+HandleNameList  12-19
+HandleNameRec   12-19
+HandleNameStr   12-19
+HandleNameType  12-19
+HandlePagesType  12-18
+HardMouseCursor  3-68
+HardwareConfigType  12-20
+HasEnhancedKbd  10-51
+Hash  8-77
+HaveContents  4-14
+HaveSelected  4-239
+Head (DoubleList)  8-47
+Head (SingleList)  8-36
+HeaderNode  4-28
+HeaderPosType  4-28
+Height  4-86
+Help#file#ctrl#chars  4-406
+Help#options  4-405
+HelpCommands  4-408
+HelpExitCommands  4-406
+HelpFileOpenMode  4-405
+HelpFileSection  4-407
+HelpHeader  4-407
+HelpId  4-406
+HelpIndexRec  4-407
+HelpString  4-340
+HercCardType  3-8
+HercExceptionReg  3-9
+HercGraphicsMode  3-26
+HercModeTestWorks  3-26
+HercPresent  3-27
+HexB  9-18
+HexL  9-19
+HexPtr  9-19
+HexW  9-19
+HiddenCursor  3-27
+HiddenMouseCursor  3-69
+HideBlock  4-440
+HideMouse  3-69
+HideMousePrim  3-69
+HideSwapFile  10-42
+HighestTopic  4-413
+HighVideo  3-7
+HiNibble  14-36
+HiWord  14-36
+HMStoTime  6-294
+Hot#spot#values  4-26
+HotNode  4-29
+HoursInDay  6-287
+HPDeskJetRegister  7-70
+HugePtr  12-13
+hwMatchFunc  4-407
+hwNestedFunc  4-408
+hwOptionsAreOn  4-414
+hwOptionsOff  4-414
+hwOptionsOn  4-414
+IdStream  8-99
+IdString  8-165
+IfcRecord (OPSWAP1)  11-51
+IfcRecord (OPTSR)  11-23
+inAllocConsPtr  4-336
+IncDate  6-295
+IncDateTime  6-295
+IncDateTrunc  6-296
+IncTime  6-296
+InDoubleStrike  7-36
+InExtent  4-87
+InFrame  4-87
+InHelpMode  4-415
+Init (AbstractArray)  8-172
+Init (AbstractHelpWindow)  4-415
+Init (BiosPrinter)  7-23
+Init (BitSet)  8-58
+Init (Browser)  5-68
+Init (BufIdStream)  8-126
+Init (Cloner)  14-21
+Init (CommandPacker)  3-118
+Init (CommandProcessor)  3-107
+Init (CommandWindow)  4-166
+Init (DialogBox)  6-236
+Init (DirEntry)  8-137
+Init (DirList)  4-286
+Init (DosIdStream)  8-122
+Init (DosPrinter)  7-21
+Init (DoubleList)  8-47
+Init (DoubleListNode)  8-45
+Init (DragProcessor)  3-129
+Init (EmsArray)  8-172
+Init (EmsRCArray)  8-172
+Init (EntryScreen)  6-175
+Init (Frame)  4-47
+Init (LargeBitSet)  8-67
+Init (LineEditor)  6-264
+Init (LoadableColorSet)  4-180
+Init (MemIdStream)  8-127
+Init (MemLibrary)  8-151
+Init (Memo)  5-10
+Init (MemoFile)  5-22
+Init (Menu)  4-362
+Init (OpArray)  8-172
+Init (OpLibrary)  8-145
+Init (PackedWindow)  4-185
+Init (PathList)  4-309
+Init (PickList)  4-239
+Init (PointerStack)  8-10
+Init (PrimitiveArray)  8-172
+Init (PrintedForm)  7-105
+Init (Printer)  7-48
+Init (RamArray)  8-172
+Init (RamRCArray)  8-172
+Init (RawWindow)  4-88
+Init (Report)  7-116
+Init (Root)  8-101
+Init (ScreenRect)  4-14
+Init (ScrollingEntryScreen)  6-193
+Init (ScrollingSelector)  6-123
+Init (Selector)  6-110
+Init (SimpleLineEditor)  6-278
+Init (SingleList)  8-36
+Init (SingleListNode)  8-33
+Init (StackWindow)  4-135
+Init (StaticQueue)  8-23
+Init (StringArray)  8-86
+Init (StringDict)  8-78
+Init (TextEditor)  5-42
+Init (VirtScreen)  4-198
+Init (VirtualArray)  8-172
+Init (VirtualRCArray)  8-172
+Init (WindowStack)  4-150
+Init (XmsArray)  8-172
+Init (XmsRCArray)  8-172
+InitAbstract  4-240
+InitAbstractDeluxe  4-240
+InitAndAlloc  5-22
+InitAndFind  14-22
+InitBuf  5-42
+InitBufCustom  5-43
+InitCustom (AbstractHelpWindow)  4-416
+InitCustom (AbstractSelector)  6-90
+InitCustom (BiosPrinter)  7-24
+InitCustom (Browser)  5-68
+InitCustom (Cloner)  14-21
+InitCustom (CommandProcessor)  3-107
+InitCustom (CommandWindow)  4-166
+InitCustom (DialogBox)  6-236
+InitCustom (DirList)  4-287
+InitCustom (EntryScreen)  6-175
+InitCustom (Memo)  5-11
+InitCustom (MemoFile)  5-23
+InitCustom (Menu)  4-363
+InitCustom (PathList)  4-310
+InitCustom (PickList)  4-241
+InitCustom (PrintedForm)  7-106
+InitCustom (Printer)  7-49
+InitCustom (RawWindow)  4-88
+InitCustom (ScrollingEntryScreen)  6-193
+InitCustom (ScrollingSelector)  6-123
+InitCustom (Selector)  6-110
+InitCustom (StackWindow)  4-135
+InitCustom (StringDict)  8-78
+InitCustom (TextEditor)  5-44
+InitCustomAndAlloc  5-24
+InitDeluxe (AbstractHelpWindow)  4-417
+InitDeluxe (PickList)  4-242
+InitFromMemory  4-186
+InitHelpFrame  4-419
+InitializeMouse  3-70
+InitKbdVectors  10-52
+InitMacros  13-7
+InitMem  4-419
+InitMemCustom  4-419
+InitMemDeluxe  4-420
+InitPictureFlags  6-15
+InitPoolSize  8-72
+InitPops  11-29
+InitScrapMacroPtr  13-19
+InitSequence  4-244
+InitStackSize  8-8
+InitStatus  8-5
+InitType  8-166
+InitVector  11-8
+InLandscape  7-49
+Insert (DoubleList)  8-47
+Insert (SingleList)  8-36
+InsertAsc  9-48
+InsertBlockAtCursor  5-44
+InsertBlockedStringAtCursor  5-45
+InsertStr  9-48
+InsertStringAtCursor  5-45
+InsertTextAtCursor  5-46
+InsLine  3-7
+Installed8087  11-67
+InstallISRs  3-135
+InstallModule (OPSWAP1)  11-55
+InstallModule (OPTSR)  11-29
+Int16  13-20
+Int16Handle  13-2
+IntBCD  14-8
+InternationalCurrency  6-14
+InternationalDate  6-297
+InternationalTime  6-297
+InterruptsOff (OPINT)  11-8
+InterruptsOff (OPSWAP1)  11-51
+InterruptsOn (OPINT)  11-8
+InterruptsOn (OPSWAP1)  11-51
+Intersects  4-89
+InTextMode  3-10
+IntRegisters (OPINT)  11-5
+IntRegisters (OPSWAP1)  11-51
+IntReturn  11-9
+IntXxHandle  11-23
+InWindow  4-89
+IsActive  4-89
+IsChild  4-136
+IsCurrent (Menu)  4-365
+IsCurrent (RawWindow)  4-90
+IsCurrent (StackWindow)  4-136
+IsDirectory  10-22
+IsFramed  4-48
+IsLeapYear  6-298
+IsParent  4-136
+IsPhantom  READ.1ST
+IsProtected (MenuItemNode)  4-340
+IsProtected (PickList)  4-244
+IsrArray  11-5
+IsrRecord  11-5
+IsSelected  6-65
+IsSemiProtected (MenuItemNode)  4-341
+IsSemiProtected (PickList)  4-244
+IsZoomed  4-90
+ItemIsSelected  4-245
+ItemKey  4-341
+ItemsDone  4-365
+ItemsDoneCustom  4-366
+ItemSearch  4-245
+ItemString (AbstractHelpWindow)  4-420
+ItemString (PickList)  4-245
+JumpRecord  14-28
+JumpToOldIsr  14-37
+JustExtension  9-20
+JustFilename  9-20
+JustName  9-21
+JustPathname  9-21
+KbdFlags  3-28
+KeyLength  3-116
+KeyOrButtonPressed  3-70
+KeyPressed   3-7
+KeyPressedProc  3-96
+KeyRecPtr  3-116
+KeyString  3-116
+KeyToString  13-7
+KillEntry  8-146
+KXP1093Register  7-70
+LargeBitSet  8-54
+LastClear  8-58
+LastMode  3-6
+LastSet  8-58
+leEditOptionsAreOn  6-264
+leEditOptionsOff  6-265
+leEditOptionsOn  6-265
+LeftPad  9-21
+LeftPadCh  9-22
+LenAsc  9-49
+leSecEditOptionsAreOn  6-266
+leSecEditOptionsOff  6-266
+leSecEditOptionsOn  6-267
+LessBCD  14-8
+LessEqualBCD  14-9
+LetterValues  9-2
+LH  14-28
+LibrarySig  8-133
+LineAdvanceStr  7-39
+LineEditor  6-262
+LinkToModes  7-50
+LinkToPrinter  7-50
+LJCol2Deci  7-68
+LJDeci2Col  7-69
+LJDeci2Row  7-69
+LJFontFRegister  7-70
+LJFontGRegister  7-70
+LJIIIsiRegister  7-70
+LJIIRegister  7-70
+LJPlusRegister  7-70
+LJRegister  7-70
+LJRow2Deci  7-69
+LnBCD  14-9
+Load (AbstractHelpWindow)  4-421
+Load (BasePrinter)  7-13
+Load (BiosPrinter)  7-13
+Load (BitSet)  8-59
+Load (Browser)  5-69
+Load (CommandProcessor)  3-108
+Load (CommandWindow)  4-167
+Load (DialogBox)  6-237
+Load (DirList)  4-288
+Load (DosPrinter)  7-13
+Load (DoubleList)  8-48
+Load (DragProcessor)  3-130
+Load (EntryScreen)  6-176
+Load (Frame)  4-48
+Load (LargeBitSet)  8-67
+Load (LineEditor)  6-267
+Load (LoadableColorSet)  4-180
+Load (Memo)  5-12
+Load (MemoFile)  5-25
+Load (Menu)  4-367
+Load (PackedWindow)  4-187
+Load (PathList)  4-311
+Load (PickList)  4-246
+Load (PointerStack)  8-11
+Load (PrintedForm)  7-106
+Load (Printer)  7-51
+Load (RawWindow)  4-91
+Load (Report)  7-117
+Load (ScreenRect)  4-15
+Load (ScrollingEntryScreen)  6-194
+Load (ScrollingSelector)  6-124
+Load (Selector)  6-111
+Load (SingleList)  8-37
+Load (StackWindow)  4-137
+Load (StaticQueue)  8-24
+Load (StringArray)  8-87
+Load (StringDict)  8-79
+Load (StringSet)  8-83
+Load (TextEditor)  5-47
+Load (VirtScreen)  4-199
+Load (WindowStack)  4-151
+LoadA (AbstractArray)  8-176
+LoadA (EmsArray)  8-176
+LoadA (EmsRCArray)  8-176
+LoadA (OpArray)  8-176
+LoadA (RamArray)  8-176
+LoadA (RamRCArray)  8-176
+LoadA (VirtualArray)  8-176
+LoadA (VirtualRCArray)  8-176
+LoadA (XmsArray)  8-176
+LoadA (XmsRCArray)  8-176
+LoadableColorSet  4-179
+LoadDefaults  14-23
+LoadPathList READ.1ST
+LoCase  9-22
+LoCaseMac  9-22
+LockExtMemBlock  12-7
+Long2Str  9-23
+LongFlagIsSet  14-38
+LongIntForm  9-23
+LongIntToBCD  14-9
+LongJump  14-38
+LongToPtr  14-39
+LoNibble  14-39
+lOptionsAreOn  8-177
+lOptionsOff  8-177
+lOptionsOn  8-177
+LoWord  14-39
+LowVideo  3-7
+LptNames  7-10
+LptType  7-11
+MacEdCmd  13-14
+MacEdCommands  13-14
+MacroAddress  13-8
+MacroCount  13-8
+MacroFileID   13-2
+MacroInProgress  13-3
+MacroInProgressPtr  13-18
+MacroNames  13-3
+MacroPointers  13-3
+MacroRec (OPMACRO)  13-3
+MacroRec (OPREPLAY)  13-17
+MacroRecording  13-3
+MacroRecordingOff  13-8
+MacroRecordingOn  13-9
+MacrosAreOn  13-3
+MacrosOff  13-9
+MacrosOn  13-9
+MainFramePtr  4-92
+MakeByte  14-40
+MakeHiddenAttr  3-28
+MakeInteger  14-40
+MakeLetterSet  9-24
+MakeLongInt  14-40
+MakeWord  14-41
+MapColor  3-29
+MapColors  4-188
+MapEmsPage  12-35
+MapMono  3-29
+MappablePageList  12-20
+MappablePageType  12-20
+MappableSegType  12-19
+MapPagesByAddress  12-36
+MapPagesByNumber  12-36
+MarkAllSelected  4-247
+MarkCurrent  4-92
+MarkerRec (OpBrowse)  5-64
+MarkerRec (OpEditor)  5-39
+MarkExtMem  12-16
+MarkNotCurrent  4-92
+MasterEnv  10-23
+MatchType  3-96
+MaxAsciiz  9-38
+MaxBCD  14-3
+MaxBitCount  8-54
+MaxBits  8-60
+MaxBlockIndent  5-38
+MaxCommands  3-116
+MaxEntries  8-146
+MaxHandles  12-18
+MaxHeapBlock  8-165
+MaxISRs  11-5
+MaxKeysInMacro (OPMACRO)  13-2
+MaxKeysInMacro (OPREPLAY)  13-17
+MaxLargeBitCount  8-54
+MaxLong  14-41
+MaxMacros  13-3
+MaxMappablePages  12-18
+MaxMarker  5-38
+MaxPagesPerSection  4-405
+MaxParagraphsToKeep (OPSWAP1)  11-55
+MaxParagraphsToKeep (OPTSR)  11-30
+MaxPopups (OPSWAP1)  11-50
+MaxPopups (OPTSR)  11-23
+MaxPreviousTopics  4-406
+MaxScrollCol  5-62
+MaxSearchLen (OpBrowse)  5-63
+MaxSearchLen (OpEditor)  5-38
+MaxStackSize  8-8
+MaxWord  14-42
+MaxXrefsPerSection  4-406
+MediaIDType  10-3
+Member (StringDict)  8-80
+Member (StringSet)  8-83
+MemIdStream  8-99
+MemLibrary  8-133
+Memo  5-9
+Memo#options  5-8
+MemoBuf  5-9
+MemoCommands  5-9
+MemoError  5-29
+MemoFile  5-21
+MemoryType  12-19
+MemoStatus  5-29
+MemoStatusProc  5-9
+Menu  4-346
+MenuChoice  4-368
+MenuCommands  4-346
+MenuDepth  4-346
+MenuItemNode  4-336
+meOptionsAreOn  5-13
+meOptionsOff  5-13
+meOptionsOn  5-13
+MergePicture  6-15
+meWordDelims  5-9
+MinBCD  14-3
+MinBufSize  14-18
+MinLong  14-42
+MinSpaceForDos  10-4
+MinutesInHour  6-287
+MinWord  14-42
+Miscellaneous#types  4-407
+mnCurrentItemProc  4-346
+mnCustomProc  4-346
+mnItemProc  4-346
+mnListProc  4-346
+mnNotAKey  4-346
+mnOptionsAreOn  4-368
+mnOptionsOff  4-369
+mnOptionsOn  4-369
+mnOrientation  4-346
+mnWindowProc  4-346
+ModuleInstalled (OPSWAP1)  11-51
+ModuleInstalled (OPTSR)  11-30
+ModulePtrByName (OPSWAP1)  11-52
+ModulePtrByName (OPTSR)  11-31
+MoneySign (OPBCD)  14-3
+MoneySign (OPSTRING)  9-2
+MonthString  6-288
+Mouse#scan#codes  3-64
+Mouse#window#coordinates  3-64
+MouseButtonPressed  3-71
+MouseButtonReleased  3-71
+MouseButtons  3-64
+MouseCursorOn  3-64
+MouseEnabled  3-109
+MouseEvent  3-63
+MouseEventsPending  3-135
+MouseEventType  3-64
+MouseGotoXY  3-72
+MouseInstalled  3-64
+MouseInWindow  3-72
+MouseKeyWord  3-73
+MouseKeyWordX  3-64
+MouseLftAuto  3-127
+MouseLftDown  3-127
+MousePressed  3-73
+MouseRoutine  3-64
+MouseState  3-64
+MouseStateBufferSize  3-74
+MouseWhereX  3-74
+MouseWhereXabs  3-75
+MouseWhereXY  3-75
+MouseWhereXYabs  3-76
+MouseWhereY  3-76
+MouseWhereYabs  3-77
+MouseWindow  3-77
+MoveExtMem  12-16
+MoveExtMemBlock  12-8
+MoveFast  9-24
+MoveHotCode  3-127
+MoveMemoryRegion  12-37
+MoveScreen  3-30
+MoveWindow (Menu)  4-369
+MoveWindow (RawWindow)  4-93
+MultBCD  14-10
+MultipleChoice  4-229
+MultipleFile  4-271
+MultiplePath  4-306
+MultiTaskingOn  3-10
+NameFormat  4-268
+NameOfPrn  7-13
+NameSizeFormat  4-268
+NameSizeKFormat  4-268
+NameSizeKTimeFormat  4-268
+NameSizeTimeFormat  4-268
+NameTimeFormat  4-268
+NearCall  14-43
+Nec3510Register  7-70
+Nec8800Register  7-70
+NewBlock  7-107
+NewEnv  10-23
+NewPage  7-108
+NewXlatCharTable  7-14
+Next (CircularList)  8-52
+Next (DoubleList)  8-48
+Next (SingleList)  8-39
+NextClear  8-60
+NextSelected  4-247
+NextSet  8-61
+NoExecDosProc  10-11
+NoFrameChar  4-26
+NoHelpAvailable  4-406
+NoMoreBits  8-54
+NoNestedAction  4-404
+NonMacroKey  13-14
+NoOfBytesSwapped  10-42
+NormalAttr  3-10
+NormalCursor  3-30
+Normalized  14-43
+NormalMouseCursor  3-78
+NormVideo  3-7
+NoSound  3-7
+NoSwapMsgForEms  10-42
+NotEqualBCD  14-10
+NotFound  9-38
+NoTopicName  4-406
+Nth (DoubleList)  8-48
+Nth (SingleList)  8-39
+Nth (StaticQueue)  8-25
+NumberOfDrives  10-24
+NumSelectableItems  4-248
+NumStrings  8-87
+Object#type#codes  8-153
+Object#version#codes  8-153
+OctalB  9-24
+OctalL  9-25
+OctalW  9-25
+On  6-75
+OneMS  3-10
+OnStack  4-139
+OpArray  8-166
+OpColor  3-6
+OpenFile  5-69
+OpenStdDev  10-24
+OpLibrary  8-133
+OptimizeSize  4-249
+OptimizeTiled  4-152
+Option#flags,OpArray  8-165
+Option#flags,PrintedForm  7-92
+Option#flags,PrintField  7-92
+Option#flags,SelectField  6-19
+Options,CommandProcessor  3-95
+Options,DialogBox  6-216
+Options,DirEntry  8-132
+Options,EntryScreens  6-164
+Options,Menu  4-344
+Options,MenuItemNode  4-336
+Options,OpCtrl  6-61
+Options,OpSelect  6-108
+Options,OpWindow  4-61
+Options,PickList  4-223
+Options,SimpleLineEditor  6-275
+Orientation#codes  4-225
+OS  14-28
+Pack  8-147
+PackedFileSize  8-148
+PackedScreen  4-183
+PackedToDateTime READ.1ST
+PackedWindow  4-183
+PackKeys  3-118
+PackRec  4-183
+Pad  9-25
+PadCh  9-26
+PagedHelpWindow  4-433
+PageInfoType  12-18
+PageMapList  12-19
+PageMapType  12-19
+Pages  4-432
+paGrowIndex  8-72
+paGrowInfo  8-72
+PanasonicKXP2124Register  7-70
+paOptionsAreOn  4-312
+paOptionsOff  4-312
+paOptionsOn  4-312
+ParagraphsToKeep (OPSWAP1)  11-52
+ParagraphsToKeep (OPTSR)  11-31
+ParentEnv  10-24
+ParentPtr  4-139
+ParsePath  10-25
+PathDrawArray  4-306
+PathDrawArray#indexes  4-305
+PathList  4-306
+PathList#options  4-305
+PathList#procedure#types  4-306
+PathRec  4-306
+Peek  8-13
+PeekHead  8-25
+PeekLastError (CommandWindow)  4-169
+PeekLastError (RawWindow)  4-94
+PeekMouseEvent  3-136
+PeekStatus  8-106
+PeekTail  8-25
+PeekTop  8-13
+pfOptionsAreOn  7-95
+pfOptionsOff  7-95
+pfOptionsOn  7-95
+pfSetPicture  7-96
+pGetLastError  7-51
+PhantomExists READ.1ST
+phPageRec  4-432
+phStackRec  4-432
+phXrefRec  4-433
+PiBcd  14-3
+PickAltStringSearch  4-217
+PickAnyCharExit  4-217
+PickCharExit  4-217
+PickCharSearch  4-217
+PickCommands  4-226
+PickField  6-165
+PickHorizontal  4-213
+PickList  4-226
+PickNoSearch  4-217
+PickSnaking  4-213
+PickStringSearch  4-217
+PickTopic  4-406
+PickTopics  4-422
+PickVertical  4-212
+PictureFlags  6-15
+pkColorArray  4-225
+pkGenlProc  4-226
+pkItemType  4-225
+pkMode  4-225
+pkOptionsAreOn  4-250
+pkOptionsOff  4-250
+pkOptionsOn  4-250
+pkSearchFunc  4-226
+pkSearchString  4-225
+pkStringProc  4-225
+Place (DoubleList)  8-49
+Place (SingleList)  8-40
+PlaceBefore (DoubleList)  8-49
+PlaceBefore (SingleList)  8-40
+PlaybackDelay  13-3
+pMaxPrintModes  7-38
+Pointer#codes  4-302
+PointerRegistered  8-106
+PointerStack  8-8
+Poke  8-14
+Pop  8-14
+PopHead  8-26
+PopTail  8-26
+PopTickerPtr  11-23
+pOptionsAreOn  7-52
+pOptionsOff  7-52
+pOptionsOn  7-52
+PopupInUse  11-23
+PopupProc (OPSWAP1)  11-51
+PopupProc (OPTSR)  11-23
+PopupsEnabledPtr  11-23
+PopupsOff (OPSWAP1)  11-52
+PopupsOff (OPTSR)  11-32
+PopupsOn (OPSWAP1)  11-52
+PopupsOn (OPTSR)  11-32
+PopupToCallPtr  11-23
+PosAsc  9-49
+Position  7-53
+PositionCursorAt  6-91
+Posn (DoubleList)  8-49
+Posn (SingleList)  8-41
+PosResults  4-95
+PosStr  9-50
+pPlain  7-38
+PreloadDirList  4-289
+PreloadPathList  4-313
+PreMove  4-251
+PrepareExecWithSwap  10-47
+Prev (CircularList)  8-52
+Prev (DoubleList)  8-50
+PrevClear  8-61
+PrevSet  8-62
+Primary#options,EntryFields  6-24
+Primary#options,LineEditor  6-260
+PrimitiveArray  8-166
+Print  7-96
+Print#mode#options  7-37
+PrintBlock  7-93
+PrintConversionFunc  7-92
+PrintedForm  7-93
+Printer  7-40
+Printer#numbers  7-67
+Printer#options  7-38
+PrinterNotReady  7-10
+PrinterPosFunc  7-40
+PrinterReady  7-53
+PrintErrorFunc  7-40
+PrintField  7-93
+PrintFieldProc  7-93
+PrintInstalled  10-25
+PrintMode  7-40
+PrintMode#codes  7-39
+PrintPage  7-93
+PrintStr  7-54
+PrintStrPos  7-54
+PrnCallType  7-11
+PrnError  7-14
+PrnErrorOp  7-15
+PrnFlush  7-15
+PrnLastPut  7-16
+PrnNames  7-10
+PrnPutBlock  7-16
+PrnPutChar (BasePrinter)  7-17
+PrnPutChar (BiosPrinter)  7-17
+PrnRawError  7-17
+PrnReset  7-17
+PrnStatus  7-18
+PrnType  7-11
+PrnXlatErrorCode  7-18
+Process (CommandWindow)  4-169
+Process (PrintedForm)  7-108
+Process (Report)  7-117
+ProcessAutoPilot  4-170
+ProcessSelf (Browser)  5-70
+ProcessSelf (CommandWindow)  4-171
+ProcessSelf (DialogBox)  6-238
+ProcessSelf (DirList)  4-289
+ProcessSelf (EntryScreen)  6-178
+ProcessSelf (Memo)  5-14
+ProcessSelf (Menu)  4-370
+ProcessSelf (PathList)  4-313
+ProcessSelf (PickList)  4-251
+ProcessSelf (Selector)  6-112
+ProcessSelf (TextEditor)  5-47
+PromptOptionsAreOn  7-109
+PromptOptionsOff  7-109
+PromptOptionsOn  7-110
+ProPrinterIIRegister  7-70
+Protect  4-342
+ProtectClusterItem READ.1ST
+ProtectItem  4-370
+ProwriterRegister  7-70
+PtrDiff  14-43
+PtrToHuge  12-17
+PtrToLong  14-44
+Push  8-15
+PushButton  6-62
+Pushbutton#boxes  6-61
+PushHead  8-27
+PushTail  8-27
+Put  8-107
+PutElement  14-51
+PutEntry  8-148
+PutPtr  8-107
+QueryA20  12-9
+QueryFreeExtMem  12-9
+QuickWriter5204Register  7-70
+RadioButtons  6-65
+RamArray  8-166
+RamRCArray  8-166
+RangeError  8-178
+RawError  4-95
+RawWindow  4-62
+RawWindowProc  4-62
+Read (BufIdStream)  8-126
+Read (DosIdStream)  8-123
+Read (MemIdStream)  8-128
+Read (PackedWindow)  4-188
+ReadAttrAtCursor  3-31
+ReadAttribute  3-31
+ReadBcd (LineEditor)  6-253
+ReadByte (LineEditor)  6-253
+ReadChar (LineEditor)  6-253
+ReadCharAtCursor  3-32
+ReadComp (LineEditor)  6-253
+ReadDbl (LineEditor)  6-253
+ReadDiskSectors  10-26
+ReadExt (LineEditor)  6-253
+ReadFile  5-26
+ReadFrom  4-200
+ReadInteger (LineEditor)  6-253
+ReadKey  3-7
+ReadKeyOrButton  3-78
+ReadKeyWord  3-32
+ReadLnAsc  9-50
+ReadLongInt (LineEditor)  6-253
+ReadMacroFile  13-10
+ReadMouseEvent  3-136
+ReadPointer  8-108
+ReadRange  8-109
+ReadReal (LineEditor)  6-253
+ReadSgl (LineEditor)  6-253
+ReadShortInt (LineEditor)  6-253
+ReadSpecial (LineEditor)  6-253
+ReadStr  9-53
+ReadString (IdStream)  8-110
+ReadString (LineEditor)  6-253
+ReadString (SimpleLineEditor)  6-278
+ReadText  8-88
+ReadUserPointer  8-111
+ReadWord (LineEditor)  6-253
+Real2Str  9-26
+ReallocatePages  12-38
+RealToBCD  14-11
+Reboot  14-44
+Redraw  4-371
+RegisterHier  8-112
+RegisterOldVersion  8-113
+RegisterPointer  8-114
+RegisterType  8-117
+Reinit8087  11-67
+ReinitBuffer  5-14
+ReInitCrt  3-33
+ReinitEmulator  11-67
+Reject  4-290
+RejectExtensions  4-266
+RejectFiles  4-266
+RejectNone  4-266
+RelativeType  7-40
+ReleaseEms (OPSWAP1)  11-50
+ReleaseEms (OPTSR)  11-23
+ReleaseExtMem  12-17
+ReleaseHMA  12-10
+Remove (DoubleList)  8-50
+Remove (SingleList)  8-41
+Remove (StringDict)  8-80
+RemoveChild  4-139
+RemoveExecWithSwap  10-48
+RemoveISRs  3-137
+RemoveMacros  13-10
+RemoveMultiFile  4-290
+RemovePops  11-32
+RemoveSelectedFile  4-291
+RemoveSelectedFiles  4-291
+RemoveString  8-88
+Rename  8-137
+RenameEntry  8-149
+Replace READ.1ST
+ReplaceUC READ.1ST
+Report  7-93
+RequestHelp  4-173
+RequestHMA  12-10
+Reset (DoubleList) READ.1ST
+Reset (SingleList) READ.1ST
+ResetBlock  4-440
+ResetList (DirList)  4-292
+ResetList (PathList)  4-314
+ResetPage  7-55
+ResetScreen  6-91
+Resize (LargeBitSet)  8-68
+Resize (PointerStack)  8-16
+ResizeExtMemBlock  12-11
+ResizeHotCode  3-127
+ResizeWindow  4-96
+Restore8087  11-68
+RestoreAllVectors (OPINT)  11-9
+RestoreAllVectors (OPSWAP1)  11-52
+RestoreCursorState  3-33
+RestoreEmsContext  12-38
+RestoreKbdVectors  10-52
+RestoreMouseCoordinates  3-79
+RestoreMouseState  3-79
+RestorePageMap  12-39
+RestorePartialPageMap  12-39
+RestoreVector  11-10
+RestoreWindow  3-33
+RestoreWindowCoordinates  3-34
+RetA  8-179
+ReturnStr  9-53
+RevalidateAll  6-179
+rGetLastError  7-118
+RingBell  3-120
+Root  8-98
+RoundBCD  14-11
+RoundToNearestHour  6-298
+RoundToNearestMinute  6-299
+SafeRetA  8-180
+SafeSetA  8-180
+SafeToDisable (OPSWAP1)  11-52
+SafeToDisable (OPTSR)  11-33
+SameFile  10-27
+Save8087  11-68
+SaveBuffer8087  11-65
+SaveContents  4-97
+SaveCtrlC  3-10
+SaveEmsContext  12-40
+SaveFile  5-26
+SaveMouseState  3-80
+SavePageMap  12-40
+SavePartialPageMap  12-41
+SavePathList READ.1ST
+SaveWindow  3-34
+ScrapMacro  13-3
+ScrapMacroPtr  13-18
+ScrapMacroSize  13-18
+ScreenBuffer  4-8
+ScreenHeight  3-10
+ScreenRect  4-8
+ScreenUpdateProc  6-76
+ScreenWidth  3-10
+ScreenWordXY  4-423
+ScrollBar  4-29
+ScrollBar#arrows  4-27
+ScrollHoriz (RawWindow)  4-98
+ScrollHoriz (VirtScreen)  4-200
+ScrollingEntryScreen  6-191
+ScrollingHelpFile  4-443
+ScrollingHelpWindow  4-439
+ScrollingSelector  6-121
+ScrollVert (RawWindow)  4-98
+ScrollVert (VirtScreen)  4-201
+ScrollWindowDown  3-35
+ScrollWindowUp  3-35
+Search  9-27
+Search#options,OpBrowse  5-62
+Search#options,OpEditor  5-38
+SearchBuffer  14-18
+SearchForHandleName  12-41
+SearchTopic  4-424
+SearchUC  9-27
+Secondary#options,EntryFields  6-26
+Secondary#options,LineEditor  6-261
+SecondsInDay  6-287
+SecondsInHour  6-287
+SecondsInMinute  6-287
+Seek  8-118
+SeeThruChar  4-26
+sefOptionsAreOn  6-29
+sefOptionsOff  6-29
+sefOptionsOn  6-29
+Select (ClusterItem)  6-65
+Select (StackWindow)  4-140
+SelectChar  4-342
+SelectCommands  6-108
+SelectDrive  10-27
+SelectedFileInCurDir  4-293
+SelectField  6-20
+SelectFont8x8  3-36
+SelectItem (Cluster)  6-67
+SelectItem (DirList)  4-293
+SelectItem (Menu)  4-372
+SelectItem (PickList)  4-252
+SelectItemByPos  4-373
+Selector  6-108
+SelectPhantom READ.1ST
+SelectProc  6-108
+SelectSubMenu  4-374
+SemiProtect  4-342
+SemiProtectItem  4-374
+SendEOI  11-10
+seOptionsAreOn  6-279
+seOptionsOff  6-279
+seOptionsOn  6-279
+SetA  8-181
+SetActionProc  6-112
+SetActiveChild  4-140
+SetActivePage  3-37
+SetAll  8-63
+SetAllFieldLinks  6-92
+SetAllFormat  4-299
+SetAllFrameAttr  4-375
+SetAllHeaderAttr  4-375
+SetAllHighAttr  4-375
+SetAllNormAttr  4-375
+SetAllProtectAttr  4-375
+SetAllSelectAttr  4-375
+SetAllSelectMarker  4-376
+SetAllShadowAttr  4-375
+SetAltItemAttr (ColorSet)  3-49
+SetAltKeySet  3-109
+SetAltSelItemAttr (ColorSet)  3-49
+SetAndPrepTopic  4-424
+SetBackChar  4-99
+SetBeepOnError (DialogBox)  6-238
+SetBeepOnError (EntryScreen)  6-179
+SetBell  3-120
+SetBit  8-63
+SetBlink  3-37
+SetBlock  10-28
+SetBlockAttr (Browser)  5-70
+SetBlockAttr (ColorSet)  3-49
+SetBlockAttr (ScrollingHelpWindow)  4-440
+SetBlockAttr (TextEditor)  5-48
+SetBlockIndent  5-48
+SetButtonAttr (DialogBox)  6-239
+SetButtonAttr (DialogColorSet)  6-60
+SetButtonAttr (DialogColorSet)  6-60
+SetButtonShadowAttr (DialogBox)  6-239
+SetButtonShadowAttr (DialogColorSet)  6-60
+SetButtonShadowAttr (DialogColorSet)  6-60
+SetByteFlag  14-44
+SetChainedEventHandler  3-137
+SetChoice  4-252
+SetClearFirstFilter (EntryScreen)  6-195
+SetClearFirstFilter (LineEditor)  6-268
+SetClearFirstFilter (SimpleLineEditor)  6-280
+SetClipLimits  4-49
+SetClusterAttr (DialogBox)  6-240
+SetClusterAttr (DialogColorSet)  6-60
+SetClusterAttr (DialogColorSet)  6-60
+SetClusterSize  4-314
+SetCommandList  3-109
+SetCommandProcessor (CommandWindow)  4-173
+SetCommandProcessor (LineEditor)  6-269
+SetCommandProcessor (SimpleLineEditor)  6-281
+SetConversion  7-97
+SetCPI  7-33
+SetCrtBorder  3-38
+SetCtrlAttr (AbstractSelector)  6-94
+SetCtrlAttr (ColorSet)  3-49
+SetCtrlAttr (Memo)  5-15
+SetCtrlAttr (SelectField)  6-20
+SetCtrlAttr (SimpleLineEditor)  6-281
+SetCurrentEnv  10-28
+SetCurrentItem  6-67
+SetCurrentItemProc  4-376
+SetCursor  4-99
+SetCursorSize  3-38
+SetCursorType  3-39
+SetCustomStringProc  4-377
+SetDefaultButtonAttr (DialogBox)  6-240
+SetDefaultButtonAttr (DialogColorSet)  6-60
+SetDefaultButtonAttr (DialogColorSet)  6-60
+SetDefaultChoice  4-253
+SetDefaultExtension (Browser)  5-70
+SetDefaultExtension (TextEditor)  5-48
+SetDefaultFont  7-55
+SetDefaultUpcase  9-28
+SetDefCommand  6-64
+SetDelimAttr (ColorSet)  3-49
+SetDelimAttr (EntryScreen)  6-180
+SetDelimiters  6-180
+SetDirAttr  4-294
+SetDirCategory  4-294
+SetDrawingChars  4-315
+SetDrive  4-315
+SetDriveDelim  4-294
+SetDta  10-28
+SetEditProc (Browser)  5-71
+SetEditProc (TextEditor)  5-49
+SetEndOfMacroProc (OPMACRO)  13-11
+SetEndOfMacroProc (OPREPLAY)  13-21
+SetEnterToTab  6-241
+SetEnvStr  10-29
+SetErrorHandler  7-110
+SetErrorProc (AbstractArray)  8-182
+SetErrorProc (CommandWindow)  4-174
+SetErrorProc (LineEditor)  6-270
+SetExitCommands  4-175
+SetFieldAttr (AbstractSelector)  6-94
+SetFieldAttr (ColorSet)  3-49
+SetFieldAttr (SelectField)  6-20
+SetFieldAttr (SimpleLineEditor)  6-281
+SetFieldLinks  6-95
+SetFieldPos  7-97
+SetFileAttr  4-295
+SetFlag  14-45
+SetFlexAHelpAttr (ColorSet)  3-49
+SetFlexBHelpAttr (ColorSet)  3-49
+SetFlexCHelpAttr (ColorSet)  3-49
+SetFooter  7-111
+SetFooterFunc  7-111
+SetForceMode (DialogBox)  6-241
+SetForceMode (EntryScreen)  6-181
+SetFrameAttr (ColorSet)  3-49
+SetFrameAttr (Frame)  4-49
+SetFrameAttr (Menu)  4-378
+SetFrameLimits  4-100
+SetFrameType  4-50
+SetFullPathMode  4-316
+SetGetFieldProc (Selector)  6-113
+SetGetFileProc (Browser)  5-72
+SetGetFileProc (TextEditor)  5-50
+SetGetKeyProc  3-110
+SetHandleAttr  12-42
+SetHandleName  12-42
+SetHeader  7-112
+SetHeaderAttr (ColorSet)  3-49
+SetHeaderAttr (Frame)  4-50
+SetHeaderAttr (Menu)  4-378
+SetHeaderFunc  7-112
+SetHelpAttr  4-377
+SetHelpIndex (CommandWindow)  4-176
+SetHelpIndex (LineEditor)  6-271
+SetHelpIndex (SimpleLineEditor)  6-282
+SetHelpPadSize  4-425
+SetHelpProc  3-110
+SetHercMode  3-39
+SetHighAttr  4-378
+SetHighlightAttr (Browser)  5-74
+SetHighlightAttr (ColorSet)  3-49
+SetHighlightAttr (TextEditor)  5-52
+SetHighlightButtonAttr (DialogBox)  6-242
+SetHighlightButtonAttr (DialogColorSet)  6-60
+SetHighlightButtonAttr (DialogColorSet)  6-60
+SetHighlightClusterAttr (DialogBox)  6-242
+SetHighlightClusterAttr (DialogColorSet)  6-60
+SetHighlightClusterAttr (DialogColorSet)  6-60
+SetHighlightItemAttr (ColorSet)  3-49
+SetHighlightPromptAttr (DialogBox)  6-243
+SetHighlightPromptAttr (DialogColorSet)  6-60
+SetHighlightPromptAttr (DialogColorSet)  6-60
+SetHotSpotAttr (ColorSet)  3-49
+SetInitialChoice  4-253
+SetInternationalUpcase  9-28
+SetJump  14-45
+SetKeyPressedProc  3-111
+SetKeyPtr  3-111
+SetLastCommand  4-176
+SetLeftPad  4-379
+SetLineDrawMode  4-316
+SetLineLimit  5-15
+SetLongFlag  14-46
+SetLPI  7-33
+SetLPP  7-56
+SetLptPort  7-24
+SetMarkerAttr (Browser)  5-74
+SetMarkerAttr (ColorSet)  3-49
+SetMarkerAttr (TextEditor)  5-52
+SetMask  4-295
+SetMaxLength  5-16
+SetMaxScroll  4-441
+SetMediaID  10-30
+SetMickeyRatio  3-130
+SetMickeyToPixelRatio  3-80
+SetMouseAttr (ColorSet)  3-49
+SetMouseCursor  3-131
+SetMouseEventHandler  3-81
+SetMousePage  3-81
+SetMoveProc  4-254
+SetNameFormat  4-299
+SetNameSizeFormat  4-299
+SetNameSizeKFormat  4-299
+SetNameSizeKTimeFormat  4-299
+SetNameSizeTimeFormat  4-299
+SetNameTimeFormat  4-299
+SetNestedFunc  4-425
+SetNextField  6-95
+SetNormAttr  4-378
+SetPadChar (DialogBox)  6-243
+SetPadChar (EntryScreen)  6-181
+SetPadChar (LineEditor)  6-271
+SetPadSize  4-254
+SetPasswordChar (DialogBox)  6-244
+SetPasswordChar (EntryScreen)  6-182
+SetPasswordChar (LineEditor)  6-271
+SetPathAttr  4-317
+SetPhysicalTopMargin  7-33
+SetPickAttr  4-255
+SetPickFlex  4-256
+SetPickPadSize  4-426
+SetPoint  7-33
+SetPopTicker (OPSWAP)  11-62
+SetPopTicker (OPTSR)  11-33
+SetPositionPrim  7-56
+SetPosLimits  4-100
+SetPostEditProc  6-182
+SetPostFocusProc  6-244
+SetPostSelectProc  6-113
+SetPreEditProc  6-183
+SetPreFocusProc  6-245
+SetPrePageFunc  7-112
+SetPrePostFormFunc  7-113
+SetPreSelectProc  6-114
+SetPrevTopicHotSpot  4-426
+SetPrinter (Browser)  5-74
+SetPrinter (TextEditor)  5-52
+SetPrinterInfo  7-33
+SetPrintErrorFunc  7-57
+SetProgramStr  10-31
+SetPromptAttr (AbstractSelector)  6-96
+SetPromptAttr (ColorSet)  3-49
+SetPromptAttr (SelectField)  6-20
+SetPromptAttr (SimpleLineEditor)  6-282
+SetProtectAttr (Menu)  4-378
+SetProtectedButtonAttr (DialogBox)  6-245
+SetProtectedButtonAttr (DialogColorSet)  6-60
+SetProtectedButtonAttr (DialogColorSet)  6-60
+SetProtectedClusterAttr (DialogBox)  6-246
+SetProtectedClusterAttr (DialogColorSet)  6-60
+SetProtectedClusterAttr (DialogColorSet)  6-60
+SetProtectedDelimAttr (ColorSet)  3-49
+SetProtectedDelimAttr (EntryScreen)  6-183
+SetProtectedFieldAttr (AbstractSelector)  6-96
+SetProtectedFieldAttr (ColorSet)  3-49
+SetProtectedFieldAttr (SelectField)  6-20
+SetProtectedItemAttr (ColorSet)  3-49
+SetProtectedPromptAttr (AbstractSelector)  6-97
+SetProtectedPromptAttr (ColorSet)  3-49
+SetProtectedPromptAttr (SelectField)  6-20
+SetPSP  11-33
+SetQuickFixMode  11-56
+SetRawMode  10-31
+SetRegisteredType  7-32
+SetRejectFunc  4-296
+SetRightMargin  5-16
+SetRowLimits  4-257
+SetSaveComPorts  11-56
+SetScreenMask  3-132
+SetScreenUpdateProc  6-97
+SetScrollBarAttr (ColorSet)  3-49
+SetSearchMode  4-257
+SetSearchStart  4-258
+SetSecondaryKeyPtr  3-112
+SetSelectAttr  4-378
+SetSelectDirAttr  4-297
+SetSelectedButtonAttr (DialogBox)  6-246
+SetSelectedButtonAttr (DialogColorSet)  6-60
+SetSelectedButtonAttr (DialogColorSet)  6-60
+SetSelectedClusterAttr (DialogBox)  6-247
+SetSelectedClusterAttr (DialogColorSet)  6-60
+SetSelectedClusterAttr (DialogColorSet)  6-60
+SetSelectedDelimAttr (ColorSet)  3-49
+SetSelectedDelimAttr (EntryScreen)  6-184
+SetSelectedFieldAttr (AbstractSelector)  6-98
+SetSelectedFieldAttr (ColorSet)  3-49
+SetSelectedFieldAttr (SelectField)  6-20
+SetSelectedItemAttr (ColorSet)  3-49
+SetSelectedPromptAttr (AbstractSelector)  6-98
+SetSelectedPromptAttr (ColorSet)  3-49
+SetSelectedPromptAttr (SelectField)  6-20
+SetSelectFileAttr  4-297
+SetSelectHighlight  4-378
+SetSelectMarker (Menu)  4-379
+SetSelectMarker (PickList)  4-258
+SetSelectPathAttr  4-317
+SetSelXrefAttr (ColorSet)  3-49
+SetSendFunc  4-441
+SetShadowAttr (ColorSet)  3-49
+SetShadowAttr (Frame)  4-51
+SetShadowAttr (Menu)  4-378
+SetSingleSwapFile  11-57
+SetSizeLimits (Frame)  4-51
+SetSizeLimits (RawWindow)  4-101
+SetSliderAttr (ColorSet)  3-49
+SetSliderValue  4-52
+SetSortOrder  4-298
+SetSpanAttr,Frame  4-52
+SetStackProc  4-141
+SetStatusProc (Browser)  5-75
+SetStatusProc (Memo)  5-17
+SetStrikeCount  7-36
+SetSwapFileAttr  11-57
+SetSwapMsgAttr  11-58
+SetSwapMsgOn (OPEXEC)  10-48
+SetSwapMsgOn (OPSWAP1)  11-58
+SetSwapMsgRow  11-58
+SetTabSize  5-17
+SetTestAndMask  7-25
+SetTextAttr (ColorSet)  3-49
+SetTextAttr (RawWindow)  4-101
+SetTopic  4-427
+SetTopicAndPos  4-427
+SetUnselXrefAttr (ColorSet)  3-49
+SetUserData  7-113
+SetUserFormat  4-299
+SetUserHookProc  3-112
+SetUserMatchFunc  READ.1ST
+SetUserPointer  8-138
+SetUserRecord (DialogBox)  6-247
+SetUserRecord (EntryScreen)  6-184
+SetUserRecord (PrintedForm)  7-113
+SetValidateFunc  6-185
+SetVecOnReturn  11-34
+SetVisiblePage  3-40
+SetVolumeLabel  10-32
+SetWaitCount  13-21
+SetWrapMode  6-99
+SetXlatErrorFunc  7-25
+SetXRatio  7-57
+SetYesNoProc  5-53
+SetYRatio  7-58
+sfOptionsAreOn  6-20
+sfOptionsOff  6-20
+sfOptionsOn  6-20
+Shadow#chars  4-27
+Shadow#options  4-28
+ShadowNode  4-28
+ShellWithPrompt  10-33
+shLineRec  4-439
+ShowMouse  3-82
+ShowMousePrim  3-82
+Shrink  8-89
+shSendFunc  4-439
+shStackRec  4-439
+SideKickLoaded (OPSWAP1)  11-50
+SideKickLoaded (OPTSR)  11-23
+SimpEditCommands  6-276
+SimpleLineEditor  6-276
+SinBCD  14-12
+SingleChoice  4-229
+SingleFile  4-271
+SingleList  8-32
+SingleListNode  8-32
+SinglePath  4-306
+Size (DoubleList)  8-51
+Size (PointerStack)  8-16
+Size (SingleList)  8-41
+Size (StringArray)  8-89
+SizeKeys  3-118
+SkipDrives  4-300
+SlashChar  6-288
+slFieldOptionsAreOn  6-114
+slFieldOptionsOff  6-115
+slFieldOptionsOn  6-115
+Slider#chars  4-27
+slOptionsAreOn  6-116
+slOptionsOff  6-116
+slOptionsOn  6-116
+SoftMouseCursor  3-83
+Sort  14-52
+SortDirName  4-267
+SortList  4-300
+SortName  4-267
+SortNameDirDrive  4-267
+SortNone  4-267
+SortSize  4-267
+SortStatus   14-49
+SortStringToDate  6-299
+SortStringToTime  6-300
+SortTime  4-267
+Sound  3-7
+Soundex  9-29
+SP  8-16
+SqrBCD  14-12
+SqrtBCD  14-12
+srResult  4-16
+StackSafetyMargin  10-4
+StackWindow  4-127
+StackWindowProc  4-127
+Standard#file#handles  10-4
+StarMicronicsRegister  7-70
+StartMacro (OPMACRO)  13-12
+StartMacro (OPREPLAY)  13-22
+StartMacroByKey  13-12
+StaticQueue  8-20
+StayRes  11-35
+StayResSwap  11-59
+StLoCase  9-29
+Store (AbstractHelpWindow)  4-428
+Store (BasePrinter)  7-19
+Store (BiosPrinter)  7-19
+Store (BitSet)  8-64
+Store (Browser)  5-76
+Store (CircularList)  8-52
+Store (CommandProcessor)  3-113
+Store (CommandWindow)  4-177
+Store (DialogBox)  6-248
+Store (DirList)  4-301
+Store (DosPrinter)  7-19
+Store (DoubleList)  8-51
+Store (DragProcessor)  3-132
+Store (EntryScreen)  6-186
+Store (Frame)  4-52
+Store (LargeBitSet)  8-68
+Store (LineEditor)  6-272
+Store (LoadableColorSet)  4-181
+Store (Memo)  5-18
+Store (MemoFile)  5-27
+Store (Menu)  4-380
+Store (PackedWindow)  4-189
+Store (PathList)  4-318
+Store (PickList)  4-259
+Store (PointerStack)  8-17
+Store (PrintedForm)  7-114
+Store (Printer)  7-58
+Store (RawWindow)  4-102
+Store (Report)  7-118
+Store (ScreenRect)  4-17
+Store (ScrollingEntryScreen)  6-196
+Store (ScrollingSelector)  6-125
+Store (Selector)  6-117
+Store (SingleList)  8-42
+Store (StackWindow)  4-142
+Store (StaticQueue)  8-28
+Store (StringArray)  8-90
+Store (StringDict)  8-81
+Store (StringSet)  8-83
+Store (TextEditor)  5-55
+Store (VirtScreen)  4-202
+Store (WindowStack)  4-153
+StoreA  8-183
+StoreContents  4-18
+StoreDefaults  14-24
+StoreMouseCoordinates  3-83
+StoreMouseEvent  3-138
+StoreWindowCoordinates  3-40
+Str2Asc  9-51
+Str2Int  9-30
+Str2Long  9-30
+Str2Real  9-31
+Str2Word  9-31
+StrBCD  14-13
+StreamRegisterProc  8-98
+StrExpBCD  14-13
+StrikeCount  7-36
+String80  4-225
+StringArray  8-72
+StringDict  8-72
+StringFromHeap  9-32
+StringPtr  9-2
+StringSet  8-72
+StringToHeap  9-32
+StringToMacro (OPMACRO)  13-12
+StringToMacro (OPREPLAY)  13-22
+StringToScrapMacro (OPMACRO)  13-13
+StringToScrapMacro (OPREPLAY)  13-22
+StripPicture  6-15
+StuffKey  3-41
+StuffString  3-41
+StUpCase  9-33
+SubBCD  14-14
+SubmitPrintFile  10-34
+SubPtr  4-343
+Substitute  9-33
+SuppressMouseHandling  11-35
+SwapNibble  14-46
+SwapSize  11-59
+SwapStackAndCall  11-11
+SwapStackAndCallNear  11-12
+SwapUseEMS  11-50
+SwapUseXms  11-50
+SwapWord  14-46
+SwitchInColorCard  3-42
+Symbol#sets  7-67
+Tail (DoubleList)  8-51
+Tail (SingleList)  8-44
+TempLibExt  8-132
+TempMacro  13-14
+teOptionsAreOn  5-56
+teOptionsOff  5-56
+teOptionsOn  5-56
+teSearchType  5-39
+TestClearBit  8-65
+TestSetBit  8-65
+TextAttr  3-6
+TextBackground  3-7
+TextBoxField  6-18
+TextChar  3-9
+TextColor  3-7
+TextEditor  5-40
+TextField  6-17
+TextFileSize  10-34
+TextFlush  10-35
+TextLineField  6-18
+TextMode  3-7
+TextPos  10-35
+TextSeek  10-35
+ThisIfc  11-23
+Threshold2000  6-288
+Time  6-286
+Time#pictures  6-287
+Time#range#constants  6-287
+TimeDiff  6-300
+TimeMs  10-36
+TimeStringToHMS  6-301
+TimeStringToTime  6-301
+TimeToAmPmString  6-302
+TimeToHMS  6-302
+TimeToSortString  6-303
+TimeToTimeString  6-303
+Today  6-303
+TodayString  6-304
+ToggleBit  8-65
+ToggleHighBitStripping  5-77
+ToggleModes  5-77
+TopicExists  4-430
+TopicStackPtr  4-430
+TopWindow  4-155
+ToshibaP321Register  7-70
+TpStr  9-52
+Transfer (Browser)  5-77
+Transfer (ScreenRect)  4-18
+Trim  9-33
+TrimLead  9-34
+TrimSpaces  9-34
+TrimTrail  9-34
+Truncate (DosIdStream)  8-123
+Truncate (MemIdStream)  8-128
+TruncBCD  14-14
+TurnOffAllActiveModes  7-59
+TurnOffByID  7-59
+TurnOffByName  7-60
+TurnOnByID  7-60
+TurnOnByName  7-60
+TweakSlider  4-104
+TypeOfArray  8-183
+TypeOfPrn  7-20
+TypeRegistered  8-118
+TypeVerRegistered  8-119
+UndeleteEntry  8-149
+UninstallModule (OPSWAP1)  11-52
+UninstallModule (OPTSR)  11-35
+Unit#codes  8-158
+UnlockExtMemBlock  12-11
+UnpackedCmdTable  3-116
+Unprotect  4-343
+UnprotectClusterItem READ.1ST
+UnprotectItem  4-382
+UnstackTop  4-155
+Unzoom  4-106
+UpCase  9-35
+UpCaseMac  9-35
+UpCaseTime  6-288
+Update (DirEntry)  8-138
+Update (StringDict)  8-82
+UpdateContents (AbstractHelpWindow)  4-430
+UpdateContents (DirList)  4-303
+UpdateContents (PathList)  4-318
+UpdateContents (PickList)  4-261
+UpdateContents (RawWindow)  4-107
+UpdateContents (StackWindow)  4-144
+UpdateFrame  4-53
+UpdateScreenSize (Menu)  4-382
+UpdateScreenSize (RawWindow)  4-108
+UseColor  3-42
+UseEmsIfAvailable  10-41
+UseEmsOverXms  10-42
+UseEmulator  11-68
+UseEnhancedKbd  3-9
+User-defined#masks  6-10
+UserBlockFunc  7-92
+UserFormFunc  7-92
+UserHookProc  3-96
+UserLessFunc  14-49
+UserMatchFunc  READ.1ST
+UserPageFunc  7-92
+UseXmsIfAvailable  10-41
+ValBCD  14-15
+ValidateNoBlanks  6-48
+ValidateNotPartial  6-48
+ValidateSubfields  6-49
+Validation#routines  6-28
+ValidDate  6-304
+ValidDrive  10-36
+ValidTime  6-304
+VArrayID  8-165
+vCols  4-202
+Video#modes  3-6
+VideoSegment  3-10
+VirtScreen  4-191
+VirtualArray  8-167
+VirtualHeight  3-10
+VirtualRCArray  8-167
+VirtualSegment  3-11
+VirtualWidth  3-11
+VisitAll  8-82
+VisitAllControls  6-250
+VisitAllEntryFields  6-188
+VisitAllItems  4-383
+VisitAllPrintFields  7-114
+VisitAllSelectFields  6-99
+VisitAllTextFields  6-100
+VisitAllWindows  4-384
+vRows  4-203
+VScreenToScreen (ScrollingEntryScreen)        6-198
+VScreenToScreen (ScrollingSelector)  6-127
+WaitForButtonRelease  3-64
+WaitForButtonUp  3-138
+WasCommandActive  11-59
+wChangeAttribute  4-109
+wCopy (RawWindow)  4-111
+wCopy (StackWindow)  4-144
+wFastCenter  4-109
+wFastFill  4-109
+wFastFlush  4-109
+wFastRead  4-109
+wFastText  4-109
+wFastVert  4-109
+wFastWrite  4-109
+wFastWriteCtrl  4-109
+wFlexWrite  4-109
+wGotoXY  4-111
+WhereSelect  4-261
+WhereSelectAbs  4-261
+WhereX  3-7
+WhereXAbs  3-43
+WhereXY  3-43
+WhereXYdirect  3-44
+WhereY  3-7
+WhereYAbs  3-44
+WhichHerc  3-11
+Width  4-112
+WillSwapUseEms  11-60
+WillSwapUseXms  11-60
+WindMax  3-6
+WindMin  3-6
+Window  3-7
+WindowControl  6-217
+WindowCoordinates  3-8
+WindowField  6-165
+WindowNumber  4-145
+WindowPtr  4-127
+WindowStack  4-148
+WithinFrameCoords  4-53
+wOptionsAreOn  4-112
+wOptionsOff  4-113
+wOptionsOn  4-114
+WordChars  4-406
+WordCount  9-36
+WordPosition  9-36
+WordWrap  9-37
+WrapMode  6-76
+wReadAttribute  4-109
+Write (BufIdStream)  8-126
+Write (DosIdStream)  8-124
+Write (MemIdStream)  8-128
+Write (PackedWindow)  4-190
+WriteAsc  9-51
+WriteAttribute  3-45
+WriteDiskSectors  10-37
+WriteMacroFile  13-13
+WritePointer  8-119
+WriteRange  8-120
+WriteString  8-121
+WriteText  8-91
+WriteTo  4-203
+WriteUserPointer  8-121
+wStack  4-122
+wWhereXY  4-115
+wWhereXYAbs  4-115
+wWriteAttribute  4-109
+XlatCharItem  7-20
+XlatCharTable  7-11
+XlateArray  4-407
+XlatFunc  7-11
+XmsAllocated  10-42
+XmsArray  8-167
+XmsAvailable  8-167
+XmsControl  12-3
+XmsErrorString  12-12
+XmsInstalled  12-12
+XmsRCArray  8-167
+XrefForIndex  4-406
+Xrefs  4-408
+Yes-No#codes  5-38
+YesOrNo  6-254
+ZeroBcd  14-3
+Zoom  4-116
+ZoomHotCode  3-127
+

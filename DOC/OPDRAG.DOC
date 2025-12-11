@@ -1,0 +1,899 @@
+  OPDRAG - Unit to enable mouse "dragging" with Object Professional
+
+            Copyright (c) 1990, 1992 TurboPower Software
+
+------- Overview -----------------------------------------------------
+
+An increasingly common request for Object Professional has been the
+ability to move and resize windows by holding down the left mouse
+button, moving the mouse to drag the window to its desired
+configuration, and then releasing the button to accept the change.
+Unfortunately, this behavior is inconsistent with one of the basic
+assumptions of the OPRO design, namely that mouse events do not occur
+until mouse buttons are released.
+
+After localized changes to the OPRO production units and the addition
+of the OPDRAG unit, it becomes possible to provide this mouse drag
+behavior as an option. Other potentially useful changes fall out
+automatically; for example, the mouse will drag the highlight bar in a
+pick list and the actions caused by clicking on the increment or
+decrement arrows of a scroll bar will autorepeat.
+
+Because OPDRAG counts on changes in the production OPRO units, it can
+be used only with OPRO version 1.03 or later.
+
+The OPDRAG archive contains two example programs showing how to use
+the unit. You should start by compiling and running PICKDRAG and
+HELPDRAG to see how dragging works. Note that HELPDRAG defaults to
+reading the ENTRY.HLP help file that is supplied with OPRO's ENTRY
+example program. You can specify an alternate help file by naming it
+on the command line when you start HELPDRAG. Each example program has
+some comments near the top of its source file that point out
+additional points of interest.
+
+
+------- Using OPDRAG -------------------------------------------------
+
+We'll first describe the essential steps for using OPDRAG. Additional
+options and frills will appear in the reference section that follows.
+You may want to refer to the PICKDRAG.PAS example program during the
+following discussion.
+
+The first step in using OPDRAG is to add it to the USES statement.
+OPDRAG depends on OPRO units up through OPWINDOW, so it should
+normally be placed after OPWINDOW in the USES statement. OPDRAG
+assumes that the UseMouse and UseHotSpots defines of OPDEFINE.INC have
+been defined; without those defines, there's little reason to use the
+unit. OPDRAG does more when the UseAdjustableWindows define is active,
+but some of its behavior also remains available if that define is
+disabled.
+
+Dragging is a capability that is built into a new object, called a
+DragProcessor, derived from a CommandProcessor. Hence, to enable
+dragging you need to do two things: first, instantiate a DragProcessor
+and second, associate the DragProcessor with the CommandWindow that
+you want to drag. If you enable the UseDrag define in OPDEFINE.INC,
+these steps will occur automatically for each standard command
+processor provided with OPRO; that is, the declaration of each
+CommandProcessor is changed to a DragProcessor instead.
+
+If you don't want to define UseDrag in OPDEFINE.INC, perhaps because
+you don't want *every* CommandProcessor to become a DragProcessor, you
+can still take advantage of OPDRAG. The PICKDRAG example program uses
+another conditional define, UseDragAnyway, that activates dragging
+regardless of the state of OPDEFINE.INC. In this case, a new global
+variable is declared in PICKDRAG:
+
+var
+  pickcommands : dragprocessor;
+
+and is instantiated:
+
+  {initialize the new picklist dragprocessor}
+  if not pickcommands.init(@pickkeyset, pickkeymax) then
+    halt;
+
+Note that PickKeySet and PickKeyMax refer to the standard key set for
+PickLists. Also note that these keys are also used by the normal
+CommandProcessor for pick lists, OPPICK.PickCommands, so if you modify
+the key set for the CommandProcessor (by calling AddCommand), you'll
+implicitly modify the keys for the DragProcessor, and vice versa.
+
+After the PickList object is instantiated in PICKDRAG, its
+CommandProcessor is set to use the new DragProcessor:
+
+  {attach the DragProcessor to the PickList}
+  m.setcommandprocessor(pickcommands);
+
+Although the DragProcessor needs to be instantiated only once per
+window type per program, remember that you must attach it to each
+window variable that uses it. If you want to drag more than one window
+type (e.g., PickList, Menu, TextEditor), you need to create a
+DragProcessor for each window type.
+
+IMPORTANT NOTE: if UseDrag is defined in OPDEFINE.INC, your code
+doesn't need to perform any of the steps described so far.
+
+In order to allow moving and resizing with the mouse, PICKDRAG next
+adds appropriate mouse hot spots to the window frame. The user will
+click on these hot spots to move or resize the window. PICKDRAG makes
+the entire top bar of the frame a hot spot for moving, and the lower
+right corner of the frame a hot spot for resizing:
+
+  {add hot spot for moving}
+  m.wframe.addheader(' top bar to drag ', hetc);
+  m.wframe.addhotbar(frtt, movehotcode);
+
+  {add hot spot for resizing}
+  m.wframe.addheader(' lower right corner to resize ', hebc);
+  m.wframe.addcustomheader(#240, frbr, 0, 0,
+                           defcolors.framecolor, defcolors.framemono);
+  m.wframe.addhotregion(frbr, resizehotcode, 0, 0, 1, 1);
+
+Note that the program must use the hot spot codes MoveHotCode and
+ResizeHotCode (constants interfaced by OPDRAG) for the two hot spots.
+MoveHotCode is a constant equal to hsRegion0 (interfaced by OPFRAME)
+and ResizeHotCode is equal to hsRegion1. Watch out for conflicts
+between these values and other custom hot spots in your program. You
+can't call Frame.AddHotSpot to add the hot spots, because AddHotSpot
+chooses its own hot spot code. Instead you must call AddHeader (and/or
+AddCustomHeader) and AddHotRegion, a sequence that allows you to
+achieve the same visual effect in a way that's compatible with OPDRAG.
+
+The next change required for OPDRAG occurs after the call to the
+window's Process method. Whenever the user clicks over one of the
+window's hot spots, Process exits with the new command code of
+ccMouseDown. The appropriate way to handle these exits is:
+
+  repeat
+    m.process;
+    case m.getlastcommand of
+      ccmousedown :
+        {left mouse button was pressed}
+        begin
+          hotcode := handlemousepress(m);
+          if hotcode = hsnone then
+            {handlemousepress didn't handle the event} ;
+        end;
+      ccselect :
+        {do something with selection} ;
+    end;
+  until m.getlastcommand in [ccquit, ccerror, ccselect];
+
+HandleMousePress is a function interfaced by OPDRAG. We pass it the
+window object for which we're currently processing commands. If the
+mouse was over the move or resize hot spots, HandleMousePress will
+take control of moving or resizing the window until the user releases
+the left mouse button. It then returns the hotspot code (MoveHotCode
+or ResizeHotCode) for the spot that it processed, or hsNone if the
+mouse was not over a hotspot. As shown above, the application should
+loop around to call Process again until a selection is made, the user
+quits, or an error occurs.
+
+With just this code in place, you'll notice additional changes in
+program behavior:
+
+  - the mouse cursor changes to a different character while moving or
+    resizing is in progress
+  - if the user holds down the left mouse button while the mouse
+    cursor is in the window, the highlight bar or hardware cursor will
+    follow the mouse cursor
+  - if the user holds down the left mouse button while the mouse
+    cursor is in a scroll bar of the window, the slider will follow
+    the mouse cursor
+  - if the user holds down the left mouse button while the mouse
+    cursor is on an arrow of a scroll bar, the arrow action will
+    autorepeat until the mouse button is released
+  - in general, all actions that are triggered by the left mouse
+    button occur immediately after the button is pressed
+  - it's not possible to press both mouse buttons simultaneously to
+    get the "help request" command code (ccHelp) that OPRO normally
+    associates with both buttons. You should assign this to a single
+    mouse key if help access via the mouse is important. It was this
+    difficulty with supporting mouse "chords" that originally lead us
+    to avoid the dragging behavior implemented by OPDRAG.
+
+Even though the highlight bar follows the mouse cursor while the left
+button is pressed, item selection will not be completed until the
+button is released. If the pkSelectOnClick option bit is set in the
+PickList flags, the item will be selected (and Process will exit with
+the ccSelect code) immediately after the button is released. If the
+bit is not set, a button release and second click will be required
+before selection occurs. Try uncommenting the following line in
+PICKDRAG.PAS to get a feel for the difference:
+
+  (*
+    m.pkoptionson(pkselectonclick);
+  *)
+
+------- How OPDRAG Works ---------------------------------------------
+
+The DragProcessor object overrides two essential methods of the
+CommandProcessor -- cpKeyPressed and cpGetKey -- in order to change
+their behavior. Instead of calling the OPMOUSE ReadKeyOrButton
+routine, the new cpGetKey uses its own mouse event handler and event
+queue to deal with mouse events. OPDRAG also installs a timer tick
+interrupt handler in order to "auto-repeat" mouse events while the
+left button is held down. The new cpKeyPressed method checks the event
+queue as well as the normal keyboard buffer in order to return True or
+False.
+
+OPDRAG's mouse event handler, timer tick interrupt handler, and event
+queue are global to an entire program. Each time the mouse is moved or
+a mouse button is pressed or released, the mouse driver calls the
+event handler. OPDRAG analyzes the event type and, when appropriate,
+stores a record in the global queue by saving a key code and the mouse
+position at the time of the event. Similarly, when a timer tick
+occurs, OPDRAG checks the mouse state and, when appropriate, inserts
+an auto-repeat event into the event queue.
+
+When your program calls cpGetKey (usually when the Process method of a
+CommandWindow calls GetNextCommand), cpGetKey first checks the event
+queue to see whether any mouse events have occurred. If so, it takes
+the front event from the queue, returns the key code, and sets the
+OPMOUSE global variables MouseKeyWordX and MouseKeyWordY to the
+position of the mouse when the event occurred. If no mouse event is
+available, cpGetKey checks to see whether any keystrokes are pending
+in the keyboard buffer. If so, it returns the keystroke. Otherwise it
+loops around to check the mouse event queue again.
+
+There are several new constants that allow a CommandWindow to
+distinguish between the different types of mouse events. First, OPDRAG
+interfaces pseudo-scan codes for actions of the left mouse button:
+
+  MouseLftDown  = $E800;  {Pseudo-scan code for down on left button}
+  MouseLftAuto  = $E700;  {Autorepeat or move with left button down}
+
+MouseLftDown is stored in the event queue only when the left button is
+actually pressed. MouseLftAuto is stored whenever sufficient timer
+ticks have occurred while the left button is held down or when the
+mouse is moved while the left button is held down.
+
+The related constants in OPMOUSE (MouseLft, MouseRt, etc.) are used
+just as before, with emphasis that these codes mean that the
+associated button was *released*. OPDRAG doesn't provide similar
+constants for the right button because it isn't commonly used that
+way. OPDRAG could easily be modified to do so, however.
+
+The other new constants are command codes interfaced by OPCMD:
+
+  ccMouseDown   = 134; {left mouse button pressed (not released)}
+  ccMouseAuto   = 135; {left button down: autorepeat or mouse move}
+
+ccMouseAuto commands are handled internally by the ProcessSelf methods
+of the OPRO objects. Unless you are implementing your own ProcessSelf
+methods you should never receive this command code. When
+CommandWindow.GetLastCommand returns ccMouseDown outside of
+ProcessSelf, it means that the left mouse button was pressed over a
+window hot spot that the Process method didn't know how to handle, or
+outside of the window altogether when the window's wAllMouseEvents
+flag was set. When GetLastCommand returns ccMouseSel, it means that
+the left mouse button was released.
+
+If a CommandWindow is not attached to a DragProcessor, GetLastCommand
+will never return ccMouseDown. The DragProcessor constructor
+automatically adds the the MouseLftDown/ccMouseDown and
+MouseLftAuto/ccMouseAuto correspondences to the key table by calling
+AddCommand. This uses 8 bytes of space in the key table.
+
+All standard Object Professional units treat the ccMouseDown and
+ccMouseSel commands in a consistent manner. The position of the mouse
+cursor at the time the event occurred determines how ccMouseDown is
+interpreted. If the mouse cursor is within the active portion of a
+CommandWindow (e.g., within the list portion of a PickList),
+ccMouseDown moves the highlight bar or hardware cursor to the location
+indicated by the mouse cursor. If the mouse cursor is over a scroll
+bar, the slider position is updated and the window's highlight bar or
+hardware cursor is positioned accordingly. In either case, the Process
+method remains active: the ccMouseDown command does not cause Process
+to exit.
+
+If the mouse cursor is over a hot spot when the ccMouseDown command is
+received, and the hot spot is not one that the object manages for
+itself (such as a scroll bar arrow or the "previous topic" hot spot in
+a help window), the object's Process method will exit immediately and
+GetLastCommand will return ccMouseDown. Similarly, if the mouse cursor
+is neither within the active window nor over a hot spot, and the
+window's wAllMouseEvents flag is set, ccMouseDown will cause Process
+to exit. GetLastCommand will also return ccMouseDown in this case.
+
+It is then the application's responsibility to deal with the mouse
+event. OPDRAG's HandleMousePress function takes care of three common
+hot spots for moving, resizing, or zooming a window. In all of these
+cases, HandleMousePress will not return until the left mouse button is
+released, i.e., the ccMouseSel command is detected. Generally, the
+Process method of a window should not be called again until ccMouseSel
+has been read from the mouse event queue. OPDRAG provides a procedure
+named WaitForButtonUp that reads events from the queue until
+ccMouseSel is received.
+
+When an object's Process method receives the ccMouseSel command
+(meaning that the mouse button was released), its behavior depends on
+recent mouse history and option flags within the object itself. When
+using the default options for a PickList, the first ccMouseSel after
+the highlight bar has moved to a different item will be ignored. A
+second press (ccMouseDown) and release (ccMouseSel) is required in
+order to complete selection of the item. Once the item has been
+selected, Process exits and GetLastCommand returns ccSelect.
+
+You can remove this "double-click" requirement by activating the
+pkSelectOnClick option of the PickList. When you do so, Process will
+exit as soon as the first ccMouseSel command is received;
+GetLastCommand will return ccSelect and GetLastChoice will return the
+item number of the last highlighted string.
+
+The Menu object (OPMENU) has a similar option, mnSelectOnClick. The
+issue of double clicking is not relevant for other objects such as
+Memo and EntryScreen.
+
+Although it's possible to mix objects that use a DragProcessor with
+those that don't, it's generally not recommended. If you must do so,
+remember that an object that doesn't use a DragProcessor will leave
+events in the global event queue that were ignored by the
+CommandProcessor. If you don't clear the event queue before
+transferring control to the DragProcessor-based object's Process
+method, it will reprocess mouse events that have already been used by
+the previous window. To clear the event queue, use the
+ClearMouseEvents procedure described in the reference section
+following.
+
+Because OPDRAG installs a mouse event handler and a timer interrupt
+handler, there are special considerations when combining it with a
+program that also installs such handlers. OPMOUSE supports only a
+single mouse event handler at a time, so OPDRAG's own event handler
+can chain to a secondary handler that you provide. See
+SetChainedEventHandler below for more information. The OPDRAG
+interrupt $1C handler calls the previous int $1C before performing its
+own tasks, so it will coexist with other handlers when they are
+properly installed.
+
+If a program uses swapping technology (OPEXEC or OPSWAP), it's
+essential to disable the OPDRAG event handlers before swapping. See
+RemoveISRs below.
+
+------- Using OPDRAG in a Swappable TSR ------------------------------
+
+To use OPDRAG is a swappable TSR, you need to do three things:
+
+  1) Create a unit that has an initialization block which calls
+     OpDrag.RemoveISRs. This unit must be used after OPDRAG but before
+     OPSWAP in the main program file.
+
+  2) On entry into your Popup routine, save the mouse state, then call
+     OpDrag.InstallISRs.
+
+  3) Before exiting you popup routine, restore the mouse state, then
+     call OPDRAG.RemoveISRs.
+
+------- OPDRAG Reference Section -------------------------------------
+
+Constants
+---------
+  MoveHotCode        = hsRegion0;
+  ResizeHotCode      = hsRegion1;
+  ZoomHotCode        = hsRegion2;
+
+These constants define the hot spot codes to which HandleMousePress
+reacts. The values are arbitrary; if they conflict with other hot spot
+codes in an existing application, change them and recompile OPDRAG.
+
+  MouseLftDown  = $E800;  {Pseudo-scan code for down on left button}
+  MouseLftAuto  = $E700;  {Autorepeat or move with left button down}
+
+Scan words returned by cpGetKey when the left mouse button is pressed
+or held down.
+
+  AutoDelayTicks : Word = 0;  {Ticks to delay before starting autorepeat}
+
+The number of clock ticks to delay before the first MouseLftAuto event
+is generated while the left mouse button is held down. For the default
+value of zero, autorepeat starts at the next clock tick, no more than
+1/18th second later.
+
+  AutoRepeatTicks : Word = 0; {Ticks to delay between auto MouseDowns}
+
+The number of clock ticks to delay before generating another
+MouseLftAuto event while the left mouse button is held down. The
+default value of 0 provides the minimum delay and thereby generates
+events at the rate of about 18 per second. Setting the value to 1 cuts
+the rate to about 9 per second.
+
+Types
+-----
+  DragProcessorPtr = ^DragProcessor;
+  DragProcessor =
+    object(CommandProcessor)
+      ...
+    end;
+
+The object used to implement mouse dragging. See "How OPDRAG Works"
+above for more information.
+
+DragProcessor Methods
+---------------------
+Declaration
+  function cpGetKey : Word; virtual;
+Purpose
+  Called to get next keystroke.
+Description
+  DragProcessor overrides this virtual method of the CommandProcessor
+  object in order to change the behavior associated with pressing the
+  left mouse button. See "How OPDRAG Works" above for more
+  information.
+
+  If you need to perform background processing within the
+  DragProcessor, you must use a different technique than is usually
+  recommended for a CommandProcessor. cpGetKey loops continuously
+  calling MouseEventsPending and CommandProcessor.cpKeyPressed until
+  one of them returns True. If cpKeyPressed returns True, cpGetKey
+  calls CommandProcessor.cpGetKey to return the key. Therefore, any
+  routine you've installed by calling SetGetKeyProc will eventually be
+  called, but not until a key has already been pressed.
+
+  To set up a background task for a DragProcessor, you must call
+  CommandProcessor.SetKeyPressedProc to install your own task routine.
+  The routine you specify will be called repeatedly until it returns
+  True or a mouse event occurs. Your keypressed function should call
+  OPCRT.KeyPressed and *not* OPMOUSE.KeyOrButtonPressed.
+See Also
+  CommandProcessor.SetKeyPressedProc
+
+Declaration
+  function cpKeyPressed : Boolean; virtual;
+Purpose
+  Called to determine if a key has been pressed.
+Description
+  DragProcessor overrides this virtual method of the CommandProcessor
+  object in order to change the behavior associated with pressing the
+  left mouse button. See "How OPDRAG Works" above for more
+  information.
+See Also
+  cpGetKey
+
+Declaration
+  constructor Init(KeysPtr : CmdTablePtr; MaxIndex : Word);
+Purpose
+  Initialize DragProcessor.
+Description
+  The DragProcessor is initialized just like a CommandProcessor, with
+  the following exceptions.
+
+  DragProcessor.Init sets the default mouse screen mask to $0000
+  (mouse cursor overwrites both the character and the attribute), the
+  default mouse cursor mask to $7004 (reverse video diamond), the
+  cursor mask used when moving a window to $7012 (reverse video
+  up/down arrows), and the cursor mask used when resizing a window to
+  $701D (reverse video left/right arrows) when a window is being
+  resized. It also sets a default value of 16 for mickey to character
+  scaling. You can change these defaults by calling other
+  DragProcessor methods.
+
+  If a mouse is installed, Init adds ccMouseDown and ccMouseAuto
+  command codes to the CmdTable that's passed to Init. If there is
+  insufficient space in the table (8 free bytes are required), Init
+  will fail with InitStatus set to epFatal+ecKeyTableFull.
+
+  Init sets the cpEnableMouse and cpMouseDrag option bits of the
+  CommandProcessor option word. The DragProcessor also overrides the
+  CommandProcessor's cpOptionsOn and cpOptionsOff methods to prevent
+  an application from toggling the cpEnableMouse option, which would
+  change internal procedure pointers that DragProcessor counts on.
+
+  Init also calls OPMOUSE.SoftMouseCursor to set the default software
+  mouse cursor masks.
+
+  Here's a list of the command tables and max index values for each
+  standard CommandProcessor in OPRO. If the UseDrag define is
+  activated in OPDEFINE.INC, you don't need to worry about these,
+  since each unit's initialization block will automatically
+  instantiate a standard DragProcessor. Otherwise, you can use the
+  information in the table to initialize your own DragProcessors using
+  the standard key sets.
+
+     Unit       CommandProcessor Key Set        Key Max
+     --------   ---------------- ------------   ------------
+     OPBROWSE   BrowseCommands   BrowseKeySet   BrowseKeyMax
+     OPCAL      CalCommands      CalKeySet      CalKeyMax
+     OPCALC     CalcCommands     CalcKeySet     CalcKeyMax
+     OPDIALOG   DialogCommands   DialogKeySet   DialogKeyMax
+     OPEDIT     EditCommands     EditKeySet     EditKeyMax
+     OPEDITOR   EditorCommands   EditorKeySet   EditorKeyMax
+     OPENTRY    EntryCommands    EntryKeySet    EntryKeyMax
+     OPHELP     HelpCommands     HelpKeySet     HelpKeyMax
+     OPMACED    MacEdCommands    MacEdKeySet    MacEdKeyMax
+     OPMEMO     MemoCommands     MemoKeySet     MemoKeyMax
+     OPMENU     MenuCommands     MenuKeySet     MenuKeyMax
+     OPPICK     PickCommands     PickKeySet     PickKeyMax
+     OPQKREF    QkRefCommands    QkRefKeySet    QkRefKeyMax
+     OPSEDIT    SimpEditCommands SimpEditKeySet SimpEditKeyMax
+     OPSELECT   SelectCommands   SelectKeySet   SelectKeyMax
+
+  For example, you'd instantiate a DragProcessor for OPEDITOR by
+  writing EditorDragCommands.Init(@EditorKeySet, EditorKeyMax). When
+  you create a new DragProcessor to replace the standard
+  CommandProcessor, about 40 bytes of global data space are wasted (by
+  the standard CommandProcessor variable that is no longer used).
+See Also
+  CommandProcessor.Init  SetMouseCursor  SetScreenMask  SetMickeyRatio
+
+Declaration
+  {$IFDEF UseStreams}
+  constructor Load(var S : IdStream);
+Purpose
+  Load from a stream.
+Description
+  Constructs a DragProcessor by reading it from a stream. S is a
+  stream variable already initialized and opened for reading.
+
+  The stream registration procedure for a DragProcessor is
+  DragProcessorStream.
+See Also
+  Store
+
+Declaration
+  procedure SetMickeyRatio(Ratio : Byte);
+Purpose
+  Set the mickey to character scale factor.
+Description
+  When moving and resizing a window, OPDRAG divides the number of
+  Mickeys that the mouse cursor has moved since the last call to
+  GetMickeyCount by the specified Ratio in order to convert it to rows
+  or columns. Larger values of Ratio provide slower, more sensitive
+  adjustments. You probably won't need to change the default value,
+  which is 16.
+See Also
+  HandleMousePress   GetMickeyCount (OPMOUSE)
+
+Declaration
+  procedure SetMouseCursor(DefaultCur, MoveCur, ResizeCur : Word);
+Purpose
+  Set the mouse cursor masks for various conditions.
+Description
+  The DragProcessor takes control of the mouse cursor appearance in
+  various situations. When the DragProcessor is initialized and again
+  when SetMouseCursor is called, it sets the mouse cursor screen mask
+  to the value stored in the DragProcessor and the cursor mask to
+  DefaultCur. See the OPMOUSE chapter of the Object Professional
+  manual for further information about the interpretation of these
+  masks. Whenever HandleMousePress is moving a window, it changes the
+  mouse cursor mask to MoveCur. When it is resizing a window, it uses
+  a ResizeCur cursor mask. You should initialize these cursor masks to
+  appropriate values for the current video mode. Typically you'll take
+  video attribute values out of an OPRO ColorSet, as shown by
+  PICKDRAG.PAS:
+
+  mattr :=
+    word(colormono(defcolors.mousecolor, defcolors.mousemono)) shl 8;
+  pickcommands.setmousecursor(
+    mattr or $04, mattr or $12, mattr or $1D);
+
+  In this example, DefColors is the ColorSet for the application and
+  MAttr is a Word variable. All three cursors use the same video
+  attribute but display a different character: a diamond normally,
+  up/down arrow when moving the window, and left/right arrow when
+  resizing.
+See Also
+  Init   SetScreenMas    SoftMouseCursor (OPMOUSE)
+
+Declaration
+  procedure SetScreenMask(Mask : Word);
+Purpose
+  Set the screen mask used for the mouse cursor.
+Description
+  The DragProcessor takes control of the mouse cursor appearance in
+  various situations. The default screen mask for a DragProcessor is
+  $0000, which means that the mouse cursor will overwrite both the
+  character and video attribute. See the OPMOUSE chapter of the Object
+  Professional manual for further information about the interpretation
+  of the screen mask. Use SetScreenMask to modify this mask.
+Example
+    Commands.SetScreenMask($FFFF);
+    Commands.SetMouseCursor(0, 0, 0);
+  Prevents the DragProcessor from changing the mouse cursor
+  appearance.
+See Also
+  SetMouseCursor
+
+Declaration
+  {$IFDEF UseStreams}
+  procedure Store(var S : IdStream);
+Purpose
+  Store to a stream.
+Description
+  Stores a DragProcessor by writing it to a stream. S is a stream
+  variable already initialized and opened for writing.
+
+  The stream registration procedure for a DragProcessor is
+  DragProcessorStream.
+See Also
+  Load
+
+Procedures and Functions
+------------------------
+Declaration
+  procedure ClearMouseEvents;
+Purpose
+  Clear the mouse event queue.
+Description
+  OPDRAG calls this procedure during initialization to assure that the
+  event queue is empty. You may need to call it you are mixing
+  DragProcessor-using windows with CommandProcessor-using windows.
+See Also
+  ReadMouseEvent  WaitForButtonUp
+
+Declaration
+  {$IFDEF UseAdjustableWindows}
+  function HandleMousePress(var M : CommandWindow) : byte;
+Purpose
+  Handle move, resize, and zoom mouse presses, returning a hot region
+  code, if any.
+Description
+  Call this function after M's Process method returns a command code
+  of ccMouseDown.
+
+  HandleMousePress first assures that the CommandProcessor associated
+  with window M is really a DragProcessor. If it isn't,
+  HandleMousePress exits immediately, returning hsNone in the function
+  result.
+
+  HandleMousePress then compares the mouse position to the hot spots
+  in the window's main frame. If the hot spot codes match MoveHotCode,
+  ResizeHotCode, or ZoomHotCode, HandleMousePress will interactively
+  move, resize, or toggle the zoom for the window M. It doesn't return
+  until the left mouse button is released.
+
+  When HandleMousePress handles the move and resize hot spots, it
+  temporarily changes the mouse cursor appearance and restores it
+  before it returns. You can control the cursor appearance by calling
+  DragProcessor.SetMouseCursor and DragProcessor.SetScreenMask.
+
+  HandleMousePress respects window size limits set by SetSizeLimits,
+  SetPosLimits, and so on.
+
+  If you don't want HandleMousePress to perform one or more of the
+  actions (for example, on an EntryScreen that can't be resized or
+  zoomed), don't add hot spots with the corresponding codes.
+
+  HandleMousePress returns the hot spot code of the hot spot that it
+  detected, or hsNone if the mouse wasn't over any hot spot when the
+  ccMouseDown command occurred. If HandleMousePress returns anything
+  but MoveHotCode, ResizeHotCode, or ZoomHotCode, it is the
+  application's responsibility to handle the ccMouseDown event (which
+  might be a click over another hot spot or a click outside of the
+  current window). Even if HandleMousePress returns one of the three
+  supported hot spot codes, the application may still want to perform
+  some additional processing. For example, PICKDRAG and HELPDRAG show
+  how to modify a header after a window is zoomed or unzoomed.
+
+  HandleMousePress clears the mouse event queue before returning if it
+  handles the hot spot. Otherwise it leaves the event queue intact.
+
+Declaration
+  procedure InstallISRs;
+Purpose
+  Install mouse event handler and Int1C handler.
+Description
+  OPDRAG calls this procedure during initialization if a mouse is
+  installed. After doing so, mouse movements and button presses add
+  events to the global event queue, where they may be read by calling
+  ReadEvent. The ISRs installed are automatically removed by OPDRAG's
+  exit procedure.
+
+  You don't need to worry about InstallISRs unless you are writing a
+  swappable TSR or a program that calls ExecDosSwap for a swapping DOS
+  shell. In that case it's important to call RemoveISRs before exiting
+  the TSR or before starting the DOS shell.
+
+  Note that InstallISRs calls OPMOUSE.SetMouseEventHandler, which will
+  disable any other user event handlers already installed. If you need
+  mouse event handling beyond what OPDRAG provides, see
+  SetChainedEventHandler below.
+See Also
+  RemoveISRs   SetChainedEventHandler   SetMouseEventHandler (OPMOUSE)
+
+Declaration
+  function MouseEventsPending : Boolean;
+Purpose
+  Return True if mouse events are available to read.
+Description
+  This routine simply checks the head and tail indexes of the mouse
+  event queue to determine whether any events are available. It must
+  return True before you can safely call PeekMouseEvent or
+  ReadMouseEvent.
+See Also
+  PeekMouseEvent   ReadMouseEvent
+
+Declaration
+  function PeekMouseEvent(var X, Y : Byte) : Word;
+Purpose
+  Read the first event from the queue but leave it there.
+Description
+  It is an error to call this routine unless MouseEventsPending
+  already returns True. PeekMouseEvent returns the key code of the
+  first mouse event in the queue (MouseLftDown, MouseLftAuto,
+  MouseLft, MouseRt, or MouseCtr) and the mouse-window-relative
+  coordinates of the mouse cursor at the time the event occurred.
+See Also
+  ReadMouseEvent
+
+Declaration
+  function ReadMouseEvent(var X, Y : Byte) : Word;
+Purpose
+  Read and remove the first event from the queue.
+Description
+  Works like PeekMouseEvent, but removes the event from the queue
+  after reading it. It is an (undetected) error to call this routine
+  unless MouseEventsPending already returns True.
+See Also
+  PeekMouseEvent
+
+Declaration
+  procedure RemoveISRs;
+Purpose
+  Restore Int1C and disable mouse event handling.
+Description
+  RemovesISRs restores the INT $1C vector which was saved at the time
+  InstallISRs was installed. It also calls
+  OPMOUSE.DisableEventHandling.
+See Also
+  DisableEventHandling (OPMOUSE)
+
+Declaration
+  procedure SetChainedEventHandler(EventMask : MouseEventType;
+                                   UserRoutine : Pointer);
+Purpose
+  Install a secondary mouse event handler.
+Description
+  Use this routine if you need to handle mouse events in addition to
+  those of OPDRAG's event handler. OPDRAG calls the specified
+  UserRoutine after its own tasks are done if (MouseEvent and
+  EventMask) <> 0. UserRoutine must be a global, FAR procedure that
+  takes no parameters. See the OPMOUSE chapter's discussion of mouse
+  event handlers for more information.
+See Also
+  SetMouseEventHandler (OPMOUSE)
+
+Declaration
+  procedure StoreMouseEvent(K : Word; X, Y : Byte);
+Purpose
+  Store a new event in the queue. Overwrites last event if queue is
+  full.
+Description
+  OPDRAG's mouse event handler and timer tick service routine call
+  StoreMouseEvent to save information about move movements and button
+  presses. The routine saves the mouse key K and current
+  mouse-window-relative cursor position X, Y in an internal queue that
+  has capacity for 8 events. If the queue is already full,
+  StoreMouseEvent overwrites the last event with the new one.
+
+  It's unlikely that you'll need to call StoreMouseEvent, but it could
+  be used to implement a form of mouse macro processing.
+See Also
+  ReadMouseEvent
+
+Declaration
+  procedure WaitForButtonUp;
+Purpose
+  Take events from the queue until the left button is released.
+Description
+  Call this procedure when a Process method exits with a ccMouseDown
+  command code and you are handling the associated hot spot. Do not
+  call WaitForButtonUp if HandleMousePress handles the hot spot for
+  you, since it already performs the same action itself.
+See Also
+  HandleMousePress   ClearMouseEvents
+
+------- Restrictions and Other Considerations -----------------------
+
+All production OPRO window types in version 1.03 and later are ready
+to be used with OPDRAG. However, if you want to use OPDRAG with a
+CommandWindow derivative that you or someone else has written, you
+will need to modify the code that the window uses to handle mouse
+selections. The new command code ccMouseDown will be reported when the
+left button is pressed, ccMouseAuto will be reported when the left
+button is held down, and, as before, ccMouseSel will be reported when
+the left button is released. See the pkProcessMouseCommand method in
+OPPICK.IN2 for a complete example of handling mouse selection events,
+including the logic to distinguish between a single release and a
+double click. pkProcessMouseCommand also shows how to write a routine
+that works whether OPDRAG is installed or not.
+
+OPDRAG may also affect non-window objects (for example, the LineEditor
+and SimpleLineEditor) that depend on a CommandProcessor to get their
+commands. The SimpleLineEditor has been modified so that the
+ReadString method won't exit until the left mouse button has been
+released. However, LineEditor (in OPEDIT) cannot be modified in the
+same way because the same field editors that OPEDIT uses are also used
+by the EntryScreen. For the EntryScreen to take advantage of OPDRAG,
+the field editors must exit immediately as soon as the left button is
+pressed. As a result, you probably shouldn't attach a DragProcessor to
+a LineEditor object since pressing the left mouse button will cause
+the editor to exit immediately. (Defining UseDrag does *not* change
+the definition of EditCommands to a DragProcessor.)
+
+OPPICK and OPMENU offer options that control exactly when an item will
+be selected. The options are pkSelectOnClick and mnSelectOnClick,
+respectively. These options are off by default and may be set by
+calling pkOptionsOn and mnOptionsOn. When the option is on, the
+Process method exits with the ccSelect command code as soon as the
+user releases the left mouse button (and the mouse cursor is over a
+valid item selection). When the option is off, the Process method
+won't exit until the user double-clicks, i.e., releases the left mouse
+button, presses it and releases it again, all while leaving the mouse
+cursor over the same item. You can experiment with these options by
+uncommenting a line in PICKDRAG.PAS.
+
+Using OPDRAG with a help window is a little trickier than for other
+window types, as you'll see if you study the HELPDRAG.PAS example
+program. Remember that each help window contains an additional Frame
+object which it uses when the window displays help text rather than a
+pick list of topics. Hence, if you want to drag the window in both
+help and pick modes, you must add hot spots for both frames. The
+easiest way to do this is by initializing the main frame (used in pick
+mode) as usual, and then calling the Frame.fCopy method to clone the
+main frame onto the help mode frame. HELPDRAG does so with the
+following statement:
+
+  {make the help mode frame look like the pick mode frame so far}
+  m.hwframe.fcopy(m.wframe);
+
+Another complication is related to the help topic stack. When Process
+exits with the ccMouseSel command code, OPHELP normally pushes the
+last topic onto the topic stack just before Process exits. As a
+result, the program can call Process again and automatically return to
+the same topic. In one case, Process does not push the topic before
+exiting; that's when the window is in pick mode. The application must
+do this itself before recalling Process, as shown by the following
+sequence of code from HELPDRAG:
+
+  {process help window}
+  finished := false;
+  repeat
+    m.process;
+    case m.getlastcommand of
+      {$IFDEF UsingDrag}
+      ccmousedown : begin
+                      if handlemousepress(m) = zoomhotcode then
+                        {change zoom header on help frames}
+                        togglehelpzoom(m);
+ ------------>        if not m.inhelpmode then
+ ------------>          m.settopic(0);
+                    end;
+      {$ENDIF}
+      ccselect   : m.settopic(m.gettopicchoice);
+      ccquit     : if m.inhelpmode then begin
+                     {return to topic index before quitting}
+                     m.topicstackptr^.clear;
+                     m.settopic(0);
+                   end else
+                     finished := true;
+      ccerror    : finished := true;
+    end;
+  until finished;
+
+Although OPDRAG was designed to provide mouse dragging behavior that
+seems natural and logical to us, there are certainly variations that
+it doesn't support. If you find that you want something slightly
+different, feel free to study OPDRAG, which is short and simple enough
+to reward an investment of your time. You can create another
+derivative of the CommandProcessor object or write a routine similar
+to HandleMousePress that works just the way you want it to.
+
+------- The Help File: OPDRAG.TXT ------------------------------------
+
+OPDRAG.TXT is intended to be merged with the help files for Object
+Professional, allowing you to obtain popup help on OPDRAG using our
+POPHELP utility.
+
+To combine help files, you should use a text editor to modify the main
+text file of one of the help databases. Let's say that you want to
+combine Object Professional's help with the help for OPDRAG. To do so,
+you would edit OPRO.TXT and add OPDRAG.TXT to the list of included
+help files. Just prior to the INCLUDE directive for OPDRAG.TXT, you
+would insert an additional line with a !BIAS directive. The BIAS
+directive specifies how much to offset the topic numbers for all
+topics that follow. As this is written, there are 2941 topics in the
+OPRO help file, so the merged OPRO.TXT would look something like the
+following:
+
+...
+!INCLUDE OPSWAP1.TXT
+!INCLUDE OPTSR.TXT
+!INCLUDE OPWINDOW.TXT
+;
+;highest topic number used 2941
+;
+!BIAS 2941
+;
+!INCLUDE OPDRAG.TXT
+
+You would then use MAKEHELP to recompile the combined help database:
+
+   MAKEHELP /Q OPRO
+
+
+------- OPDRAG Version History ---------------------------------------
+
+Version 1.03   10/05/90
+  Initial release (synchronized with Object Professional 1.03)
+

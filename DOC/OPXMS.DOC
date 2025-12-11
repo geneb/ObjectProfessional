@@ -1,0 +1,408 @@
+                                  OPXMS.DOC
+                             TurboPower Software
+                                  July 1992
+
+Of the three modules in Object Professional that provide memory management
+(OPEMS, OPEXTMEM, and OPXMS), OPXMS is often the best choice because of its
+many special features. These features include the ability to lock blocks of
+memory, use the High Memory Area, take advantage of Upper Memory Blocks, and
+associate handles with blocks of memory.
+
+Locking allocated extended memory blocks assures that they will not be moved
+by the XMS memory manager. OPXMS includes functions to lock and unlock blocks
+of extended memory, and to get information about the memory blocks.
+
+The High Memory Area (HMA) is a 64KB region of memory that Microsoft
+"discovered" when they were developing Windows/286. It was given this special
+name because it exists in the extended memory, but unlike the rest of extended
+memory, it can be directly accessed without being in protected mode. This is
+accomplished by enabling the CPU's A20 line, which allows the generation of
+21-bit physical addresses. OPXMS includes functions that allow you to enable,
+disable, and query the state of the A20 line. RequestHMA and ReleaseHMA allow
+you to allocate and deallocate memory in the HMA.
+
+Some XMS memory managers support functions to allocate and free Upper Memory
+Blocks (UMBs). UMBs are areas of memory located above the 640K of DOS
+accessible memory and below the 1 megabyte boundary. This memory is generally
+only accessible under '386 extended memory managers. OPXMS contains functions
+to allocate and free UMBs.
+
+OPXMS also contains functions that determine whether XMS memory is installed
+and, if so, how much is currently available. You can allocate/deallocate and
+access blocks of extended memory by taking the following steps:
+
+1. Find out how much extended memory is available by calling QueryFreeExtMem.
+2. If the available memory is sufficient, use AllocateExtMem to allocate the
+   required amount.
+3. Once the memory is allocated, use MoveExtMemBlock to move data from normal
+   RAM to extended memory and back again.
+4. To dispose of a block of extended memory, call FreeExtMem.
+
+AllocateExtMem allows you to allocate memory only in 1K blocks (1,024 bytes).
+This makes extended memory less convenient to use for general purpose storage,
+but it also means that you can allocate several megabytes of contiguous memory
+with a single call to AllocateExtMem.
+
+Another important memory management issue is that the MoveExtMemBlock
+function, which is used to transfer data between normal and extended memory,
+does not allow you to move data in bytes, only in words (two bytes). This
+means that you must be especially careful when defining your data structures,
+and that you will sometimes need to pad data structures with dummy bytes to
+ensure that their sizes are even numbers. The one benefit of this restriction
+is that you can move up to 128K of contiguous data with a single call to
+MoveExtMem.
+
+Reference Section
+-----------------
+
+Types
+
+  ExtMemPtr =
+    record
+      case Boolean of
+        False : (RealPtr : Pointer);
+        True  : (ProtectedPtr : LongInt);
+    end;
+
+A data structure used to specify pointers to either conventional or extended
+memory. In conventional memory, pointers are normal Segment:Offset pointers.
+In protected memory, linear addresses (longints) are used. This type is used
+only for the MoveExtMemBlock and LockExtMemBlock functions.
+
+Variables
+
+  XmsControl : Pointer;
+
+Stores a pointer to the XMS control function. This is intended primarily
+for internal use.
+
+Error Codes
+
+The following lists all error codes that can be returned from the XMS
+functions:
+
+  $00   Success
+  $80   Function not implemented
+  $81   VDISK device driver was detected
+  $82   A20 error occurred
+  $8E   General driver error
+  $8F   Unrecoverable driver error
+  $90   High memory area does not exist
+  $91   High memory area already in use
+  $92   Size requested is less than /HMAMIN=parameter
+  $93   High memory area not allocated
+  $94   A20 line is still enabled
+  $A0   All extended memory is allocated
+  $A1   Extended memory handles exhausted
+  $A2   Invalid handle
+  $A3   Invalid source handle
+  $A4   Invalid source offset
+  $A5   Invalid destination handle
+  $A6   Invalid destination offset
+  $A7   Invalid length
+  $A8   Invalid overlap in move request
+  $A9   Parity error detected
+  $AA   Block is not locked
+  $AB   Block is locked
+  $AC   Lock count overflowed
+  $AD   Lock failed
+  $B0   Smaller UMB is available
+  $B1   No UMBs are available
+  $B2   Invalid UMB segment number
+
+Declaration
+  function AllocateExtMem(SizeInK : Word; var XmsHandle : Word) : Byte;
+Purpose
+ Allocate a block of extended memory.
+Description
+ This function allocates a block of extended memory SizeInK kilobytes in
+ size, and returns the XMS handle in XMSHandle. A status code is returned
+ in the function result.
+Example
+  var
+    Handle : Word;
+    Res : Byte;
+  begin
+    Res := AllocateExtMem(256, Handle);
+    if Res <> 0 then
+      WriteLn('Cannot allocate XMS memory. Result: ' Res);
+  end;
+
+ Tries to allocate 256k of extended memory and prints the error code if not
+ successful.
+See Also
+ FreeExtMem
+
+Declaration
+  function AllocUpperMemBlock(SizeInParas : Word; var SegmentBase : Word;
+                              var Size : Word) : Byte;
+Purpose
+ Allocate an upper memory block (UMB).
+Description
+ If this function succeeds, SegmentBase contains the segment of the allocated
+ upper memory block and Size contains the size (in kilobytes) of the block. If
+ insufficient memory is available for the requested upper memory block, then
+ the size of the largest free upper memory block is returned in Size.
+
+ Upper memory blocks are paragraph aligned (the offset is always 0). By
+ definition, UMBs are located below the 1 megabyte address boundary, therefore
+ there is no need to enable the A20 line to access the memory in a UMB. There
+ are no restrictions on using this memory in DOS calls or pointing ISRs into
+ this memory.
+
+ This function is not implemented by most '286 XMS drivers. It is implemented
+ by most '386 memory managers such as QEMM, 386MAX, and EMM386.
+See also
+ FreeUpperMemBlock
+
+Declaration
+ function FreeExtMem(XmsHandle : Word) : Byte;
+Purpose
+ Free a block of extended memory.
+Description
+ XMSHandle is the XMS handle returned by the previous call to AllocateExtMem.
+ Note that this function must be called to free any allocated blocks of
+ extended memory before a program terminates (it is not done automatically).
+ Otherwise, they remain allocated and subsequent programs are not able to use
+ them.
+Example
+  var
+    Handle : Word;
+  begin
+    if AllocateExtMem(256, Handle) = 0) then begin
+      if FreeExtMem(Handle) <> 0
+        WriteLn('Unable to free XMS');
+    end
+    else
+      WriteLn('Unable to allocate XMS');
+
+ First tries to allocate 256K of extended memory and then attempts to free it,
+ printing error messages if either fails.
+See Also
+ AllocateExtMem
+
+Declaration
+ function FreeUpperMemBlock(SegmentBase : Word) : Byte;
+Purpose
+ Free an allocated upper memory block.
+Description
+ This function frees a UMB that was allocated by AllocUpperMemBlock. If
+ SegmentBase does not refer to a valid UMB, an error code $82 is returned.
+See Also
+ AllocUpperMemBlock
+
+Declaration
+ function GetHandleInfo(XmsHandle : Word; var LockCount, var HandlesLeft : Byte;
+                        var BlockSizeInK : Word) : Byte;
+Purpose
+ Return information about a block associated with an extended memory handle.
+Description
+ This function returns the lock count for this handle, the number of XMS
+ handles left, and the size in kilobytes of the block associated with this
+ handle. If you also need the 32 bit linear address of this handle, you must
+ call LockExtMemBlock.
+See Also
+ AllocateExtMem LockExtMemBlock
+
+Declaration
+ function GlobalDisableA20 : Byte;
+Purpose
+ Attempt to disable the A20 line.
+Description
+ This function disables 21-bit physical addressing. If you enabled the A20
+ line, it should be disabled by calling GlobalDisableA20 before exiting your
+ program.
+See Also
+ GlobalEnableA20 QueryA20
+
+Declaration
+ function GlobalEnableA20 : Byte;
+Purpose
+ Attempt to enable the A20 line.
+Description
+ This function enables 21-bit physical addressing. It should be used only by
+ programs that own the HMA. However, since both DOS 5.0 and Windows can make
+ more efficient use of the HMA than your application, this function is
+ probably not needed.
+See also
+ GlobalDisableA20 QueryA20
+
+Declaration
+ function LockExtMemBlock(XmsHandle : Word; var LockedBlock : ExtMemPtr) : Byte;
+Purpose
+ Lock an extended memory block and return its base address as a 32 bit linear
+ address.
+Description
+ This function locks an extended memory block, thus preventing it from being
+ moved. XMSHandle must be a valid handle for a previously allocated block of
+ memory (for example, a handle returned by AllocateExtMem). The LockedBlock
+ address is valid only while the block is locked. Locked extended memory
+ blocks should be unlocked as soon as possible. It is not necessary to lock a
+ block before calling MoveExtMemBlock. A count of the number of locks is
+ maintained by the XMS memory manager and can be retrieved with the
+ GetHandleInfo function.
+See Also
+ GetHandleInfo UnlockExtMemBlock
+
+Declaration
+ function MoveExtMemBlock(BlockLength : LongInt;
+                          SourceHandle : Word; SourcePtr : ExtMemPtr;
+                          DestHandle : Word; DestPtr : ExtMemPtr) : Byte;
+Purpose
+ Move a block of memory.
+Description
+ This function is intended primarily for moving data between extended memory
+ and conventional memory, however it can also move memory from extended to
+ extended and conventional to conventional.
+
+ BlockLength is the number of bytes to move. It must always be an even number
+ because MoveExtMemBlock deals in words. Memory areas may overlap only if
+ SourcePtr is at a lower address than DestPtr. If SourceHandle is 0, then
+ SourcePtr is interpreted as a normal segment:offset pointer. If SourceHandle
+ is non-zero, then SourcePtr is interpreted as a 32 bit linear offset into the
+ block of extended memory associated with SourceHandle. The same is true for
+ DestHandle and DestPtr. This function does not require that the A20 line be
+ enabled. It is not necessary to lock extended memory blocks used as SourcePtr
+ or DestPtr.
+Examples
+ var
+   Handle : Word;
+   P, XP : ExtMemPtr;
+ ...
+   GetMem(P.RealPtr, 32768);      {Get 32k}
+   if (P.RealPtr <> nil) then
+    if (AllocateExtMem(32, Handle) = 0) then begin
+      XP.ProtectedPtr := 0;
+      if MoveExtMemBlock(32768,         {32 * 1024 bytes}
+                         0,             {No handle - use pointer}
+                         P,             {Conventional mem pointer}
+                         Handle,        {XMS handle}
+                         XP) <> 0 then  {0 offset - start at beginning}
+        WriteLn('Unable to move block');
+    end
+    else
+      WriteLn('Unable to allocate XMS');
+
+ This example attempts to allocate 32K of conventional memory on the heap. If
+ successful, another 32K block of XMS memory is allocated. If that operation
+ is successful, data is moved from the conventional block to the XMS block.
+ Moving from XMS to conventional memory is simply the reverse operation:
+
+      XP.ProtectedPtr := 0;
+      if MoveExtMemBlock(32768,        {32 * 1024 bytes}
+                         Handle,       {XMS handle}
+                         XP,           {0 offset - start at beginning}
+                         0,            {No handle - use pointer}
+                         P) <> 0 then  {Conventional mem pointer}
+        WriteLn('Unable to move block');
+
+ Moving data from one block to another is also a simple operation:
+
+  var
+    Handle1, Handle2 : Word;
+  ...
+    if ((AllocateExtMem(256, Handle1) = 0) and
+        (AllocateExtMem(256, Handle2) = 0)) then begin
+      XP.ProtectedPtr := 0;
+      if (MoveExtMemBlock(32768, Handle1, XP, Handle2, XP) <> 0) then
+        WriteLn('Unable to move block');
+    end
+    else
+      WriteLn('Unable to allocate XMS');
+
+Declaration
+ function QueryA20 : Byte;
+Purpose
+ Determine if the A20 line is physically enabled.
+Description
+ QueryA20 returns 0 if the A20 line is disabled, 1 if it is enabled, or one of
+ the codes described in "Error Codes" at the beginning of this section if an
+ error occurs.
+See Also
+ GlobalDisableA20 GlobalEnableA20
+
+Declaration
+ function QueryFreeExtMem(var TotalFree, LargestBlock : Word) : Byte;
+Purpose
+ Return total amount of free extended memory and the size of the largest free
+ block.
+Description
+ This function returns the total amount of free extended memory in TotalFree,
+ and the size of the largest free block of extended memory in LargestBlock.
+ Both values are specified in kilobytes.
+Example
+  var
+    TotalFree, LargestBlock, Handle : Word;
+  ...
+    QueryFreeExtMem(TotalFree, LargestBlock);
+    if (LargestBlock >= 1024) then begin
+      if AllocateExtMem(1024, Handle) <> 0 then
+        WriteLn('Unable to allocate XMS');
+    end
+    else
+      WriteLn('Cannot allocate as one block');
+
+ Checks to see if a 1M block of XMS memory is available, and, if so, allocates
+ it.
+
+Declaration
+ function ReleaseHMA : Byte;
+Purpose
+ Release storage in the High Memory Area.
+Description
+ This function releases storage in the HMA that was allocated by RequestHMA.
+ You must release the HMA before exiting your program.
+See Also
+ RequestHMA
+
+Declaration
+ function RequestHMA(Bytes : Word) : Byte;
+Purpose
+ Request storage in the High Memory Area.
+Description
+ This function allocates storage in the HMA. Bytes is the minimum amount of
+ HMA storage needed by the program. If RequestHMA succeeds, the entire HMA is
+ allocated to the calling program.
+
+ Note that since both DOS 5.0 and Windows can use the HMA more effectively
+ than most application programs, this function is not normally used.
+See also
+ ReleaseHMA
+
+Declaration
+ function ResizeExtMemBlock(XmsHandle : Word; NewSizeInK : Word) : Byte;
+Purpose
+ Attempt to resize the memory block associated with XMSHandle.
+Description
+ The extended memory block must be unlocked. If NewSizeInK is larger than the
+ old size, then all data is preserved. If it is smaller, then all data beyond
+ the end of the new block size is lost.
+See Also
+ AllocateExtMem UnlockExtMemBlock
+
+Declaration
+ function UnlockExtMemBlock(XmsHandle : Word) : Byte;
+Purpose
+ Unlock an extended memory block.
+Description
+ The 32 bit linear address obtained by calling LockExtMemBlock is invalid
+ after UnlockExtMemBlock is called.
+See Also
+ LockExtMemBlock
+
+Declaration
+ function XmsErrorString(ErrorCode : Byte) : String;
+Purpose
+ Return an error string for the specified error code.
+Description
+ This function is passed a valid XMS error code and returns the corresponding
+ error string. See "Error Codes," above, for a list of the error codes and
+ associated strings.
+
+Declaration
+ function XmsInstalled : Boolean;
+Purpose
+ Return True if an XMS memory manager is installed.
+Description
+ This function is used to determine whether an XMS driver is installed.
+

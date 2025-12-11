@@ -1,0 +1,2860 @@
+;
+;------------------------------------------------------------
+!TOPIC 2305 OpRoot
+OpRoot contains a dozen or so general purpose data structures--stacks,
+lists, queues, etc. It also implements the Object Professional stream
+manager, which provides object-oriented file I/O capabilities for all of the
+other objects.
+
+The following hierarchy shows the data-management objects provided by
+OpRoot:
+
+2306Root
+  2394PointerStack
+  2409StaticQueue
+  2425SingleListNode
+  2427SingleList
+  2446DoubleListNode
+  2448DoubleList
+    2468CircularList
+  2472BitSet
+    2496LargeBitSet
+  2503StringDict
+    2520StringSet
+  2525StringArray
+
+And the following hierarchy shows the stream management objects provided by
+OpRoot:
+
+2306Root
+  2353DirEntry
+!LINE
+2309IdStream
+  2336DosIdStream
+    2342BufIdStream
+      2365OpLibrary
+  2348MemIdStream
+    2387MemLibrary
+
+See also:  2590Declarations
+;
+;------------------------------------------------------------
+!TOPIC 2306 Root
+!NOINDEX
+2305OpRoot.Root = object
+!LINE
+RootPtr = ^Root;
+
+Root is an abstract parent for almost all Object Professional object types.
+Its main purpose is to assure that the virtual method table link resides in
+the first two bytes of each object instance. This is essential for proper
+functioning of the stream manager.
+
+Root provides only two methods, both of which are intended to be overridden:
+
+  2308Done                      2307Init
+;
+;------------------------------------------------------------
+!TOPIC 2307 Init,Root
+!NOINDEX
+constructor 2306Root.Init;
+
+Resets the global variable InitStatus to 0 so that each individual constructor
+doesn't need to do so.
+
+See also:  2308Done  2541InitStatus
+;
+;------------------------------------------------------------
+!TOPIC 2308 Done,Root
+!NOINDEX
+destructor 2306Root.Done; virtual;
+
+Done, which does nothing, is provided as an abstract hook, guaranteeing that
+every object derived from Root will have a Done method, even if the method
+does nothing.
+
+See also:  2307Init
+;
+;------------------------------------------------------------
+!TOPIC 2309 IdStream
+!NOINDEX
+2305OpRoot.IdStream = object
+!LINE
+IdStreamPtr = ^IdStream;
+
+An abstract type that serves to organize all of the other stream objects. It
+provides methods for low-level read and write and for registering data types
+with the stream manager. The "Id" part of the name serves to distinguish these
+streams from Borland's implementation and to indicate that each object in the
+stream identifies itself by an "Identification" code.
+
+IdStream's methods fall into the following categories:
+
+  2559Declarations              2560Registration            2562Status
+  2561Stream I/O
+;
+;------------------------------------------------------------
+!TOPIC 2310 ReadString,IdStream
+!NOINDEX
+function 2309IdStream.ReadString : String;
+
+Read next variable length string from stream.
+
+See also:  2312WriteString
+;
+;------------------------------------------------------------
+!TOPIC 2311 ReadRange
+!NOINDEX
+procedure 2309IdStream.ReadRange(var BufStart, BufBeyond);
+
+Read Ofs(BufBeyond)-Ofs(BufStart) bytes into BufStart.
+
+See also:  2339DosIdStream.Read  2313WriteRange
+;
+;------------------------------------------------------------
+!TOPIC 2312 WriteString
+!NOINDEX
+procedure 2309IdStream.WriteString(S : String);
+
+Write a variable length string to stream.
+
+See also:  2310ReadString
+;
+;------------------------------------------------------------
+!TOPIC 2313 WriteRange
+!NOINDEX
+procedure 2309IdStream.WriteRange(var BufStart, BufBeyond);
+
+Write Ofs(BufBeyond)-Ofs(BufStart) bytes to stream.
+
+See also:  2311ReadRange
+;
+;------------------------------------------------------------
+!TOPIC 2314 GetSize
+!NOINDEX
+function 2309IdStream.GetSize : Longint;
+
+Determine size of stream.
+
+See also:  2349MemIdStream.Init
+;
+;------------------------------------------------------------
+!TOPIC 2315 Seek
+!NOINDEX
+procedure 2309IdStream.Seek(Pos : Longint);
+
+Set the current stream position to Pos, relative to the beginning of stream.
+
+See also:  2316GetPos
+;
+;------------------------------------------------------------
+!TOPIC 2316 GetPos,IdStream
+!NOINDEX
+function 2309IdStream.GetPos : Longint; virtual;
+
+Return the current stream position.
+
+See also:  2315Seek
+;
+;------------------------------------------------------------
+!TOPIC 2317 GetStatus,IdStream
+!NOINDEX
+function 2309IdStream.GetStatus : Word;
+
+Return status of stream.
+
+See also:  2335Error  2318PeekStatus
+;
+;------------------------------------------------------------
+!TOPIC 2318 PeekStatus
+!NOINDEX
+function 2309IdStream.PeekStatus : Word;
+
+Return status and leave internal variable unchanged.
+
+See also:  2335Error  2317GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2319 RegisterType
+!NOINDEX
+procedure 2309IdStream.RegisterType(Code, Version : Word;
+                                TypePtr, StorePtr, LoadPtr : Pointer);
+
+Registers one object type of specified version for IdStream I/O. May set
+Status to non-zero.
+
+See also:  2320RegisterOldVersion  2329RegisterPointer  2321TypeRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2320 RegisterOldVersion
+!NOINDEX
+procedure 2309IdStream.RegisterOldVersion(Code, Version : Word;
+                                      TypePtr, LoadPtr : Pointer);
+
+Registers an alternate loader for an old version of an object type.
+
+See also:  0288Object version codes  2319RegisterType  2322TypeVerRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2321 TypeRegistered
+!NOINDEX
+function 2309IdStream.TypeRegistered(TypePtr : Pointer) : Boolean;
+
+Return True if specified type is registered for store and load.
+
+See also:  2319RegisterType
+;
+;------------------------------------------------------------
+!TOPIC 2322 TypeVerRegistered
+!NOINDEX
+function 2309IdStream.TypeVerRegistered(TypePtr : Pointer;
+                                    Version : Word) : Boolean;
+
+Return True if specified type and version is registered for load.
+
+See also:  2321TypeRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2323 CodeVerRegistered
+!NOINDEX
+function 2309IdStream.CodeVerRegistered(Code, Version : Word) : Boolean;
+
+Return True if specified code and version number are registered.
+
+See also:
+    2376OpLibrary.GetCodeAndVersion   0287Object type codes
+    0288Object version codes          2321TypeRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2324 RegisterHier
+!NOINDEX
+procedure 2309IdStream.RegisterHier(RProc : StreamRegisterProc);
+
+Call a supplied routine to register a hierarchy of object types.
+
+See also:  2329RegisterPointer  2319RegisterType  2557StreamRegisterProc
+;
+;------------------------------------------------------------
+!TOPIC 2325 PutPtr
+!NOINDEX
+procedure 2309IdStream.PutPtr(RPtr : RootPtr);
+
+Calls polymorphic Store method to write object at RPtr^.
+
+See also:  2326GetPtr  2327Put
+;
+;------------------------------------------------------------
+!TOPIC 2326 GetPtr
+!NOINDEX
+function 2309IdStream.GetPtr : RootPtr;
+
+Calls polymorphic Load constructor to allocate and read object.
+
+See also:  2328Get  2325PutPtr
+;
+;------------------------------------------------------------
+!TOPIC 2327 Put
+!NOINDEX
+procedure 2309IdStream.Put(var R : Root);
+
+Calls polymorphic Store method to write object R.
+
+See also:  2328Get  2325PutPtr
+;
+;------------------------------------------------------------
+!TOPIC 2328 Get
+!NOINDEX
+procedure 2309IdStream.Get(var R : Root);
+
+Calls polymorphic Load constructor to read static object R.
+
+See also:  2326GetPtr  2327Put
+;
+;------------------------------------------------------------
+!TOPIC 2329 RegisterPointer
+!NOINDEX
+procedure 2309IdStream.RegisterPointer(Code : Word; Ptr : Pointer);
+
+Registers one pointer for IdStream I/O.
+
+See also:  0289Pointer codes  2330PointerRegistered  2319RegisterType
+;
+;------------------------------------------------------------
+!TOPIC 2330 PointerRegistered
+!NOINDEX
+function 2309IdStream.PointerRegistered(Ptr : Pointer) : Boolean;
+
+Return True if specified pointer is registered with stream.
+
+See also:  2329RegisterPointer
+;
+;------------------------------------------------------------
+!TOPIC 2331 WritePointer
+!NOINDEX
+procedure 2309IdStream.WritePointer(Ptr : Pointer);
+
+Writes identifier for pointer to stream.
+
+See also:  2329RegisterPointer
+;
+;------------------------------------------------------------
+!TOPIC 2332 WriteUserPointer
+!NOINDEX
+procedure 2309IdStream.WriteUserPointer(Ptr : Pointer; DefaultCode : Word);
+
+Writes Ptr code if registered, else DefaultCode.
+
+See also:  2329RegisterPointer  2331WritePointer
+;
+;------------------------------------------------------------
+!TOPIC 2333 ReadPointer
+!NOINDEX
+function 2309IdStream.ReadPointer : Pointer;
+
+Reads pointer from stream.
+
+See also:  2334ReadUserPointer  2329RegisterPointer  2331WritePointer
+;
+;------------------------------------------------------------
+!TOPIC 2334 ReadUserPointer
+!NOINDEX
+function 2309IdStream.ReadUserPointer(DefaultPtr : Pointer) : Pointer;
+
+Reads pointer and assigns default instead of Nil.
+
+See also:  2329RegisterPointer  2332WriteUserPointer
+;
+;------------------------------------------------------------
+!TOPIC 2335 Error,IdStream
+!NOINDEX
+procedure 2309IdStream.Error(Code : Word); virtual;
+
+Report an error.
+
+See also:  2317GetStatus  2318PeekStatus
+;
+;------------------------------------------------------------
+!TOPIC 2336 DosIdStream
+!NOINDEX
+2305OpRoot.DosIdStream = object(2309IdStream)
+!LINE
+DosIdStreamPtr = ^DosIdStream;
+
+The DosIdStream associates an abstract stream with a DOS file. This object
+provides methods for opening, creating, and closing stream files. Of course it
+inherits all of the read, write, and registration methods from the IdStream.
+
+DosIdStream adds or overrides the following methods:
+
+  2338Done                      2556File modes              2337Init
+  2339Read                      2341Truncate                2340Write
+;
+;------------------------------------------------------------
+!TOPIC 2337 Init,DosIdStream
+!NOINDEX
+constructor 2336DosIdStream.Init(FileName : String; Mode : Word);
+
+Open DOS file in specified mode and initialize stream.
+
+See also:  2338Done  2556File modes
+;
+;------------------------------------------------------------
+!TOPIC 2338 Done,DosIdStream
+!NOINDEX
+destructor 2336DosIdStream.Done; virtual;
+
+Close file and dispose of stream.
+
+See also:  2337Init
+;
+;------------------------------------------------------------
+!TOPIC 2339 Read,DosIdStream
+!NOINDEX
+procedure 2336DosIdStream.Read(var Buf; Count : Word); virtual;
+
+Read bytes from DOS file.
+
+See also:  2311IdStream.ReadRange  2310IdStream.ReadString  2340Write
+;
+;------------------------------------------------------------
+!TOPIC 2340 Write,DosIdStream
+!NOINDEX
+procedure 2336DosIdStream.Write(var Buf; Count : Word); virtual;
+
+Write bytes to DOS file.
+
+See also:  2339Read  2313IdStream.WriteRange  2312IdStream.WriteString
+;
+;------------------------------------------------------------
+!TOPIC 2341 Truncate
+!NOINDEX
+procedure 2336DosIdStream.Truncate; virtual;
+
+Truncate file at current position.
+
+See also:  2352MemIdStream.Truncate
+;
+;------------------------------------------------------------
+!TOPIC 2342 BufIdStream
+!NOINDEX
+2305OpRoot.BufIdStream = object(2336DosIdStream)
+!LINE
+BufIdStreamPtr = ^BufIdStream;
+
+A BufIdStream adds buffering to the DosIdStream. A memory buffer is allocated
+to store stream information temporarily on its way to or from disk. This
+improves stream performance, especially when the stream is composed of many
+small data blocks.
+
+BufIdStream adds or overrides the following methods:
+
+  2344Done                      2345Flush                   2343Init
+  2346Read                      2347Write
+;
+;------------------------------------------------------------
+!TOPIC 2343 Init,BufIdStream
+!NOINDEX
+constructor 2342BufIdStream.Init(FileName : String; Mode, Size : Word);
+
+Open DOS file in specified mode, and allocate buffer of Size bytes.
+
+See also:  2344Done  2556DosIdStream.File modes
+;
+;------------------------------------------------------------
+!TOPIC 2344 Done,BufIdStream
+!NOINDEX
+destructor 2342BufIdStream.Done; virtual;
+
+Flush and close file, deallocate buffer, dispose stream.
+
+See also:  2345Flush  2343Init
+;
+;------------------------------------------------------------
+!TOPIC 2345 Flush
+!NOINDEX
+procedure 2342BufIdStream.Flush; virtual;
+
+Flush buffer.
+
+See also:  2344Done
+;
+;------------------------------------------------------------
+!TOPIC 2346 Read,BufIdStream
+!NOINDEX
+procedure 2342BufIdStream.Read(var Buf; Count : Word); virtual;
+
+Read Count bytes into Buf, using buffer.
+
+See also:  2339DosIdStream.Read  2347Write
+;
+;------------------------------------------------------------
+!TOPIC 2347 Write,BufIdStream
+!NOINDEX
+procedure 2342BufIdStream.Write(var Buf; Count : Word); virtual;
+
+Write Count bytes from Buf, using buffer.
+
+See also:  2346Read  2340DosIdStream.Write
+;
+;------------------------------------------------------------
+!TOPIC 2348 MemIdStream
+!NOINDEX
+2305OpRoot.MemIdStream = object(2309IdStream)
+!LINE
+MemIdStreamPtr = ^MemIdStream;
+
+MemIdStream is just like DosIdStream, with one important difference: the
+stream is stored in memory instead of within a disk file. Programs typically
+will take advantage of this feature by using Borland's BINOBJ utility to
+create an OBJ file from a stream file and then linking the OBJ file directly
+into the EXE file. In this way, an application can avoid the need for a
+separate data file.
+
+MemIdStream adds or overrides the following methods:
+
+  2349Init                      2350Read                    2352Truncate
+  2351Write
+;
+;------------------------------------------------------------
+!TOPIC 2349 Init,MemIdStream
+!NOINDEX
+constructor 2348MemIdStream.Init(BasePtr : Pointer; Size : Word);
+
+Initialize stream to point to a location in memory.
+
+See also:  2337DosIdStream.Init
+;
+;------------------------------------------------------------
+!TOPIC 2350 Read,MemIdStream
+!NOINDEX
+procedure 2348MemIdStream.Read(var Buf; Count : Word); virtual;
+
+Read bytes from memory stream.
+
+See also:  2339DosIdStream.Read  2351Write
+;
+;------------------------------------------------------------
+!TOPIC 2351 Write,MemIdStream
+!NOINDEX
+procedure 2348MemIdStream.Write(var Buf; Count : Word); virtual;
+
+Write bytes to memory stream.
+
+See also:  2350Read  2340DosIdStream.Write
+;
+;------------------------------------------------------------
+!TOPIC 2352 Truncate,MemIdStream
+!NOINDEX
+procedure 2348MemIdStream.Truncate; virtual;
+
+Truncate at current position. Does nothing but reduce Size.
+
+See also:  2341DosIdStream.Truncate
+;
+;------------------------------------------------------------
+!TOPIC 2353 DirEntry
+!NOINDEX
+2305OpRoot.DirEntry = object(2306Root)
+!LINE
+DirEntryPtr = ^DirEntry;
+
+A low-level object used for managing entries in a stream library. Its methods
+fall into the following categories:
+
+  2563Declarations              2565General                 2564Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2354 Init,DirEntry
+!NOINDEX
+constructor 2353DirEntry.Init;
+
+Initialize an empty directory entry.
+
+See also:  2544DirectorySig  2355Rename  2356Update
+;
+;------------------------------------------------------------
+!TOPIC 2355 Rename
+!NOINDEX
+procedure 2353DirEntry.Rename(Name : DirEntryName);
+
+Change the name of the directory entry.
+
+See also:  2356Update
+;
+;------------------------------------------------------------
+!TOPIC 2356 Update,DirEntry
+!NOINDEX
+procedure 2353DirEntry.Update(Start, Len : LongInt; Code, Ver : Word);
+                                                              virtual;
+
+Update the start and length data.
+
+See also:  2355Rename
+;
+;------------------------------------------------------------
+!TOPIC 2357 SetUserPointer
+!NOINDEX
+procedure 2353DirEntry.SetUserPointer(P : Pointer);
+
+Set the user pointer to P.
+
+See also:  2364GetUserPointer
+;
+;------------------------------------------------------------
+!TOPIC 2358 deOptionsOn
+!NOINDEX
+procedure 2353DirEntry.deOptionsOn(Options : Word);
+
+Set the specified flag(s).
+
+See also:  2542Options  2564Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2359 deOptionsOff
+!NOINDEX
+procedure 2353DirEntry.deOptionsOff(Options : Word);
+
+Clear the specified flag(s).
+
+See also:  2542Options  2564Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2360 deOptionsAreOn
+!NOINDEX
+function 2353DirEntry.deOptionsAreOn(Options : Word) : Boolean;
+
+Returns True if the specified flag(s) are on.
+
+See also:  2542Options  2564Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2361 GetEntryName
+!NOINDEX
+function 2353DirEntry.GetEntryName : DirEntryName;
+
+Return the name of the entry.
+
+See also:  2543DirEntryName  2355Rename
+;
+;------------------------------------------------------------
+!TOPIC 2362 GetEntryStart
+!NOINDEX
+function 2353DirEntry.GetEntryStart : LongInt;
+
+Return the starting point for the entry.
+
+See also:  2363GetEntryLength
+;
+;------------------------------------------------------------
+!TOPIC 2363 GetEntryLength
+!NOINDEX
+function 2353DirEntry.GetEntryLength : LongInt;
+
+Return the length of the entry.
+
+See also:  2362GetEntryStart
+;
+;------------------------------------------------------------
+!TOPIC 2364 GetUserPointer
+!NOINDEX
+function 2353DirEntry.GetUserPointer : Pointer;
+
+Return the user pointer.
+
+See also:  2357SetUserPointer
+;
+;------------------------------------------------------------
+!TOPIC 2365 OpLibrary
+!NOINDEX
+2305OpRoot.OpLibrary = object(2342BufIdStream)
+!LINE
+OpLibraryPtr = ^OpLibrary;
+
+An OpLibrary manages a collection of individual object streams in a single DOS
+file. Each object in a library is identified by name; the OpLibrary manager can
+seek directly to a given object and read or write it.
+
+OpLibrary provides the following methods:
+
+  2566Declarations              2567Finding entries         2568General
+  2570Status                    2569Stream I/O
+;
+;------------------------------------------------------------
+!TOPIC 2366 Init,OpLibrary
+!NOINDEX
+constructor 2365OpLibrary.Init(FileName : PathStr; Mode, BufferSize : Word;
+                           Sig : LibrarySig);
+
+Open an existing library.
+
+See also:
+  2367Create                    2368Done                    2547LibrarySig
+  2324IdStream.RegisterHier
+;
+;------------------------------------------------------------
+!TOPIC 2367 Create
+!NOINDEX
+constructor 2365OpLibrary.Create(FileName : PathStr; BufferSize : Word;
+                           Sig : LibrarySig; Entries : Word);
+
+Create a new library.
+
+See also:  2368Done  2366Init  2547LibrarySig
+;
+;------------------------------------------------------------
+!TOPIC 2368 Done,OpLibrary
+!NOINDEX
+destructor 2365OpLibrary.Done; virtual;
+
+Flush and close library file, and dispose of directory and stream.
+
+See also:  2367Create  2366Init
+;
+;------------------------------------------------------------
+!TOPIC 2369 PutEntry
+!NOINDEX
+procedure 2365OpLibrary.PutEntry(Name : DirEntryName; var R : Root);
+
+Calls polymorphic Store method to write object R.
+
+See also:  2370GetEntry  2327IdStream.Put
+;
+;------------------------------------------------------------
+!TOPIC 2370 GetEntry,OpLibrary
+!NOINDEX
+procedure 2365OpLibrary.GetEntry(Name : DirEntryName; var R : Root);
+
+Calls polymorphic Load constructor to read static object R.
+
+See also:
+  2376GetCodeAndVersion         2371GetEntryPtr             2317IdStream.GetStatus
+  2369PutEntry
+;
+;------------------------------------------------------------
+!TOPIC 2371 GetEntryPtr,OpLibrary
+!NOINDEX
+function 2365OpLibrary.GetEntryPtr(Name : DirEntryName) : RootPtr;
+
+Calls polymorphic Load constructor to allocate and read object.
+
+See also:  2370GetEntry
+;
+;------------------------------------------------------------
+!TOPIC 2372 DeleteEntry
+!NOINDEX
+procedure 2365OpLibrary.DeleteEntry(Name : DirEntryName); virtual;
+
+Mark the entry of the specified name as deleted.
+
+See also:  2374KillEntry  2377Pack  2373UndeleteEntry
+;
+;------------------------------------------------------------
+!TOPIC 2373 UndeleteEntry
+!NOINDEX
+procedure 2365OpLibrary.UndeleteEntry(Name : DirEntryName); virtual;
+
+Remove deletion mark from the specified entry.
+
+See also:  2372DeleteEntry
+;
+;------------------------------------------------------------
+!TOPIC 2374 KillEntry
+!NOINDEX
+procedure 2365OpLibrary.KillEntry(Name : DirEntryName);
+
+Permanently delete the entry of the specified name.
+
+See also:  2372DeleteEntry  2377Pack
+;
+;------------------------------------------------------------
+!TOPIC 2375 RenameEntry
+!NOINDEX
+procedure 2365OpLibrary.RenameEntry(OldName, NewName : DirEntryName); virtual;
+
+Rename the specified entry.
+
+See also:  2355DirEntry.Rename
+;
+;------------------------------------------------------------
+!TOPIC 2376 GetCodeAndVersion,OpLibrary
+!NOINDEX
+procedure 2365OpLibrary.GetCodeAndVersion(Name : DirEntryName;
+                                    var Code, Ver : Word);
+
+Return the code and version for the specified entry.
+
+See also:  2323IdStream.CodeVerRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2377 Pack
+!NOINDEX
+procedure 2365OpLibrary.Pack;
+
+Pack the library.
+
+See also:
+  2372DeleteEntry               2379FileNeedsPacking        2378PackedFileSize
+  2369PutEntry                  2545TempLibExt
+;
+;------------------------------------------------------------
+!TOPIC 2378 PackedFileSize
+!NOINDEX
+function 2365OpLibrary.PackedFileSize : LongInt;
+
+Returns size of library after packing.
+
+See also:  2379FileNeedsPacking  2377Pack
+;
+;------------------------------------------------------------
+!TOPIC 2379 FileNeedsPacking
+!NOINDEX
+function 2365OpLibrary.FileNeedsPacking : Boolean;
+
+Returns True if library needs packing.
+
+See also:  2377Pack  2378PackedFileSize
+;
+;------------------------------------------------------------
+!TOPIC 2380 FindEntryByIndex
+!NOINDEX
+function 2365OpLibrary.FindEntryByIndex(N : Word) : DirEntryPtr;
+
+Return a pointer to the N'th entry in the directory.
+
+See also:  2546DirEntries  2382FindAnyDirectoryEntry
+;
+;------------------------------------------------------------
+!TOPIC 2381 FindDirectoryEntry,OpLibrary
+!NOINDEX
+function 2365OpLibrary.FindDirectoryEntry(Name : DirEntryName) : DirEntryPtr;
+
+Return a pointer to a directory entry; Nil if not found or deleted.
+
+See also:  2546DirEntries  2382FindAnyDirectoryEntry  2380FindEntryByIndex
+;
+;------------------------------------------------------------
+!TOPIC 2382 FindAnyDirectoryEntry,OpLibrary
+!NOINDEX
+function 2365OpLibrary.FindAnyDirectoryEntry(Name : DirEntryName) : DirEntryPtr;
+
+Return a pointer to a directory entry; Nil if not found.
+
+See also:  2546DirEntries  2381FindDirectoryEntry  2380FindEntryByIndex
+;
+;------------------------------------------------------------
+!TOPIC 2383 MaxEntries
+!NOINDEX
+function 2365OpLibrary.MaxEntries : Word;
+
+Return the maximum number of entries in the library's directory.
+
+See also:  2386AvailableEntries  2384CurrentEntries  2372OpLibrary.DeleteEntry
+;
+;------------------------------------------------------------
+!TOPIC 2384 CurrentEntries
+!NOINDEX
+function 2365OpLibrary.CurrentEntries : Word;
+
+Return the number of used entries in the library's directory, not including
+deleted entries.
+
+See also:  2386AvailableEntries  2385DeletedEntries  2383MaxEntries
+;
+;------------------------------------------------------------
+!TOPIC 2385 DeletedEntries
+!NOINDEX
+function 2365OpLibrary.DeletedEntries : Word;
+
+Return the number of deleted entries in the library's directory.
+
+See also:  2386AvailableEntries  2384CurrentEntries  2383MaxEntries
+;
+;------------------------------------------------------------
+!TOPIC 2386 AvailableEntries
+!NOINDEX
+function 2365OpLibrary.AvailableEntries : Word;
+
+Return number of entries available in library's directory.
+
+See also:
+    2367Create                    2384CurrentEntries
+    2385OpLibrary.DeletedEntries  2383MaxEntries
+;
+;------------------------------------------------------------
+!TOPIC 2387 MemLibrary
+!NOINDEX
+2305OpRoot.MemLibrary = object(2348MemIdStream)
+!LINE
+MemLibraryPtr = ^MemLibrary;
+
+MemLibrary is just like Library, with one important difference: the stream is
+stored in memory instead of within a disk file. Programs typically will take
+advantage of this feature by using Borland's BINOBJ utility to create an OBJ
+file from a library and then linking the OBJ file directly into the EXE file.
+In this way, an application can avoid the need for a separate data file.
+
+MemLibrary provides the following methods:
+
+  2392FindAnyDirectoryEntry     2391FindDirectoryEntry      2393GetCodeAndVersion
+  2389GetEntry                  2390GetEntryPtr             2388Init
+;
+;------------------------------------------------------------
+!TOPIC 2388 Init,MemLibrary
+!NOINDEX
+constructor 2387MemLibrary.Init(BasePtr : Pointer; Size : Word);
+
+Open an existing library in memory.
+
+See also:  2324IdStream.RegisterHier
+;
+;------------------------------------------------------------
+!TOPIC 2389 GetEntry,MemLibrary
+!NOINDEX
+procedure 2387MemLibrary.GetEntry(Name : DirEntryName; var R : Root);
+
+Calls polymorphic Load constructor to read static object R.
+
+See also:  2390GetEntryPtr
+;
+;------------------------------------------------------------
+!TOPIC 2390 GetEntryPtr,MemLibrary
+!NOINDEX
+function 2387MemLibrary.GetEntryPtr(Name : DirEntryName) : RootPtr;
+
+Calls polymorphic Load constructor to allocate and read object.
+
+See also:  2389GetEntry
+;
+;------------------------------------------------------------
+!TOPIC 2391 FindDirectoryEntry,MemLibrary
+!NOINDEX
+function 2387MemLibrary.FindDirectoryEntry(Name : DirEntryName) : DirEntryPtr;
+                                                                  virtual;
+
+Return a pointer to a directory entry; nil if not found or deleted.
+
+See also:  2392FindAnyDirectoryEntry
+;
+;------------------------------------------------------------
+!TOPIC 2392 FindAnyDirectoryEntry,MemLibrary
+!NOINDEX
+function 2387MemLibrary.FindAnyDirectoryEntry(Name : DirEntryName) :
+                                                     DirEntryPtr; virtual;
+
+Return a pointer to a directory entry; Nil if not found.
+
+See also:  2391FindDirectoryEntry
+;
+;------------------------------------------------------------
+!TOPIC 2393 GetCodeAndVersion,MemLibrary
+!NOINDEX
+procedure 2387MemLibrary.GetCodeAndVersion(Name : DirEntryName;
+                                       var Code, Ver : Word);
+
+Return the code and version for the specified entry.
+
+See also:  2323IdStream.CodeVerRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2394 PointerStack
+!NOINDEX
+2305OpRoot.PointerStack = object(2306Root)
+!LINE
+PointerStackPtr = ^PointerStack;
+
+A PointerStack stores pointers in a stack. It provides methods to push, pop,
+and peek into the stack. Typically the pointers will point to instances of an
+object derived from the Root type, although this is not required.
+
+PointerStack's methods fall into the following categories:
+
+  2571Declarations              2572General                 2573Pushing/popping
+  2574Sizing
+;
+;------------------------------------------------------------
+!TOPIC 2395 Init,PointerStack
+!NOINDEX
+constructor 2394PointerStack.Init(Max : Word);
+
+Allocate a stack of pointers that can manage up to Max items.
+
+See also:  2396Done  2549InitStackSize  2406Resize
+;
+;------------------------------------------------------------
+!TOPIC 2396 Done,PointerStack
+!NOINDEX
+destructor 2394PointerStack.Done; virtual;
+
+Deallocate the stack.
+
+See also:  2404Clear  2395Init
+;
+;------------------------------------------------------------
+!TOPIC 2397 Size,PointerStack
+!NOINDEX
+function 2394PointerStack.Size : Word;
+
+Return the size of the stack.
+
+See also:  2400SP
+;
+;------------------------------------------------------------
+!TOPIC 2398 Push
+!NOINDEX
+procedure 2394PointerStack.Push(P : RootPtr);
+
+Push P onto the stack.
+
+See also:
+    2403Poke                      2399Pop
+    2406Resize                    2397Size
+;
+;------------------------------------------------------------
+!TOPIC 2399 Pop
+!NOINDEX
+function 2394PointerStack.Pop : RootPtr;
+
+Pop the topmost RootPtr off the stack.
+
+See also:  2402PeekTop
+;
+;------------------------------------------------------------
+!TOPIC 2400 SP
+!NOINDEX
+function 2394PointerStack.SP : Word;
+
+Return the current top of stack index.
+
+See also:  2397Size
+;
+;------------------------------------------------------------
+!TOPIC 2401 Peek
+!NOINDEX
+function 2394PointerStack.Peek(Index : Word) : RootPtr;
+
+Return stack element at position Index.
+
+See also:  2402PeekTop  2399Pop
+;
+;------------------------------------------------------------
+!TOPIC 2402 PeekTop
+!NOINDEX
+function 2394PointerStack.PeekTop : RootPtr;
+
+Return pointer currently at the top of stack.
+
+See also:  2401Peek  2399Pop
+;
+;------------------------------------------------------------
+!TOPIC 2403 Poke
+!NOINDEX
+procedure 2394PointerStack.Poke(P : RootPtr; Index : Word);
+
+Directly set a stack element.
+
+See also:  2398Push
+;
+;------------------------------------------------------------
+!TOPIC 2404 Clear,PointerStack
+!NOINDEX
+procedure 2394PointerStack.Clear;
+
+Remove all elements from the stack.
+
+See also:  2396Done
+;
+;------------------------------------------------------------
+!TOPIC 2405 GetStatus,PointerStack
+!NOINDEX
+function 2394PointerStack.GetStatus : Word;
+
+Return latest status code and reset internal status to zero.
+
+See also:  2558Error
+;
+;------------------------------------------------------------
+!TOPIC 2406 Resize,PointerStack
+!NOINDEX
+function 2394PointerStack.Resize(Max : Word) : Boolean;
+
+Expand or shrink stack to hold Max pointers.
+
+See also:  2548MaxStackSize  2397Size
+;
+;------------------------------------------------------------
+!TOPIC 2407 Load,PointerStack
+!NOINDEX
+constructor 2394PointerStack.Load(var S : IdStream);
+
+Load a stack from a stream. The registration routine for a PointerStack is
+PointerStackStream.
+
+See also:  2408Store
+;
+;------------------------------------------------------------
+!TOPIC 2408 Store,PointerStack
+!NOINDEX
+procedure 2394PointerStack.Store(var S : IdStream);
+
+Store a stack in a stream. The registration routine for a PointerStack is
+PointerStackStream.
+
+See also:  2407Load
+;
+;------------------------------------------------------------
+!TOPIC 2409 StaticQueue
+!NOINDEX
+2305OpRoot.StaticQueue = object(2306Root)
+!LINE
+StaticQueuePtr = ^StaticQueue;
+
+A StaticQueue implements one form of the queue data structure, which provides
+methods to add to end, take from front, and so on. The StaticQueue stores a
+specified number of bytes for each element in the queue. It is designed using
+a circular buffer of a specified capacity.
+
+StaticQueue's methods fall into the following categories:
+
+  2575General                   2576Pushing/popping         2577Status
+;
+;------------------------------------------------------------
+!TOPIC 2410 Init,StaticQueue
+!NOINDEX
+constructor 2409StaticQueue.Init(NumElements, ElementSize : Word;
+                             RejectIfFull : Boolean);
+
+Allocate space for static queue.
+
+See also:  2411Done
+;
+;------------------------------------------------------------
+!TOPIC 2411 Done,StaticQueue
+!NOINDEX
+destructor 2409StaticQueue.Done; virtual;
+
+Deallocate space for the queue.
+
+See also:  2418Clear
+;
+;------------------------------------------------------------
+!TOPIC 2412 PushTail
+!NOINDEX
+procedure 2409StaticQueue.PushTail(var Element);
+
+Add an element to the tail of the queue.
+
+See also:  2410Init  2413PushHead
+;
+;------------------------------------------------------------
+!TOPIC 2413 PushHead
+!NOINDEX
+procedure 2409StaticQueue.PushHead(var Element);
+
+Add an element to the head of the queue.
+
+See also:  2410Init  2412PushTail
+;
+;------------------------------------------------------------
+!TOPIC 2414 PopTail
+!NOINDEX
+procedure 2409StaticQueue.PopTail(var Element);
+
+Remove an element from the tail of the queue.
+
+See also:
+    2421GetStatus                 2415PeekTail
+    2416PopHead                   2412PushTail
+;
+;------------------------------------------------------------
+!TOPIC 2415 PeekTail
+!NOINDEX
+procedure 2409StaticQueue.PeekTail(var Element);
+
+Look at the element at the tail of the queue.
+
+See also:  2421GetStatus  2417PeekHead  2416PopHead
+;
+;------------------------------------------------------------
+!TOPIC 2416 PopHead
+!NOINDEX
+procedure 2409StaticQueue.PopHead(var Element);
+
+Remove an element from the front of the queue.
+
+See also:  2421GetStatus  2417PeekHead
+;
+;------------------------------------------------------------
+!TOPIC 2417 PeekHead
+!NOINDEX
+procedure 2409StaticQueue.PeekHead(var Element);
+
+Look at the element at the front of the queue.
+
+See also:  2421GetStatus  2416PopHead
+;
+;------------------------------------------------------------
+!TOPIC 2418 Clear,StaticQueue
+!NOINDEX
+procedure 2409StaticQueue.Clear;
+
+Flush all elements from the queue.
+
+See also:  2411Done
+;
+;------------------------------------------------------------
+!TOPIC 2419 Elements
+!NOINDEX
+function 2409StaticQueue.Elements : Word;
+
+Return the number of elements currently in the queue.
+
+See also:  2410Init
+;
+;------------------------------------------------------------
+!TOPIC 2420 Nth
+!NOINDEX
+function 2409StaticQueue.Nth(W : Word) : Pointer;
+
+Returns untyped pointer to the Wth element in the queue.
+;
+;------------------------------------------------------------
+!TOPIC 2421 GetStatus,StaticQueue
+!NOINDEX
+function 2409StaticQueue.GetStatus : Word;
+
+Return latest status code and reset internal status to zero.
+
+See also:  2422Error
+;
+;------------------------------------------------------------
+!TOPIC 2422 Error,StaticQueue
+!NOINDEX
+procedure 2409StaticQueue.Error(Code : Word); virtual;
+
+Report an error.
+
+See also:  2421GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2423 Load,StaticQueue
+!NOINDEX
+constructor 2409StaticQueue.Load(var S : IdStream);
+
+Load a static queue from a stream. The registration routine for a StaticQueue
+is StaticQueueStream.
+
+See also:  2424Store
+;
+;------------------------------------------------------------
+!TOPIC 2424 Store,StaticQueue
+!NOINDEX
+procedure 2409StaticQueue.Store(var S : IdStream);
+
+Store a static queue to a stream. The registration routine for a StaticQueue
+is StaticQueueStream.
+
+See also:  2423Load
+;
+;------------------------------------------------------------
+!TOPIC 2425 SingleListNode
+!NOINDEX
+2305OpRoot.SingleListNode = object(2306Root)
+!LINE
+SingleNodePtr = ^SingleListNode;
+
+An abstract type that forms the basis of a singly-linked list. Its only data
+field is a Next pointer. Actual list nodes are derived from this type.
+
+See also:  2426Init
+;
+;------------------------------------------------------------
+!TOPIC 2426 Init,SingleListNode
+!NOINDEX
+constructor 2425SingleListNode.Init;
+
+Initialize a singly linked list node.
+
+See also:  2427SingleList  2307Root.Init
+;
+;------------------------------------------------------------
+!TOPIC 2427 SingleList
+!NOINDEX
+2305OpRoot.SingleList = object(2306Root)
+!LINE
+SingleListPtr = ^SingleList;
+
+A SingleList provides all the capabilities you would expect for a
+singly-linked list. A given list stores nodes of one or more types derived
+from SingleListNode. SingleList's methods fall into the following categories:
+
+  2578Adding/deleting nodes     2579Finding nodes           2580General
+;
+;------------------------------------------------------------
+!TOPIC 2428 Init,SingleList
+!NOINDEX
+constructor 2427SingleList.Init;
+
+Initialize an empty list of items.
+
+See also:  2429Done
+;
+;------------------------------------------------------------
+!TOPIC 2429 Done,SingleList
+!NOINDEX
+destructor 2427SingleList.Done; virtual;
+
+Destroy list.
+
+See also:  2435Delete
+;
+;------------------------------------------------------------
+!TOPIC 2430 Size,SingleList
+!NOINDEX
+function 2427SingleList.Size : LongInt;
+
+Return the size of the current list.
+
+See also:  2438Tail
+;
+;------------------------------------------------------------
+!TOPIC 2431 Append,SingleList
+!NOINDEX
+procedure 2427SingleList.Append(P : SingleNodePtr);
+
+Add element to end of list.
+
+See also:  2432Insert  2433Place
+;
+;------------------------------------------------------------
+!TOPIC 2432 Insert,SingleList
+!NOINDEX
+procedure 2427SingleList.Insert(P : SingleNodePtr);
+
+Insert element at start of list.
+
+See also:  2431Append  2434PlaceBefore
+;
+;------------------------------------------------------------
+!TOPIC 2433 Place,SingleList
+!NOINDEX
+procedure 2427SingleList.Place(P, L : SingleNodePtr);
+
+Place element P into list after existing element L.
+
+See also:  2434PlaceBefore
+;
+;------------------------------------------------------------
+!TOPIC 2434 PlaceBefore,SingleList
+!NOINDEX
+procedure 2427SingleList.PlaceBefore(P, L : SingleNodePtr);
+
+Place element P into list before existing element L.
+
+See also:  2433Place
+;
+;------------------------------------------------------------
+!TOPIC 2435 Delete,SingleList
+!NOINDEX
+procedure 2427SingleList.Delete(P : SingleNodePtr);
+
+Delete existing element in list, disposing of its contents.
+
+See also:  2429Done  2436Remove
+;
+;------------------------------------------------------------
+!TOPIC 2436 Remove,SingleList
+!NOINDEX
+procedure 2427SingleList.Remove(P : SingleNodePtr);
+
+Remove existing element from list without disposing of it.
+
+See also:  2435Delete
+;
+;------------------------------------------------------------
+!TOPIC 2437 Head,SingleList
+!NOINDEX
+function 2427SingleList.Head : SingleNodePtr;
+
+Return pointer to head of list.
+
+See also:  2440Nth  2438Tail
+;
+;------------------------------------------------------------
+!TOPIC 2438 Tail,SingleList
+!NOINDEX
+function 2427SingleList.Tail : SingleNodePtr;
+
+Return pointer to tail of list.
+
+See also:  2437Head  2440Nth
+;
+;------------------------------------------------------------
+!TOPIC 2439 Next,SingleList
+!NOINDEX
+function 2427SingleList.Next(P : SingleNodePtr) : SingleNodePtr;
+
+Returns a pointer to the next node after P.
+
+See also:  2437Head  2438Tail
+;
+;------------------------------------------------------------
+!TOPIC 2440 Nth,SingleList
+!NOINDEX
+function 2427SingleList.SingleList.Nth(N : LongInt) : SingleNodePtr;
+
+Returns pointer to Nth node in list, starting at 1; nil if N > Size.
+
+See also:  2437Head  2438Tail
+;
+;------------------------------------------------------------
+!TOPIC 2441 Posn,SingleList
+!NOINDEX
+function 2427SingleList.Posn(P : SingleNodePtr) : LongInt;
+
+Returns ordinal position in the list of P; 0 if not in list.
+;
+;------------------------------------------------------------
+!TOPIC 2442 Load,SingleList
+!NOINDEX
+constructor 2427SingleList.Load(var S : IdStream);
+
+Load a list from a stream. The registration routine for a SingleList is
+SingleListStream.
+
+See also:  2443Store
+;
+;------------------------------------------------------------
+!TOPIC 2443 Store,SingleList
+!NOINDEX
+procedure 2427SingleList.Store(var S : IdStream);
+
+Store a list in a stream. The registration routine for a SingleList is
+SingleListStream.
+
+See also:  2442Load
+;
+;------------------------------------------------------------
+!TOPIC 2444 Clear,SingleList
+!NOINDEX
+procedure 2427SingleList.Clear;
+
+Removes and disposes of all nodes in the list, but leaves
+the list ready for further use.
+
+See also:  2429Done  2445Reset
+;
+;------------------------------------------------------------
+!TOPIC 2445 Reset,SingleList
+!NOINDEX
+procedure 2427SingleList.Reset;
+
+Removes all nodes in the list without disposing of them.
+
+See also:  2429Done  2444Clear
+;
+;------------------------------------------------------------
+!TOPIC 2446 DoubleListNode
+!NOINDEX
+2305OpRoot.DoubleListNode = object(2306Root)
+!LINE
+DoubleNodePtr = ^DoubleListNode;
+
+An abstract type that forms the basis of a doubly-linked list. Each list node
+contains four bytes more data than SingleListNode to store the backward link.
+
+See also:  2447Init
+;
+;------------------------------------------------------------
+!TOPIC 2447 Init,DoubleListNode
+!NOINDEX
+constructor 2446DoubleListNode.Init;
+
+Initialize a doubly linked list node.
+
+See also:  2448DoubleList
+;
+;------------------------------------------------------------
+!TOPIC 2448 DoubleList
+!NOINDEX
+2305OpRoot.DoubleList = object(2306Root)
+!LINE
+DoubleListPtr = ^DoubleList;
+
+Used to implement doubly-linked lists. DoubleLists are preferred over
+SingleLists when the list must be traversed in either direction.
+
+DoubleList's methods fall into the following categories:
+
+  2581Adding/deleting nodes     2582Finding nodes           2583General
+;
+;------------------------------------------------------------
+!TOPIC 2449 Init,DoubleList
+!NOINDEX
+constructor 2448DoubleList.Init;
+
+Initialize an empty list of items.
+
+See also:  2450Done  2428SingleList.Init
+;
+;------------------------------------------------------------
+!TOPIC 2450 Done,DoubleList
+!NOINDEX
+destructor 2448DoubleList.Done; virtual;
+
+Destroy list.
+
+See also:  2456Delete  2429SingleList.Done
+;
+;------------------------------------------------------------
+!TOPIC 2451 Size,DoubleList
+!NOINDEX
+function 2448DoubleList.Size : LongInt;
+
+Return the size of the current list.
+
+See also:  2430SingleList.Size  2459Tail
+;
+;------------------------------------------------------------
+!TOPIC 2452 Append,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Append(P : DoubleNodePtr);
+
+Add element to end of list.
+
+See also:  2431SingleList.Append  2453Insert  2454Place
+;
+;------------------------------------------------------------
+!TOPIC 2453 Insert,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Insert(P : DoubleNodePtr);
+
+Insert element at start of list.
+
+See also:  2452Append  2432SingleList.Insert  2455PlaceBefore
+;
+;------------------------------------------------------------
+!TOPIC 2454 Place,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Place(P, L : DoubleNodePtr);
+
+Place element P into list after existing element L.
+
+See also:  2433SingleList.Place  2455PlaceBefore
+;
+;------------------------------------------------------------
+!TOPIC 2455 PlaceBefore,DoubleList
+!NOINDEX
+procedure 2448DoubleList.PlaceBefore(P, L : DoubleNodePtr);
+
+Place element P into list before existing element L.
+
+See also:  2454Place  2434SingleList.PlaceBefore
+;
+;------------------------------------------------------------
+!TOPIC 2456 Delete,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Delete(P : DoubleNodePtr);
+
+Delete existing element in list, disposing of its contents.
+
+See also:  2435SingleList.Delete  2450Done  2457Remove
+;
+;------------------------------------------------------------
+!TOPIC 2457 Remove,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Remove(P : DoubleNodePtr);
+
+Remove existing element from list without disposing of it.
+
+See also:  2456Delete  2436SingleList.Remove
+;
+;------------------------------------------------------------
+!TOPIC 2458 Head,DoubleList
+!NOINDEX
+function 2448DoubleList.Head : DoubleNodePtr;
+
+Return pointer to head of list.
+
+See also:  2437SingleList.Head  2462Nth  2459Tail
+;
+;------------------------------------------------------------
+!TOPIC 2459 Tail,DoubleList
+!NOINDEX
+function 2448DoubleList.Tail : DoubleNodePtr;
+
+Return pointer to tail of list.
+
+See also:  2458Head  2462Nth
+;
+;------------------------------------------------------------
+!TOPIC 2460 Next,DoubleList
+!NOINDEX
+function 2448DoubleList.Next(P : DoubleNodePtr) : DoubleNodePtr; virtual;
+
+Returns a pointer to the next node.
+
+See also:  2439SingleList.Next  2461Prev
+;
+;------------------------------------------------------------
+!TOPIC 2461 Prev,DoubleList
+!NOINDEX
+function 2448DoubleList.Prev(P : DoubleNodePtr) : DoubleNodePtr; virtual;
+
+Returns a pointer to the previous node.
+
+See also:  2460Next
+;
+;------------------------------------------------------------
+!TOPIC 2462 Nth,DoubleList
+!NOINDEX
+function 2448DoubleList.Nth(N : LongInt) : DoubleNodePtr;
+
+Returns pointer to Nth node in list, starting at 1; nil if N > Size.
+
+See also:  2458Head  2460Next  2461Prev  2459Tail
+;
+;------------------------------------------------------------
+!TOPIC 2463 Posn,DoubleList
+!NOINDEX
+function 2448DoubleList.Posn(P : DoubleNodePtr) : LongInt;
+
+Returns ordinal position in the list of P; 0 if not in list.
+;
+;------------------------------------------------------------
+!TOPIC 2464 Load,DoubleList
+!NOINDEX
+constructor 2448DoubleList.Load(var S : IdStream);
+
+Load a list from a stream. The registration routine for a DoubleList is
+DoubleListStream.
+
+See also:  2465Store
+;
+;------------------------------------------------------------
+!TOPIC 2465 Store,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Store(var S : IdStream);
+
+Store a list in a stream. The registration routine for a DoubleList is
+DoubleListStream.
+
+See also:  2464Load
+;
+;------------------------------------------------------------
+!TOPIC 2466 Clear,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Clear;
+
+Removes and disposes of all nodes in the list, but leaves
+the list ready for further use.
+
+See also:  2450Done  2467Reset
+;
+;------------------------------------------------------------
+!TOPIC 2467 Reset,DoubleList
+!NOINDEX
+procedure 2448DoubleList.Reset;
+
+Removes all notes in the list without disposing of them.
+
+See also:  2450Done  2466Clear
+;
+;------------------------------------------------------------
+!TOPIC 2468 CircularList
+!NOINDEX
+2305OpRoot.CircularList = object(2448DoubleList)
+!LINE
+CircularListPtr = ^CircularList;
+
+A CircularList is a special case of a DoubleList. A request for the next
+element beyond the end of a CircularList returns the first element, in
+contrast to the DoubleList which returns nil.
+
+The following methods are overridden by CircularList:
+
+  2469Next                      2470Prev                    2471Store
+;
+;------------------------------------------------------------
+!TOPIC 2469 Next,CircularList
+!NOINDEX
+function 2468CircularList.Next(P : DoubleNodePtr) : DoubleNodePtr; virtual;
+
+Returns a pointer to the next node (wraps at end).
+
+See also:  2470Prev
+;
+;------------------------------------------------------------
+!TOPIC 2470 Prev,CircularList
+!NOINDEX
+function 2468CircularList.Prev(P : DoubleNodePtr) : DoubleNodePtr; virtual;
+
+Returns a pointer to the previous node (wraps at begin).
+
+See also:  2469Next
+;
+;------------------------------------------------------------
+!TOPIC 2471 Store,CircularList
+!NOINDEX
+procedure 2468CircularList.Store(var S : IdStream);
+
+Store a list in a stream. The registration routine for a CircularList is
+CircularListStream.
+
+See also:  2464DoubleList.Load  2465DoubleList.Store
+;
+;------------------------------------------------------------
+!TOPIC 2472 BitSet
+!NOINDEX
+2305OpRoot.BitSet = object(2306Root)
+!LINE
+BitSetPtr = ^BitSet;
+
+A data structure that efficiently stores arrays of boolean values by packing 8
+booleans into each byte of memory. It offers methods to set and clear bits,
+check the value of a given bit, scan from bit to bit, and many more.
+
+BitSet's methods fall into the following categories:
+
+  2584Declarations              2585Finding bits            2586General
+  2587Setting bits              2588Testing bits
+;
+;------------------------------------------------------------
+!TOPIC 2473 Init,BitSet
+!NOINDEX
+constructor 2472BitSet.Init(Max : LongInt);
+
+Allocate space for elements.
+
+See also:  2474Done  2497LargeBitSet.Init  2550MaxBitCount
+;
+;------------------------------------------------------------
+!TOPIC 2474 Done,BitSet
+!NOINDEX
+destructor 2472BitSet.Done; virtual;
+
+Deallocate data area.
+
+See also:  2473Init
+;
+;------------------------------------------------------------
+!TOPIC 2475 ClearAll
+!NOINDEX
+procedure 2472BitSet.ClearAll; virtual;
+
+Clear all bits.
+
+See also:  2476SetAll
+;
+;------------------------------------------------------------
+!TOPIC 2476 SetAll
+!NOINDEX
+procedure 2472BitSet.SetAll; virtual;
+
+Set all bits.
+
+See also:  2475ClearAll
+;
+;------------------------------------------------------------
+!TOPIC 2477 MaxBits
+!NOINDEX
+function 2472BitSet.MaxBits : LongInt;
+
+Return capacity of bitset.
+
+See also:  2489BitsSet  2473Init  2550MaxBitCount
+;
+;------------------------------------------------------------
+!TOPIC 2478 SetBit
+!NOINDEX
+procedure 2472BitSet.SetBit(Element : LongInt); virtual;
+
+Set specified bit.
+
+See also:  2479ClearBit  2481ControlBit  2480ToggleBit
+;
+;------------------------------------------------------------
+!TOPIC 2479 ClearBit
+!NOINDEX
+procedure 2472BitSet.ClearBit(Element : LongInt); virtual;
+
+Clear specified bit.
+
+See also:  2478SetBit  2480ToggleBit
+;
+;------------------------------------------------------------
+!TOPIC 2480 ToggleBit
+!NOINDEX
+procedure 2472BitSet.ToggleBit(Element : LongInt);
+
+Toggle specified bit.
+
+See also:  2479ClearBit  2481ControlBit  2478SetBit
+;
+;------------------------------------------------------------
+!TOPIC 2481 ControlBit
+!NOINDEX
+procedure 2472BitSet.ControlBit(Element : LongInt; State : Boolean);
+
+Set or clear specified bit depending on State.
+
+See also:  2480ToggleBit
+;
+;------------------------------------------------------------
+!TOPIC 2482 TestSetBit
+!NOINDEX
+function 2472BitSet.TestSetBit(Element : LongInt) : Boolean;
+
+Return current state of specified bit and set it.
+
+See also:  2483TestClearBit
+;
+;------------------------------------------------------------
+!TOPIC 2483 TestClearBit
+!NOINDEX
+function 2472BitSet.TestClearBit(Element : LongInt) : Boolean;
+
+Return current state of specified bit and clear it.
+
+See also:  2482TestSetBit
+;
+;------------------------------------------------------------
+!TOPIC 2484 BitIsSet
+!NOINDEX
+function 2472BitSet.BitIsSet(Element : LongInt) : Boolean; virtual;
+
+Return True if specified bit is set.
+
+See also:  2490FirstSet
+;
+;------------------------------------------------------------
+!TOPIC 2485 NextSet
+!NOINDEX
+function 2472BitSet.NextSet(Element : LongInt) : LongInt; virtual;
+
+Return index of next set element, NoMoreBits if none.
+
+See also:  2486NextClear  2487PrevSet
+;
+;------------------------------------------------------------
+!TOPIC 2486 NextClear
+!NOINDEX
+function 2472BitSet.NextClear(Element : LongInt) : LongInt; virtual;
+
+Return index of next clear element, NoMoreBits if none.
+
+See also:  2485NextSet  2551NoMoreBits  2488PrevClear
+;
+;------------------------------------------------------------
+!TOPIC 2487 PrevSet
+!NOINDEX
+function 2472BitSet.PrevSet(Element : LongInt) : LongInt; virtual;
+
+Return index of previous set element, NoMoreBits if none.
+
+See also:  2485NextSet  2551NoMoreBits  2488PrevClear
+;
+;------------------------------------------------------------
+!TOPIC 2488 PrevClear
+!NOINDEX
+function 2472BitSet.PrevClear(Element : LongInt) : LongInt; virtual;
+
+Return index of previous clear element, NoMoreBits if none.
+
+See also:  2486NextClear  2551NoMoreBits  2487PrevSet
+;
+;------------------------------------------------------------
+!TOPIC 2489 BitsSet
+!NOINDEX
+function 2472BitSet.BitsSet : LongInt; virtual;
+
+Return number of bits set.
+
+See also:  2484BitIsSet
+;
+;------------------------------------------------------------
+!TOPIC 2490 FirstSet
+!NOINDEX
+function 2472BitSet.FirstSet : LongInt;
+
+Return index of first set bit, NoMoreBits if none.
+
+See also:  2492FirstClear  2491LastSet  2551NoMoreBits
+;
+;------------------------------------------------------------
+!TOPIC 2491 LastSet
+!NOINDEX
+function 2472BitSet.LastSet : LongInt;
+
+Return index of last set bit, NoMoreBits if none.
+
+See also:  2490FirstSet  2493LastClear  2551NoMoreBits
+;
+;------------------------------------------------------------
+!TOPIC 2492 FirstClear
+!NOINDEX
+function 2472BitSet.FirstClear : LongInt;
+
+Return index of first clear bit, NoMoreBits if none.
+
+See also:  2490FirstSet  2493LastClear  2551NoMoreBits
+;
+;------------------------------------------------------------
+!TOPIC 2493 LastClear
+!NOINDEX
+function 2472BitSet.LastClear : LongInt;
+
+Return index of last clear bit, NoMoreBits if none.
+
+See also:  2492FirstClear  2491LastSet  2551NoMoreBits
+;
+;------------------------------------------------------------
+!TOPIC 2494 Load,BitSet
+!NOINDEX
+constructor 2472BitSet.Load(var S : IdStream);
+
+Load a bitset from a stream. The registration routine for a BitSet is
+BitSetStream.
+
+See also:  2495Store
+;
+;------------------------------------------------------------
+!TOPIC 2495 Store,BitSet
+!NOINDEX
+procedure 2472BitSet.Store(var S : IdStream);
+
+Store a bitset to a stream. The registration routine for a BitSet is
+BitSetStream.
+
+See also:  2494Load
+;
+;------------------------------------------------------------
+!TOPIC 2496 LargeBitSet
+!NOINDEX
+2305OpRoot.LargeBitSet = object(2472BitSet)
+!LINE
+LargeBitSetPtr = ^LargeBitSet;
+
+A descendant of BitSet. Whereas the standard BitSet is limited to storing
+65534 values, the LargeBitSet can store 8 million or as many as will fit into
+memory. LargeBitSet adds or overrides the following methods:
+
+  2500Error                     2499GetStatus               2497Init
+  2501Load                      2552MaxLargeBitCount        2498Resize
+  2502Store
+;
+;------------------------------------------------------------
+!TOPIC 2497 Init,LargeBitSet
+!NOINDEX
+constructor 2496LargeBitSet.Init(Max : LongInt);
+
+Allocate space for Max elements.
+
+See also:  2552MaxLargeBitCount  2498Resize
+;
+;------------------------------------------------------------
+!TOPIC 2498 Resize,LargeBitSet
+!NOINDEX
+function 2496LargeBitSet.Resize(Max : LongInt) : Boolean;
+
+Expand or shrink large bitset to hold Max bits.
+
+See also:  2499GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2499 GetStatus,LargeBitSet
+!NOINDEX
+function 2496LargeBitSet.GetStatus : Word;
+
+Return latest status code and reset internal status to zero.
+
+See also:  2500Error  2498Resize
+;
+;------------------------------------------------------------
+!TOPIC 2500 Error,LargeBitSet
+!NOINDEX
+procedure 2496LargeBitSet.Error(Code : Word); virtual;
+
+Report an error.
+
+See also:  2499GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2501 Load,LargeBitSet
+!NOINDEX
+constructor 2496LargeBitSet.Load(var S : IdStream);
+
+Load a bitset from a stream. The registration routine for a LargeBitSet is
+LargeBitSetStream.
+
+See also:  2502Store
+;
+;------------------------------------------------------------
+!TOPIC 2502 Store,LargeBitSet
+!NOINDEX
+procedure 2496LargeBitSet.Store(var S : IdStream);
+
+Store a bitset to a stream. The registration routine for a LargeBitSet is
+LargeBitSetStream.
+
+See also:  2501Load
+;
+;------------------------------------------------------------
+!TOPIC 2503 StringDict
+!NOINDEX
+2305OpRoot.StringDict = object(2306Root)
+!LINE
+StringDictPtr = ^StringDict;
+
+The StringDict implements a hash table data structure. Each element in a
+StringDict stores a string (the dictionary entry name) and a four-byte value
+associated with the string. The object offers methods to add, test for
+membership, and remove elements from the dictionary. The four-byte data field
+holds an application-specific value, perhaps a token number associated with a
+parser or even a pointer to a larger record describing the dictionary element.
+
+StringDict provides the following methods:
+
+  2507Add                       2511Clear                   2506Done
+  2516Equal                     2517Error                   2512GetStatus
+  2519GetString                 2515Hash                    2504Init
+  2505InitCustom                2553InitPoolSize            2513Load
+  2508Member                    2510Remove                  2514Store
+  2509Update                    2518VisitAll
+;
+;------------------------------------------------------------
+!TOPIC 2504 Init,StringDict
+!NOINDEX
+constructor 2503StringDict.Init;
+
+Allocate hash pool for a string dictionary.
+
+See also:  2505InitCustom  2506Done  2553InitPoolSize
+;
+;------------------------------------------------------------
+!TOPIC 2505 InitCustom,StringDict
+!NOINDEX
+constructor 2503StringDict.InitCustom(PoolSize : Word);
+
+Allocate hash pool for a string dictionary.
+
+See also:  2504Init  2506Done  2553InitPoolSize
+;
+;------------------------------------------------------------
+!TOPIC 2506 Done,StringDict
+!NOINDEX
+destructor 2503StringDict.Done; virtual;
+
+Deallocate pool.
+
+See also:  2511Clear
+;
+;------------------------------------------------------------
+!TOPIC 2507 Add,StringDict
+!NOINDEX
+procedure 2503StringDict.Add(S : String; Value : LongInt);
+
+Add string and associated value to dictionary.
+
+See also:
+  2516Equal                     2515Hash                    2510Remove
+  2509Update
+;
+;------------------------------------------------------------
+!TOPIC 2508 Member,StringDict
+!NOINDEX
+function 2503StringDict.Member(S : String; var Value : LongInt) : Boolean;
+
+Return True and associated value if S is element of dictionary.
+
+See also:  2515Hash  2510Remove
+;
+;------------------------------------------------------------
+!TOPIC 2509 Update,StringDict
+!NOINDEX
+procedure 2503StringDict.Update(S : String; Value : LongInt);
+
+Change the data value associated with a string.
+
+See also:  2507Add
+;
+;------------------------------------------------------------
+!TOPIC 2510 Remove,StringDict
+!NOINDEX
+procedure 2503StringDict.Remove(S : String);
+
+Remove string from dictionary.
+
+See also:  2511Clear  2508Member
+;
+;------------------------------------------------------------
+!TOPIC 2511 Clear,StringDict
+!NOINDEX
+procedure 2503StringDict.Clear;
+
+Remove all strings from dictionary.
+
+See also:  2506Done
+;
+;------------------------------------------------------------
+!TOPIC 2512 GetStatus,StringDict
+!NOINDEX
+function 2503StringDict.GetStatus : Word;
+
+Return status code and reset internal result to zero.
+
+See also:  2517Error
+;
+;------------------------------------------------------------
+!TOPIC 2513 Load,StringDict
+!NOINDEX
+constructor 2503StringDict.Load(var S : IdStream);
+
+Load a string dictionary from a stream. The registration routine for a
+StringDict is StringDictStream.
+
+See also:  2514Store
+;
+;------------------------------------------------------------
+!TOPIC 2514 Store,StringDict
+!NOINDEX
+procedure 2503StringDict.Store(var S : IdStream);
+
+Store a string dictionary to a stream. The registration routine for a
+StringDict is StringDictStream.
+
+See also:  2513Load
+;
+;------------------------------------------------------------
+!TOPIC 2515 Hash
+!NOINDEX
+function 2503StringDict.Hash(var S : String) : Word; virtual;
+
+Return a hash code for the specified string.
+
+See also:  2516Equal
+;
+;------------------------------------------------------------
+!TOPIC 2516 Equal
+!NOINDEX
+function 2503StringDict.Equal(var S, T : String) : Boolean; virtual;
+
+Return True if the two strings are considered equal.
+
+See also:  2515Hash
+;
+;------------------------------------------------------------
+!TOPIC 2517 Error,StringDict
+!NOINDEX
+procedure 2503StringDict.Error(Code : Word); virtual;
+
+Report an error.
+
+See also:  2512GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2518 VisitAll
+!NOINDEX
+procedure 2503StringDict.VisitAll(SDF : StringDictFunc);
+
+Visit all elements in the dictionary, calling SDF for each one. SDF is a
+function of the following form:
+
+  {$F+}
+  function MyStringDictFunc(SPtr : StringPtr; Value : LongInt;
+                            SDPtr : StringDictPtr) : Boolean;
+  begin
+  end;
+
+This function will be called for each element in the string dictionary.
+SPtr points to the element itself (the string). Value is the 4-byte value
+associated with it. And SDPtr is a pointer to the string dictionary.
+;
+;------------------------------------------------------------
+!TOPIC 2519 GetString,StringDict
+!NOINDEX
+function 2503StringDict.GetString(Value : LongInt; var S : String) : Boolean;
+
+This function tries to locate the (first) string in the dictionary that is
+associated with the specified Value. If it is found, the result is True and
+S contains the string. If not, the result is False.
+;
+;------------------------------------------------------------
+!TOPIC 2520 StringSet
+!NOINDEX
+2305OpRoot.StringSet = object(2503StringDict)
+!LINE
+StringSetPtr = ^StringSet;
+
+A StringSet offers a limited subset of the functionality of the StringDict.
+The StringSet omits the four-byte data value. Thus it provides operations
+analogous to normal Pascal sets but with the set elements formed by strings.
+
+StringSet adds or overrides the following methods:
+
+  2521Add                       2523Load                    2522Member
+  2524Store
+;
+;------------------------------------------------------------
+!TOPIC 2521 Add,StringSet
+!NOINDEX
+procedure 2520StringSet.Add(S : String);
+
+Add string to set.
+
+See also:  2507StringDict.Add
+;
+;------------------------------------------------------------
+!TOPIC 2522 Member,StringSet
+!NOINDEX
+function 2520StringSet.Member(S : String) : Boolean;
+
+Return True if S is element of set.
+
+See also:  2508StringDict.Member
+;
+;------------------------------------------------------------
+!TOPIC 2523 Load,StringSet
+!NOINDEX
+constructor 2520StringSet.Load(var S : IdStream);
+
+Load a list from a stream. The registration routine for a StringSet is
+StringSetStream.
+
+See also:  2524Store
+;
+;------------------------------------------------------------
+!TOPIC 2524 Store,StringSet
+!NOINDEX
+procedure 2520StringSet.Store(var S : IdStream);
+
+Store a list in a stream. The registration routine for a StringSet is
+StringSetStream.
+
+See also:  2523Load
+;
+;------------------------------------------------------------
+!TOPIC 2525 StringArray
+!NOINDEX
+2305OpRoot.StringArray = object(2306Root)
+!LINE
+StringArrayPtr = ^StringArray;
+
+The StringArray provides an efficient data structure for storing and accessing
+large arrays of strings. Instead of allocating the size of the longest string
+for each string, it packs all of the strings end to end, and manages an index
+to find each string quickly.
+
+StringArray provides the following methods:
+
+  2536AddString                 2539Clear                   2589Declarations
+  2529Done                      2533GetString               2534GetStringPtr
+  2526Init                      2531Load                    2537NumStrings
+  2527ReadText                  2528RemoveString            2535Shrink
+  2538Size                      2532Store                   2530WriteText
+;
+;------------------------------------------------------------
+!TOPIC 2526 Init,StringArray
+!NOINDEX
+constructor 2525StringArray.Init(StrMax, Amount : Word);
+
+Allocate space for StrMax strings in Amount space.
+
+See also:  2531Load  2527ReadText
+;
+;------------------------------------------------------------
+!TOPIC 2527 ReadText
+!NOINDEX
+constructor 2525StringArray.ReadText(FileName : PathStr);
+
+Initialize a packed array from a text file.
+
+See also:  2526Init  2531Load  2530WriteText
+;
+;------------------------------------------------------------
+!TOPIC 2528 RemoveString
+!NOINDEX
+procedure 2525StringArray.RemoveString(Which : Word); virtual;
+
+Remove specified string from array and pack character table.
+
+See also:  2526Init  2531Load  2530WriteText
+;
+;------------------------------------------------------------
+!TOPIC 2529 Done,StringArray
+!NOINDEX
+destructor 2525StringArray.Done; virtual;
+
+Deallocate packed array.
+
+See also:  2526Init
+;
+;------------------------------------------------------------
+!TOPIC 2530 WriteText
+!NOINDEX
+procedure 2525StringArray.WriteText(FileName : PathStr);
+
+Write a packed array to a text file.
+
+See also:  2527ReadText
+;
+;------------------------------------------------------------
+!TOPIC 2531 Load,StringArray
+!NOINDEX
+constructor 2525StringArray.Load(var S : IdStream);
+
+Load a binary packed array from a stream. The registration routine for a
+StringArray is StringArrayStream.
+
+See also:  2532Store
+;
+;------------------------------------------------------------
+!TOPIC 2532 Store,StringArray
+!NOINDEX
+procedure 2525StringArray.Store(var S : IdStream);
+
+Write a packed array to a stream. The registration routine for a StringArray
+is StringArrayStream.
+
+See also:  2531Load
+;
+;------------------------------------------------------------
+!TOPIC 2533 GetString,StringArray
+!NOINDEX
+function 2525StringArray.GetString(Which : Word) : String; virtual;
+
+Return string from packed array.
+
+See also:  2534GetStringPtr
+;
+;------------------------------------------------------------
+!TOPIC 2534 GetStringPtr
+!NOINDEX
+function 2525StringArray.GetStringPtr(Which : Word) : StringPtr;
+
+Return pointer to string from packed array.
+
+See also:  2533GetString
+;
+;------------------------------------------------------------
+!TOPIC 2535 Shrink
+!NOINDEX
+function 2525StringArray.Shrink : Boolean;
+
+Remove excess packed array space.
+
+See also:  2526Init
+;
+;------------------------------------------------------------
+!TOPIC 2536 AddString
+!NOINDEX
+function 2525StringArray.AddString(St : String) : Word; virtual;
+
+Add a new string, returning its index, or 0 if error.
+
+See also:  2533GetString  2554paGrowIndex  2555paGrowInfo
+;
+;------------------------------------------------------------
+!TOPIC 2537 NumStrings
+!NOINDEX
+function 2525StringArray.NumStrings : Word;
+
+Return number of strings in the packed array.
+
+See also:  2538Size
+;
+;------------------------------------------------------------
+!TOPIC 2538 Size,StringArray
+!NOINDEX
+function 2525StringArray.Size : Word;
+
+Return the number of bytes used by strings.
+
+See also:  2537NumStrings
+;
+;------------------------------------------------------------
+!TOPIC 2539 Clear,StringArray
+!NOINDEX
+procedure 2525StringArray.Clear;
+
+This method removes all strings from the array but retains the
+dynamic memory used to store them.
+;
+;------------------------------------------------------------
+!TOPIC 2540 ErrorProc
+!NOINDEX
+type
+  ErrorProc = procedure (UnitCode : Byte; var ErrorCode : Word;
+                         ErrorMsg : string);
+
+Procedure type that defines a standard error reporting mechanism for many
+units in Object Professional.
+
+See also:
+  0284Error class prefixes      0283Error classes           0285Error codes
+  0286Error messages            0282Unit codes
+;
+;------------------------------------------------------------
+!TOPIC 2541 InitStatus
+!NOINDEX
+const
+  InitStatus : Word = 0;
+
+Global variable used by all Object Professional constructors to store a
+status code when the constructor fails. The constructor itself will return a
+value of False or a nil pointer (for dynamic instances) to indicate failure.
+When this occurs, the program can check InitStatus for further details about
+the cause of the failure.
+
+See also:  0283Error classes  0285Error codes  2307Root.Init
+;
+;------------------------------------------------------------
+!TOPIC 2542 Options,DirEntry
+!NOINDEX
+!NOSEARCH
+The following options apply to a DirEntry:
+
+!NOWRAP
+deUnused  = $0001;
+deDeleted = $0002;
+!WRAP
+
+When the deUnused bit is set, the directory entry is not currently in use.
+When the deDeleted bit is set the entry describes an object that has been
+deleted. In this case, the object may still be recovered with the
+OpLibrary.UndeleteEntry method.
+
+See also:  2564Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2543 DirEntryName
+!NOINDEX
+type
+  DirEntryName = string[12];
+
+A string of this type is used as the name of each library entry. The size is
+consistent with the traditional "eight-dot-three" format for DOS filenames.
+OpLibrary entry names are not constrained to this format, however.
+
+See also:  2361GetEntryName
+;
+;------------------------------------------------------------
+!TOPIC 2544 DirectorySig
+!NOINDEX
+const
+  DirectorySig = Ord('O')+(Ord('P') shl 8); {'OP'}
+
+Two byte signature that precedes each valid directory entry in a library.
+
+See also:  2354Init
+;
+;------------------------------------------------------------
+!TOPIC 2545 TempLibExt
+!NOINDEX
+const
+  TempLibExt : string[3] = '$$$';
+
+Filename extension used when a library file is packed.
+
+See also:  2377Pack
+;
+;------------------------------------------------------------
+!TOPIC 2546 DirEntries
+!NOINDEX
+type
+  DirEntries = array[1..512] of DirEntryPtr;
+  DirPtr = ^DirEntries;
+
+Types that define an array of pointers to directory entries. The upper limit
+of 512 entries is arbitrary. The absolute upper limit of entries in a library
+would be 16380.
+
+See also:  2567Finding entries
+;
+;------------------------------------------------------------
+!TOPIC 2547 LibrarySig
+!NOINDEX
+type
+  LibrarySig = string[8];
+
+A string of this type is written at the start of every library file. It serves
+to identify the file as a valid library. Nine bytes are written no matter what
+the actual length of the string.
+
+See also:  2367Create
+;
+;------------------------------------------------------------
+!TOPIC 2548 MaxStackSize
+!NOINDEX
+const
+  MaxStackSize = 65520 div SizeOf(RootPtr);
+
+The absolute maximum number of pointers that can be stored in a PointerStack.
+This works out to 16380 pointers.
+
+See also:  2406Resize
+;
+;------------------------------------------------------------
+!TOPIC 2549 InitStackSize
+!NOINDEX
+const
+  InitStackSize = 8;
+
+The size of the stack created if a call to Push is made and no stack has
+previously been allocated.
+
+See also:  2395Init
+;
+;------------------------------------------------------------
+!TOPIC 2550 MaxBitCount
+!NOINDEX
+const
+  MaxBitCount = 65534;
+
+Maximum bits in a BitSet.
+
+See also:  2473Init  2477MaxBits  2552LargeBitSet.MaxLargeBitCount
+;
+;------------------------------------------------------------
+!TOPIC 2551 NoMoreBits
+!NOINDEX
+const
+  NoMoreBits = $FFFFFFFF;
+
+Constant returned by FirstSet, LastSet, and other methods when no more bits
+match the specified criterion.
+
+See also:  2585Finding bits
+;
+;------------------------------------------------------------
+!TOPIC 2552 MaxLargeBitCount
+!NOINDEX
+const
+  MaxLargeBitCount = 1024*1024*8;
+
+Maximum bits in a LargeBitSet.
+
+See also:  2550BitSet.MaxBitCount
+;
+;------------------------------------------------------------
+!TOPIC 2553 InitPoolSize
+!NOINDEX
+const
+  InitPoolSize = 16;
+
+The initial hash table size for a StringDict. Must always be a power of two.
+
+See also:  2504Init
+;
+;------------------------------------------------------------
+!TOPIC 2554 paGrowIndex
+!NOINDEX
+const
+  paGrowIndex : Word = 100;
+
+When a StringArray is forced to expand its index table, it increases the
+available number of entries by paGrowIndex. This value can be changed at any
+point prior to the time when the StringArray expands.
+
+See also:  2536AddString  2555paGrowInfo
+;
+;------------------------------------------------------------
+!TOPIC 2555 paGrowInfo
+!NOINDEX
+const
+  paGrowInfo  : Word = 1000;
+
+Number of bytes by which a StringArray expands its packed array when forced to
+grow. The index and packed array are expanded independently as necessary.
+
+See also:  2536AddString  2554paGrowIndex
+;
+;------------------------------------------------------------
+!TOPIC 2556 File modes
+!NOINDEX
+!NOSEARCH
+const
+  SCreate    = $3C00;  {Create new file}
+  SOpenRead  = $3D00;  {Read access only}
+  SOpenWrite = $3D01;  {Write access only}
+  SOpen      = $3D02;  {Read and write access}
+
+Values passed to the DosIdStream and BufIdStream Init methods to indicate how
+to open a stream file. Each constant specifies the AX register value used with
+the DOS call that opens the file.
+
+See also:  2337Init  2343BufIdStream.Init
+;
+;------------------------------------------------------------
+!TOPIC 2557 StreamRegisterProc
+!NOINDEX
+type
+  StreamRegisterProc = procedure (SPtr : IdStreamPtr);
+
+Procedure type used by the stream manager when it registers the data types
+used in a particular stream. A procedure of this type is passed to the
+IdStream.RegisterHier method. Each "streamable" Object Professional object
+provides one or more procedures of this type. The appropriate procedure is
+mentioned in the Load and Store methods for each object type.
+
+See also:  2324RegisterHier
+;
+;------------------------------------------------------------
+!TOPIC 2558 Error,PointerStack
+!NOINDEX
+procedure 2394PointerStack.Error(Code : Word); virtual;
+
+Report an error. Applications do not call this routine directly.
+
+See also:  2405GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2559 Declarations,IdStream
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to IdStreams:
+
+  0287Object type codes         0288Object version codes    0289Pointer codes
+  2557StreamRegisterProc
+;
+;------------------------------------------------------------
+!TOPIC 2560 Registration
+!NOINDEX
+!NOSEARCH
+IdStream provides the following methods for registering objects and checking
+registration information:
+
+  2323CodeVerRegistered         2330PointerRegistered       2324RegisterHier
+  2320RegisterOldVersion        2329RegisterPointer         2319RegisterType
+  2321TypeRegistered            2322TypeVerRegistered
+;
+;------------------------------------------------------------
+!TOPIC 2561 Stream I/O,IdStream
+!NOINDEX
+!NOSEARCH
+IdStream provides the following methods for performing stream I/O:
+
+  2328Get                       2326GetPtr                  2327Put
+  2325PutPtr                    2333ReadPointer             2311ReadRange
+  2310ReadString                2334ReadUserPointer         2315Seek
+  2331WritePointer              2313WriteRange              2312WriteString
+  2332WriteUserPointer
+;
+;------------------------------------------------------------
+!TOPIC 2562 Status,IdStream
+!NOINDEX
+!NOSEARCH
+IdStream provides the following methods for getting and setting status
+information:
+
+  2335Error                     2316GetPos                  2314GetSize
+  2317GetStatus                 2318PeekStatus
+;
+;------------------------------------------------------------
+!TOPIC 2563 Declarations,DirEntry
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to DirEntrys:
+
+  2544DirectorySig              2543DirEntryName            2542Options
+;
+;------------------------------------------------------------
+!TOPIC 2564 Setting options,DirEntry
+!NOINDEX
+!NOSEARCH
+DirEntry provides the following methods for checking and setting options:
+
+  2360deOptionsAreOn            2359deOptionsOff            2358deOptionsOn
+  2364GetUserPointer            2357SetUserPointer
+;
+;------------------------------------------------------------
+!TOPIC 2565 General,DirEntry
+!NOINDEX
+!NOSEARCH
+DirEntry provides the following general purpose methods:
+
+  2363GetEntryLength            2361GetEntryName            2362GetEntryStart
+  2354Init                      2355Rename                  2356Update
+;
+;------------------------------------------------------------
+!TOPIC 2566 Declarations,OpLibrary
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to OpLibrarys:
+
+  2546DirEntries                2547LibrarySig              2545TempLibExt
+;
+;------------------------------------------------------------
+!TOPIC 2567 Finding entries
+!NOINDEX
+!NOSEARCH
+OpLibrary provides the following methods for finding entries:
+
+  2382FindAnyDirectoryEntry     2381FindDirectoryEntry      2380FindEntryByIndex
+  2376GetCodeAndVersion
+;
+;------------------------------------------------------------
+!TOPIC 2568 General,OpLibrary
+!NOINDEX
+!NOSEARCH
+OpLibrary provides the following general purpose methods:
+
+  2367Create                    2368Done                    2366Init
+;
+;------------------------------------------------------------
+!TOPIC 2569 Stream I/O,OpLibrary
+!NOINDEX
+!NOSEARCH
+OpLibrary provides the following methods for performing stream I/O:
+
+  2372DeleteEntry               2370GetEntry                2371GetEntryPtr
+  2374KillEntry                 2377Pack                    2369PutEntry
+  2375RenameEntry               2373UndeleteEntry
+;
+;------------------------------------------------------------
+!TOPIC 2570 Status,OpLibrary
+!NOINDEX
+!NOSEARCH
+OpLibrary provides the following methods for getting and setting status
+information:
+
+  2386AvailableEntries          2384CurrentEntries          2385DeletedEntries
+  2379FileNeedsPacking          2383MaxEntries              2378PackedFileSize
+;
+;------------------------------------------------------------
+!TOPIC 2571 Declarations,PointerStack
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to PointerStacks:
+
+  2549InitStackSize             2548MaxStackSize
+;
+;------------------------------------------------------------
+!TOPIC 2572 General,PointerStack
+!NOINDEX
+!NOSEARCH
+PointerStack provides the following general purpose methods:
+
+  2404Clear                     2396Done                    2558Error
+  2405GetStatus                 2395Init                    2407Load
+  2408Store
+;
+;------------------------------------------------------------
+!TOPIC 2573 Pushing/popping,PointerStack
+!NOINDEX
+!NOSEARCH
+PointerStack provides the following methods for pushing and popping items:
+
+  2401Peek                      2402PeekTop                 2403Poke
+  2399Pop                       2398Push
+;
+;------------------------------------------------------------
+!TOPIC 2574 Sizing
+!NOINDEX
+!NOSEARCH
+PointerStack provides the following methods for checking and changing the size
+of the stack:
+
+  2406Resize                    2397Size                    2400SP
+;
+;------------------------------------------------------------
+!TOPIC 2575 General,StaticQueue
+!NOINDEX
+!NOSEARCH
+StaticQueue provides the following general purpose methods:
+
+  2418Clear                     2411Done                    2410Init
+  2423Load                      2420Nth                     2424Store
+;
+;------------------------------------------------------------
+!TOPIC 2576 Pushing/popping,StaticQueue
+!NOINDEX
+!NOSEARCH
+StaticQueue provides the following methods for pushing and popping items:
+
+  2417PeekHead                  2415PeekTail                2416PopHead
+  2414PopTail                   2413PushHead                2412PushTail
+;
+;------------------------------------------------------------
+!TOPIC 2577 Status,StaticQueue
+!NOINDEX
+!NOSEARCH
+StaticQueue provides the following methods for obtaining and setting status
+information:
+
+  2419Elements                  2422Error                   2421GetStatus
+;
+;------------------------------------------------------------
+!TOPIC 2578 Adding/deleting nodes,SingleList
+!NOINDEX
+!NOSEARCH
+SingleList provides the following methods for adding and deleting nodes:
+
+  2431Append                    2435Delete                  2432Insert
+  2433Place                     2434PlaceBefore             2436Remove
+;
+;------------------------------------------------------------
+!TOPIC 2579 Finding nodes,SingleList
+!NOINDEX
+!NOSEARCH
+SingleList provides the following methods for finding nodes:
+
+  2437Head                      2439Next                    2440Nth
+  2438Tail
+;
+;------------------------------------------------------------
+!TOPIC 2580 General,SingleList
+!NOINDEX
+!NOSEARCH
+SingleList provides the following general purpose methods:
+
+  2444Clear                     2429Done                    2428Init
+  2442Load                      2441Posn                    2430Size
+  2443Store                     2445Reset
+;
+;------------------------------------------------------------
+!TOPIC 2581 Adding/deleting nodes,DoubleList
+!NOINDEX
+!NOSEARCH
+DoubleList provides the following methods for adding and deleting nodes:
+
+  2452Append                    2456Delete                  2453Insert
+  2454Place                     2455PlaceBefore             2457Remove
+;
+;------------------------------------------------------------
+!TOPIC 2582 Finding nodes,DoubleList
+!NOINDEX
+!NOSEARCH
+DoubleList provides the following methods for finding nodes:
+
+  2458Head                      2460Next                    2462Nth
+  2461Prev                      2459Tail
+;
+;------------------------------------------------------------
+!TOPIC 2583 General,DoubleList
+!NOINDEX
+!NOSEARCH
+DoubleList provides the following general purpose methods:
+
+  2466Clear                     2450Done                    2449Init
+  2464Load                      2463Posn                    2451Size
+  2465Store                     2467Reset
+;
+;------------------------------------------------------------
+!TOPIC 2584 Declarations,BitSet
+!NOINDEX
+!NOSEARCH
+The following declarations apply to BitSets:
+
+  2550MaxBitCount               2551NoMoreBits
+;
+;------------------------------------------------------------
+!TOPIC 2585 Finding bits
+!NOINDEX
+!NOSEARCH
+BitSet provides the following methods for finding bits:
+
+  2492FirstClear                2490FirstSet                2493LastClear
+  2491LastSet                   2486NextClear               2485NextSet
+  2488PrevClear                 2487PrevSet
+;
+;------------------------------------------------------------
+!TOPIC 2586 General,BitSet
+!NOINDEX
+!NOSEARCH
+BitSet provides the following general purpose methods:
+
+  2489BitsSet                   2474Done                    2473Init
+  2494Load                      2477MaxBits                 2495Store
+;
+;------------------------------------------------------------
+!TOPIC 2587 Setting bits
+!NOINDEX
+!NOSEARCH
+BitSet provides the following methods for setting bits:
+
+  2475ClearAll                  2479ClearBit                2481ControlBit
+  2476SetAll                    2478SetBit                  2480ToggleBit
+;
+;------------------------------------------------------------
+!TOPIC 2588 Testing bits
+!NOINDEX
+!NOSEARCH
+BitSet provides the following methods for testing bits:
+
+  2484BitIsSet                  2483TestClearBit            2482TestSetBit
+;
+;------------------------------------------------------------
+!TOPIC 2589 Declarations,StringArray
+!NOINDEX
+!NOSEARCH
+The following constant declarations pertain to StringArrays:
+
+  2554paGrowIndex               2555paGrowInfo
+;
+;------------------------------------------------------------
+!TOPIC 2590 Declarations,OpRoot
+!NOINDEX
+!NOSEARCH
+OpRoot declares the following types and constants:
+
+  2540ErrorProc               2541InitStatus

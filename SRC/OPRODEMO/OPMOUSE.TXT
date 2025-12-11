@@ -1,0 +1,689 @@
+;
+;------------------------------------------------------------
+!TOPIC 1965 OpMouse
+OpMouse aims to provide a high-level interface to the mouse, insulating
+the programmer as much as possible from the mouse driver. The routines in
+OpMouse generally fall into one of the following categories:
+
+  2005Declarations              2019Event handling          2020Hide/show mouse
+  2021Miscellaneous             2022Mouse position          2023Mouse shape
+  2024Mouse window              2025Read buttons
+;
+;------------------------------------------------------------
+!TOPIC 1966 MousePressed
+!NOINDEX
+function 1965OpMouse.MousePressed : Boolean;
+
+Return True if a mouse button is currently being pressed. Analogous to the
+KeyPressed function in Crt and OpCrt.
+
+See also:  1970EnableEventHandling  1968KeyOrButtonPressed  1967MouseKeyWord
+;
+;------------------------------------------------------------
+!TOPIC 1967 MouseKeyWord
+!NOINDEX
+function 1965OpMouse.MouseKeyWord : Word;
+
+Analogous to the ReadKeyWord function in OpCrt. Assuming that
+EnableEventHandling has been called, it sits in a loop waiting for a mouse
+button to be pressed, then returns a pseudo-scan code that indicates which
+button(s) were pressed. If EnableEventHandling has not been called, it will
+return $FFFF.
+
+See also:
+  1970EnableEventHandling       2013Mouse scan codes        2016MouseKeyWordX
+  1969ReadKeyOrButton           2015WaitForButtonRelease
+;
+;------------------------------------------------------------
+!TOPIC 1968 KeyOrButtonPressed
+!NOINDEX
+function 1965OpMouse.KeyOrButtonPressed : Boolean;
+
+Calls KeyPressed and MousePressed and returns True if either is True.
+
+See also:  1966MousePressed
+;
+;------------------------------------------------------------
+!TOPIC 1969 ReadKeyOrButton
+!NOINDEX
+function 1965OpMouse.ReadKeyOrButton : Word;
+
+Return next key or mouse button. Assuming that a mouse button was pressed
+first, on exit the current location of the mouse cursor will be stored in
+MouseKeyWordX and MouseKeyWordY.
+
+See also:
+  1970EnableEventHandling       2013Mouse scan codes        1967MouseKeyWord
+  0406OpCrt.ReadKeyWord
+;
+;------------------------------------------------------------
+!TOPIC 1970 EnableEventHandling
+!NOINDEX
+procedure 1965OpMouse.EnableEventHandling;
+
+Enable the event handler needed for MousePressed and MouseKeyWord. Must be
+called before MousePressed or MouseKeyWord may be used in a program.
+
+See also:
+  1971DisableEventHandling      1967MouseKeyWord            1966MousePressed
+  1997SetMouseEventHandler
+;
+;------------------------------------------------------------
+!TOPIC 1971 DisableEventHandling
+!NOINDEX
+procedure 1965OpMouse.DisableEventHandling;
+
+Disables OpMouse's internal event handler, which is installed when
+EnableEventHandling is called.
+
+See also:  1970EnableEventHandling  1997SetMouseEventHandler
+;
+;------------------------------------------------------------
+!TOPIC 1972 InitializeMouse
+!NOINDEX
+procedure 1965OpMouse.InitializeMouse;
+
+Reinitializes mouse and sets MouseInstalled and MouseButtons.
+
+See also:  2007MouseButtons  2006MouseInstalled
+;
+;------------------------------------------------------------
+!TOPIC 1973 ShowMouse
+!NOINDEX
+procedure 1965OpMouse.ShowMouse;
+
+Show the mouse cursor.
+
+See also:  1974HideMouse  2004ShowMousePrim
+;
+;------------------------------------------------------------
+!TOPIC 1974 HideMouse
+!NOINDEX
+procedure 1965OpMouse.HideMouse;
+
+Hides the mouse cursor, no matter what its kind or shape.
+
+See also:  2003HideMousePrim  1972InitializeMouse  1973ShowMouse
+;
+;------------------------------------------------------------
+!TOPIC 1975 MouseWhereXY
+!NOINDEX
+procedure 1965OpMouse.MouseWhereXY(var MouseX, MouseY : Byte;
+                               var Status : ButtonStatus);
+
+Returns the present location of the mouse cursor, relative to the current
+mouse window, in MouseX and MouseY. The current state of the mouse buttons
+is returned in Status.
+
+See also:
+  2009ButtonStatus              1976MouseWhereX             1977MouseWhereY
+  1984MouseWindow
+;
+;------------------------------------------------------------
+!TOPIC 1976 MouseWhereX
+!NOINDEX
+function 1965OpMouse.MouseWhereX : Byte;
+
+Return current X coordinate for mouse. Analogous to the WhereX function in
+Crt and OpCrt.
+
+See also:  1979MouseWhereXabs  1977MouseWhereY  1984MouseWindow
+;
+;------------------------------------------------------------
+!TOPIC 1977 MouseWhereY
+!NOINDEX
+function 1965OpMouse.MouseWhereY : Byte;
+
+Return current Y coordinate for mouse. Analogous to the WhereY function in
+Crt and OpCrt.
+
+See also:  1976MouseWhereX  1975MouseWhereXY  1980MouseWhereYabs
+;
+;------------------------------------------------------------
+!TOPIC 1978 MouseWhereXYabs
+!NOINDEX
+procedure 1965OpMouse.MouseWhereXYabs(var MouseX, MouseY : Byte;
+                                  var Status : ButtonStatus);
+
+Identical to MouseWhereXY except that the coordinates it returns in MouseX
+and MouseY are absolute, not relative to the current mouse window.
+
+See also:
+  2009ButtonStatus              1979MouseWhereXabs          1975MouseWhereXY
+  1980MouseWhereYabs
+;
+;------------------------------------------------------------
+!TOPIC 1979 MouseWhereXabs
+!NOINDEX
+function 1965OpMouse.MouseWhereXabs : Byte;
+
+Return current X coordinate (absolute) for mouse.
+
+See also:  1976MouseWhereX  0348OpCrt.WhereXabs
+;
+;------------------------------------------------------------
+!TOPIC 1980 MouseWhereYabs
+!NOINDEX
+function 1965OpMouse.MouseWhereYabs : Byte;
+
+Return current Y coordinate (absolute) for mouse. Analogous to the WhereYabs
+function in OpCrt.
+
+See also:  1977MouseWhereY  0347OpCrt.WhereYabs
+;
+;------------------------------------------------------------
+!TOPIC 1981 MouseGotoXY
+!NOINDEX
+procedure 1965OpMouse.MouseGotoXY(MouseX, MouseY : Byte);
+
+Analogous to the GotoXY routine in Crt and OpCrt. Moves the mouse cursor
+to the specified location. As elsewhere in OpMouse, the screen coordinates
+specified here are interpreted as being relative to the current mouse window.
+
+See also:  1984MouseWindow
+;
+;------------------------------------------------------------
+!TOPIC 1982 MouseButtonPressed
+!NOINDEX
+function 1965OpMouse.MouseButtonPressed(Button : ButtonStatus;
+                                    var Count : Word;
+                                    var LastX, LastY : Byte) : Boolean;
+
+Allows you to determine whether or not a particular mouse Button has been
+pressed. If it has, Count returns the number of times it has been pressed
+since the last call to MouseButtonPressed, and LastX and LastY will contain
+the mouse cursor's position the last time it was pressed.
+
+See also:  2009ButtonStatus  1983MouseButtonReleased  1975MouseWhereXY
+;
+;------------------------------------------------------------
+!TOPIC 1983 MouseButtonReleased
+!NOINDEX
+function 1965OpMouse.MouseButtonReleased(Button : ButtonStatus;
+                                     var Count : Word;
+                                     var LastX, LastY : Byte) : Boolean;
+
+Allows you to determine whether or not a particular mouse Button has been
+released. If it has, Count returns the number of times it has been released
+since the last call to MouseButtonReleased, and LastX and LastY will contain
+the mouse cursor's position the last time it was released.
+
+See also:  2009ButtonStatus  1982MouseButtonPressed
+;
+;------------------------------------------------------------
+!TOPIC 1984 MouseWindow
+!NOINDEX
+procedure 1965OpMouse.MouseWindow(XLow, YLow, XHigh, YHigh : Byte);
+
+Similar to the Window procedure in Crt and OpCrt. Sets the
+minimum/maximum horizontal and vertical positions on the screen for the
+mouse cursor.
+
+See also:  1985FullMouseWindow  2014Window coordinates
+;
+;------------------------------------------------------------
+!TOPIC 1985 FullMouseWindow
+!NOINDEX
+procedure 1965OpMouse.FullMouseWindow;
+
+Selects the entire screen as the current mouse window.
+
+See also:  1984MouseWindow
+;
+;------------------------------------------------------------
+!TOPIC 1986 StoreMouseCoordinates
+!NOINDEX
+procedure 1965OpMouse.StoreMouseCoordinates(var WC : WindowCoordinates);
+
+Store the mouse window coordinates in WC. Analogous to the
+StoreWindowCoordinates routine in OpCrt.
+
+See also:  1987RestoreMouseCoordinates  0391OpCrt.StoreWindowCoordinates
+;
+;------------------------------------------------------------
+!TOPIC 1987 RestoreMouseCoordinates
+!NOINDEX
+procedure 1965OpMouse.RestoreMouseCoordinates(WC : WindowCoordinates);
+
+Restore previously saved mouse window coordinates. Analogous to the
+RestoreWindowCoordinates routine in OpCrt.
+
+See also:  0392OpCrt.RestoreWindowCoordinates  1986StoreMouseCoordinates
+;
+;------------------------------------------------------------
+!TOPIC 1988 MouseInWindow
+!NOINDEX
+function 1965OpMouse.MouseInWindow(XLo, YLo, XHi, YHi : Byte) : Boolean;
+
+Return True if mouse is within the specified window.
+
+See also:  1984MouseWindow  2014Window coordinates
+;
+;------------------------------------------------------------
+!TOPIC 1989 SoftMouseCursor
+!NOINDEX
+procedure 1965OpMouse.SoftMouseCursor(ScreenMask, CursorMask : Word);
+
+Set mouse to use a software cursor. See the manual for a discussion of
+screen masks and cursor masks.
+
+See also:  2011Cursor masks  1990HardMouseCursor
+;
+;------------------------------------------------------------
+!TOPIC 1990 HardMouseCursor
+!NOINDEX
+procedure 1965OpMouse.HardMouseCursor(StartLine, EndLine : Word);
+
+Set mouse to use the hardware cursor. StartLine and EndLine specify the
+shape of the cursor.
+
+See also:
+  1993BlockMouseCursor          1992FatMouseCursor          1994HiddenMouseCursor
+  1991NormalMouseCursor         1989SoftMouseCursor
+;
+;------------------------------------------------------------
+!TOPIC 1991 NormalMouseCursor
+!NOINDEX
+procedure 1965OpMouse.NormalMouseCursor;
+
+Selects a hardware mouse cursor that is two-lines high. Analogous to the
+NormalCursor routine in OpCrt.
+
+See also:  1990HardMouseCursor  0361OpCrt.NormalCursor
+;
+;------------------------------------------------------------
+!TOPIC 1992 FatMouseCursor
+!NOINDEX
+procedure 1965OpMouse.FatMouseCursor;
+
+Selects a hardware mouse cursor that is slightly larger than a normal
+two-line cursor. It is analogous to the FatCursor routine in OpCrt.
+
+See also:  0362OpCrt.FatCursor  1990HardMouseCursor
+;
+;------------------------------------------------------------
+!TOPIC 1993 BlockMouseCursor
+!NOINDEX
+procedure 1965OpMouse.BlockMouseCursor;
+
+Selects a hardware mouse cursor shaped like a large block. It is analogous
+to the BlockCursor routine in OpCrt.
+
+See also:  0363OpCrt.BlockCursor  1990HardMouseCursor
+;
+;------------------------------------------------------------
+!TOPIC 1994 HiddenMouseCursor
+!NOINDEX
+procedure 1965OpMouse.HiddenMouseCursor;
+
+This routine selects a hardware mouse cursor that is (at least temporarily)
+hidden. It is analogous to the HiddenCursor routine in OpCrt.
+
+See also:  1990HardMouseCursor  0364OpCrt.HiddenCursor
+;
+;------------------------------------------------------------
+!TOPIC 1995 GetMickeyCount
+!NOINDEX
+procedure 1965OpMouse.GetMickeyCount(var Horizontal, Vertical : Integer);
+
+Returns values indicating how far the mouse has been moved since the last
+time GetMickeyCount was called. Negative numbers indicate movement up
+(Vertical) or to the left (Horizontal); positive numbers indicate movement
+down (Vertical) or to the right (Horizontal).
+
+See also:  1975MouseWhereXY  1996SetMickeyToPixelRatio
+;
+;------------------------------------------------------------
+!TOPIC 1996 SetMickeyToPixelRatio
+!NOINDEX
+procedure 1965OpMouse.SetMickeyToPixelRatio(Horizontal, Vertical : Integer);
+
+Sets the mickey-to-pixel ratio. Default setting is 8,16. A setting of 16,32
+slows down the mouse considerably. A setting of 4,8 makes the mouse fly.
+
+See also:  1995GetMickeyCount
+;
+;------------------------------------------------------------
+!TOPIC 1997 SetMouseEventHandler
+!NOINDEX
+procedure 1965OpMouse.SetMouseEventHandler(EventMask : MouseEventType;
+                                       UserRoutine : Pointer);
+
+Sets the address of a routine to be called when the specified mouse events
+occur. OpMouse handles the saving of the mouse driver's registers and sets
+up the DS register for the UserRoutine. Information about the Event is
+passed to UserRoutine using the global variables MouseEvent, MouseStatus,
+MouseLastX, and MouseLastY.
+
+See also:
+  1971DisableEventHandling      1970EnableEventHandling     2018MouseEvent
+  2010MouseEventType            2017MouseRoutine
+;
+;------------------------------------------------------------
+!TOPIC 1998 GetMousePage
+!NOINDEX
+function 1965OpMouse.GetMousePage : Byte;
+
+Returns the number of the video page where the mouse cursor is currently
+being displayed.
+
+See also:  1999SetMousePage
+;
+;------------------------------------------------------------
+!TOPIC 1999 SetMousePage
+!NOINDEX
+procedure 1965OpMouse.SetMousePage(Page : Byte);
+
+Sets the video page where the mouse will be displayed. Analogous to the
+SetVisiblePage routine in OpCrt.
+
+See also:  1998GetMousePage  0350OpCrt.SetVisiblePage
+;
+;------------------------------------------------------------
+!TOPIC 2000 MouseStateBufferSize
+!NOINDEX
+function 1965OpMouse.MouseStateBufferSize : Word;
+
+Returns amount of memory in bytes needed to save the state of the mouse
+driver.
+
+See also:  2002RestoreMouseState  2001SaveMouseState
+;
+;------------------------------------------------------------
+!TOPIC 2001 SaveMouseState
+!NOINDEX
+procedure 1965OpMouse.SaveMouseState(var MSP : MouseStatePtr;
+                                 Allocate : Boolean);
+
+Save the state of the mouse driver, allocating the buffer if requested.
+
+See also:  2012MouseState  2000MouseStateBufferSize  2002RestoreMouseState
+;
+;------------------------------------------------------------
+!TOPIC 2002 RestoreMouseState
+!NOINDEX
+procedure 1965OpMouse.RestoreMouseState(var MSP : MouseStatePtr;
+                                    Deallocate : Boolean);
+
+Restore the state of the mouse driver and Deallocate the buffer if
+requested. On entry, MSP points to the buffer containing the data to be
+restored.
+
+See also:  2012MouseState  2000MouseStateBufferSize  2001SaveMouseState
+;
+;------------------------------------------------------------
+!TOPIC 2003 HideMousePrim
+!NOINDEX
+procedure 1965OpMouse.HideMousePrim(var MouseState : Boolean);
+
+Save state of mouse cursor in MouseState and hide it; to be used in
+conjunction with ShowMousePrim.
+
+See also:  1974HideMouse  2004ShowMousePrim
+;
+;------------------------------------------------------------
+!TOPIC 2004 ShowMousePrim
+!NOINDEX
+procedure 1965OpMouse.ShowMousePrim(MouseState : Boolean);
+
+Makes the mouse cursor visible ("shows" it) if MouseState is True, or hides
+it if MouseState is False. Intended to be used in conjunction with
+HideMousePrim.
+
+See also:  2003HideMousePrim  1973ShowMouse
+;
+;------------------------------------------------------------
+!TOPIC 2005 Declarations,OpMouse
+!NOINDEX
+!NOSEARCH
+OpMouse declares the following types, constants, and variables:
+
+  2009ButtonStatus              2011Cursor masks            2013Mouse scan codes
+  2007MouseButtons              2008MouseCursorOn           2018MouseEvent
+  2010MouseEventType            2006MouseInstalled          2016MouseKeyWordX
+  2017MouseRoutine              2012MouseState              2015WaitForButtonRelease
+  2014Window coordinates
+;
+;------------------------------------------------------------
+!TOPIC 2006 MouseInstalled
+!NOINDEX
+var
+  MouseInstalled : Boolean;
+
+Indicates whether a mouse is installed or not.
+
+See also:  1972InitializeMouse
+;
+;------------------------------------------------------------
+!TOPIC 2007 MouseButtons
+!NOINDEX
+var
+  MouseButtons : Byte;
+
+Number of buttons on user's mouse (0, 2, or 3). Set by InitializeMouse.
+
+See also:  1972InitializeMouse
+;
+;------------------------------------------------------------
+!TOPIC 2008 MouseCursorOn
+!NOINDEX
+var
+  MouseCursorOn : Boolean;
+
+This internal variable keeps track of whether the mouse cursor is currently
+being displayed or not.
+;
+;------------------------------------------------------------
+!TOPIC 2009 ButtonStatus
+!NOINDEX
+type
+  ButtonStatus = (
+    NoButton, LeftButton, RightButton, BothButtons, CenterButton,
+    LeftAndCenterButtons, RightAndCenterButtons, All3Buttons);
+
+Used in routines that check to see whether a particular mouse button, or
+combination of buttons, has been pressed. On a two-button mouse, only the
+values NoButton..BothButtons are meaningful.
+;
+;------------------------------------------------------------
+!TOPIC 2010 MouseEventType
+!NOINDEX
+const
+  DisableEventHandler  = $00;
+  MouseMoved           = $01;
+  LeftButtonPressed    = $02;
+  LeftButtonReleased   = $04;
+  RightButtonPressed   = $08;
+  RightButtonReleased  = $10;
+  CenterButtonPressed  = $20;
+  CenterButtonReleased = $40;
+  AllMouseEvents       = $7F;
+!LINE
+type
+  MouseEventType = DisableEventHandler..AllMouseEvents;
+
+A mouse event (mouse was moved, button was pressed, button was released).
+
+See also:  2018MouseEvent  1997SetMouseEventHandler
+;
+;------------------------------------------------------------
+!TOPIC 2011 Cursor masks
+!NOINDEX
+!NOSEARCH
+const
+  DefaultScreenMask = $FFFF;
+  DefaultCursorMask = $7700;
+
+The default screen and cursor masks for a software mouse cursor.
+
+See also:  1989SoftMouseCursor
+;
+;------------------------------------------------------------
+!TOPIC 2012 MouseState
+!NOINDEX
+type
+  MouseState =
+    record
+      BufSize : Word;
+      Buffer : array[1..400] of Byte;
+    end;
+  MouseStatePtr = ^MouseState;
+
+Data structure used to store the state of the mouse driver. Buffer is a
+variably-sized array, and may be larger than 400 bytes if necessary. BufSize
+is equal to the size of the array plus 2.
+
+See also:  2002RestoreMouseState  2001SaveMouseState
+;
+;------------------------------------------------------------
+!TOPIC 2013 Mouse scan codes
+!NOINDEX
+!NOSEARCH
+const
+  MouseLft    = $EF00; {left button}
+  MouseRt     = $EE00; {right button}
+  MouseBoth   = $ED00; {both buttons}
+  MouseCtr    = $EC00; {center button}
+  MouseLftCtr = $EB00; {left and center buttons}
+  MouseRtCtr  = $EA00; {right and center buttons}
+  MouseThree  = $E900; {all three buttons}
+
+These are the pseudo-scan codes returned by MouseKeyWord and ReadKeyOrButton
+when a mouse button (or combination of buttons) has been pressed.
+
+See also:  1967MouseKeyWord  1969ReadKeyOrButton
+;
+;------------------------------------------------------------
+!TOPIC 2014 Mouse window coordinates
+!NOINDEX
+!NOSEARCH
+var
+  MouseXLo : Byte; {0-based}
+  MouseYLo : Byte; {0-based}
+  MouseXHi : Byte; {1-based}
+  MouseYHi : Byte; {1-based}
+
+Screen coordinates for the current mouse window. As with the WindMin and
+WindMax variables in Crt and OpCrt, MouseXLo and MouseYLo are 0-based
+numbers, while MouseXHi and MouseYHi are 1-based numbers.
+
+See also:  1984MouseWindow
+;
+;------------------------------------------------------------
+!TOPIC 2015 WaitForButtonRelease
+!NOINDEX
+const
+  WaitForButtonRelease : Boolean = True;
+
+If True, MouseKeyWord waits for the mouse button currently being pressed to
+be released before returning a pseudo-scan code.
+
+See also:  1967MouseKeyWord
+;
+;------------------------------------------------------------
+!TOPIC 2016 MouseKeyWordX
+!NOINDEX
+var
+  MouseKeyWordX : Byte;
+  MouseKeyWordY : Byte;
+
+These hold the coordinates of the mouse cursor at the time of the last call to
+MouseKeyWord.
+
+See also:  1967MouseKeyWord
+;
+;------------------------------------------------------------
+!TOPIC 2017 MouseRoutine
+!NOINDEX
+const
+  MouseRoutine : Pointer = nil;
+  MouseRoutineEvent : MouseEventType = DisableEventHandler;
+
+If not nil, MouseRoutine points to a user-written event handler set up using
+SetMouseEventHandler. MouseRoutineEvent is a bit-mapped byte indicating the
+event(s) that will cause the procedure pointed to by MouseRoutine to be
+called.
+
+See also:  1997SetMouseEventHandler
+;
+;------------------------------------------------------------
+!TOPIC 2018 MouseEvent
+!NOINDEX
+const
+  MouseEvent  : MouseEventType = DisableEventHandler;
+  MouseStatus : ButtonStatus = NoButton;
+  MouseLastX  : Byte = 1;
+  MouseLastY  : Byte = 1;
+
+Used to pass information to event handlers that have been set up using
+SetMouseEventHandler.
+
+See also:  2009ButtonStatus  2010MouseEventType  1997SetMouseEventHandler
+;
+;------------------------------------------------------------
+!TOPIC 2019 Event handling
+!NOINDEX
+!NOSEARCH
+OpMouse provides the following routines for working with mouse event
+handlers:
+
+  1971DisableEventHandling      1970EnableEventHandling     1997SetMouseEventHandler
+;
+;------------------------------------------------------------
+!TOPIC 2020 Hide/show mouse
+!NOINDEX
+!NOSEARCH
+OpMouse provides the following routines for hiding and unhiding the mouse
+cursor:
+
+  1974HideMouse                 2003HideMousePrim           1973ShowMouse
+  2004ShowMousePrim
+;
+;------------------------------------------------------------
+!TOPIC 2021 Miscellaneous,OpMouse
+!NOINDEX
+!NOSEARCH
+OpMouse also provides the following miscellaneous routines:
+
+  1995GetMickeyCount            1972InitializeMouse         2000MouseStateBufferSize
+  2002RestoreMouseState         2001SaveMouseState          1996SetMickeyToPixelRatio
+;
+;------------------------------------------------------------
+!TOPIC 2022 Mouse position
+!NOINDEX
+!NOSEARCH
+OpMouse provides the following routines for getting and setting the
+position of the mouse cursor:
+
+  1998GetMousePage              1981MouseGotoXY             1976MouseWhereX
+  1979MouseWhereXabs            1975MouseWhereXY            1978MouseWhereXYabs
+  1977MouseWhereY               1980MouseWhereYabs          1999SetMousePage
+;
+;------------------------------------------------------------
+!TOPIC 2023 Mouse shape
+!NOINDEX
+!NOSEARCH
+OpMouse provides the following routines for changing the color and shape
+of the mouse cursor:
+
+  1993BlockMouseCursor          1992FatMouseCursor          1990HardMouseCursor
+  1994HiddenMouseCursor         1991NormalMouseCursor       1989SoftMouseCursor
+;
+;------------------------------------------------------------
+!TOPIC 2024 Mouse window
+!NOINDEX
+!NOSEARCH
+OpMouse provides the following routines for working with the mouse window:
+
+  1985FullMouseWindow           1988MouseInWindow           1984MouseWindow
+  1987RestoreMouseCoordinates   1986StoreMouseCoordinates
+;
+;------------------------------------------------------------
+!TOPIC 2025 Read buttons
+!NOINDEX
+!NOSEARCH
+OpMouse provides the following routines for reading the mouse buttons:
+
+    1968KeyOrButtonPressed                1982MouseButtonPressed
+    1983MouseButtonReleased               1967MouseKeyWord
+    1966MousePressed                      1969ReadKeyOrButton

@@ -1,0 +1,34 @@
+;
+;------------------------------------------------------------
+!TOPIC 2815 OpSwap
+OpSwap and 2817OpSwap1 implement a powerful swapping system for TSR
+programs. This allows the TSR to load itself into a little less than 6K of
+RAM, and swap itself in and out as needed. The swapping can be done to disk
+or EMS memory. OpSwap should be used only in the main program, like so:
+
+!NOWRAP
+{$S-,I-,R-}
+{$M 2048,0,655360}
+program HelloWorld;
+uses
+  HWmain, OpSwap;
+begin
+  HelloWorldMain;
+end.
+!WRAP
+
+The companion unit, HWmain, containing the actual program code, would use
+2817OpSwap1 but not OpSwap.
+
+See also:  2816SetPopTicker
+;
+;------------------------------------------------------------
+!TOPIC 2816 SetPopTicker,OpSwap
+!NOINDEX
+procedure 2815OpSwap.SetPopTicker(TimeOut : Word);
+
+Sets the pop ticker for the CmdEntry procedure, clears interrupts, then
+returns. Most swappable TSR's will have no need to call this routine. It is
+generally useful only within assembly language interrupt service routines.
+
+See also:  2834OpSwap1.InstallModule  2883OpTsr.SetPopTicker

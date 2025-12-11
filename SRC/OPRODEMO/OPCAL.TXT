@@ -1,0 +1,275 @@
+;
+;------------------------------------------------------------
+!TOPIC 150 OpCal
+The OpCal unit contains the high-level object Calendar and associated
+non-object routines and data types.
+
+  0151Calendar                  0170Commands                0162Declarations
+;
+;------------------------------------------------------------
+!TOPIC 151 Calendar
+!NOINDEX
+0150OpCal.Calendar = object(2027PickList)
+!LINE
+CalendarPtr = ^Calendar;
+
+The calendar object is derived from the PickList object. It displays a picture
+of a "month page" calendar and permits cursor movement around the dates
+until a date is selected or <Esc> is pressed. Obtain the selected date by
+calling GetCurrentDate.
+
+  0159GetCurrentDate            0152Init                    0153InitCustom
+  0156ItemString                0160Load                    0155ProcessSelf
+  0157SetCurrentDate            0158SetCurrentDMY           0161Store
+  0154UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 152 Init,Calendar
+!NOINDEX
+constructor 151Calendar.Init(X1, Y1 : Byte);
+
+Initialize the calendar using default colors and options.
+
+See also:  3046CommandWindow.Init  0153InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 153 InitCustom,Calendar
+!NOINDEX
+constructor 151Calendar.InitCustom(X1, Y1 : Byte;
+                                LeftTee, CrossBar, RightTee : Char;
+                                var Colors : ColorSet;
+                                Options : LongInt);
+
+Initialize the calendar with custom options, colors.
+
+See also:  0152Init  3046CommandWindow.Init
+;
+;------------------------------------------------------------
+!TOPIC 154 UpdateContents,Calendar
+!NOINDEX
+procedure 151Calendar.UpdateContents; virtual;
+
+Update the contents of the currently displayed window.
+
+See also:  2969CommandWindow.UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 155 ProcessSelf,Calendar
+!NOINDEX
+procedure 151Calendar.ProcessSelf; virtual;
+
+Display calendar until a selection/exit command is made.
+
+See also:  3048CommandWindow.Process
+;
+;------------------------------------------------------------
+!TOPIC 156 ItemString,Calendar
+!NOINDEX
+procedure 151Calendar.ItemString(Item : Word; Mode : pkMode;
+                              var IType : pkItemType;
+                              var IString : String); virtual;
+
+Supplies each item string when the list is displayed or searched.
+
+See also:  2038PickList.ItemString
+;
+;------------------------------------------------------------
+!TOPIC 157 SetCurrentDate
+!NOINDEX
+procedure 151Calendar.SetCurrentDate(NewDate : Date);
+
+Change the currently selected date.
+
+See also:  0159GetCurrentDate  0158SetCurrentDMY
+;
+;------------------------------------------------------------
+!TOPIC 158 SetCurrentDMY
+!NOINDEX
+procedure 151Calendar.SetCurrentDMY(Day, Month, Year : Integer);
+
+Change the currently selected date.
+
+See also:  0159GetCurrentDate  0157SetCurrentDate
+;
+;------------------------------------------------------------
+!TOPIC 159 GetCurrentDate
+!NOINDEX
+function 151Calendar.GetCurrentDate : Date;
+
+Return the currently selected date.
+
+See also:  0157SetCurrentDate  0158SetCurrentDMY
+;
+;------------------------------------------------------------
+!TOPIC 160 Load,Calendar
+!NOINDEX
+constructor 151Calendar.Load(var S : IdStream);
+
+Load a calendar from a stream. The registration procedure for Calendar is
+CalendarStream.
+
+See also:  3068CommandWindow.Load  0161Store
+;
+;------------------------------------------------------------
+!TOPIC 161 Store,Calendar
+!NOINDEX
+procedure 151Calendar.Store(var S : IdStream);
+
+Store a calendar in a stream. The registration procedure for Calendar is
+CalendarStream.
+
+See also:  0160Load  3069CommandWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 162 Declarations,OpCal
+!NOINDEX
+!NOSEARCH
+OPCAL provides the following types, constants and variables for managing
+calendars:
+
+    0168CalArray                          0169CalCommands
+    0166Calendar chars                    0165CalendarHeight
+    0164CalendarWidth                     0163Configuration data
+    0167DaysOfTheWeek
+;
+;------------------------------------------------------------
+!TOPIC 163 Configuration data,OpCal
+!NOINDEX
+!NOSEARCH
+const
+  CalKeyMax = 140;
+  CalKeyID  : string[10] = 'opcal keys';
+  CalKeySet : array[0..CalKeyMax] of Byte = (...);
+  CalCfgEnd : Byte = 0;
+
+CalKeyId is an ID string used to mark the beginning of the configuration
+data area for OpCal; CalCfgEnd marks the end of the configuration data
+area. In between them is CalKeySet, the command table used by CalCommands.
+CalKeyMax is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 164 CalendarWidth
+!NOINDEX
+const
+  CalendarWidth  = 29;     {width of calendar}
+
+The fixed column width of Calendar.
+;
+;------------------------------------------------------------
+!TOPIC 165 CalendarHeight
+!NOINDEX
+const
+  CalendarHeight = 11;     {height of calendar}
+
+The fixed height of Calendar.
+;
+;------------------------------------------------------------
+!TOPIC 166 Calendar chars
+!NOINDEX
+!NOSEARCH
+const
+  DefCrossBar    : Char = 'Ä';
+  DefLeftTee     : Char = 'Ã';
+  DefRightTee    : Char = '´';
+
+Characters used to draw/join horizontal lines in the calendar.
+;
+;------------------------------------------------------------
+!TOPIC 167 DaysOfTheWeek
+!NOINDEX
+const
+  DaysOfTheWeek  : string[CalendarWidth] =
+    ' Sun Mon Tue Wed Thu Fri Sat ';
+
+Title row for Calendar's days-of-the-week.
+;
+;------------------------------------------------------------
+!TOPIC 168 CalArray
+!NOINDEX
+type
+  CalArray = array[1..42] of Byte;
+
+Pick array for Calendar.
+;
+;------------------------------------------------------------
+!TOPIC 169 CalCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  CalCommands : DragProcessor;
+  {$ELSE}
+  CalCommands : CommandProcessor;
+  {$ENDIF}
+
+CommandProcessor used by Calendar.
+;
+;------------------------------------------------------------
+!TOPIC 170 Commands,Calendar
+!NOINDEX
+!NOSEARCH
+The commands available while browsing through a calendar are arranged by
+category in the list below. In each case the first line gives the name of
+the command, followed by the key(s) to which it is normally assigned. The
+second and following lines give a brief description of the command.
+
+Note that the calendar-specific commands (ccIncMonth, ccDecMonth,
+ccIncYear, ccDecYear, and ccToday) are assigned to the user-defined
+command codes 250 through 254.
+
+!NOWRAP
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+Highlight bar left one day. Wraps at left edge, but always stays within the
+current month.
+
+ccRight       <Right>, <CtrlD>
+Highlight bar right one day.
+
+ccUp          <Up>, <CtrlE>, <CtrlW>
+Highlight bar up one week. Wraps at top edge, but always stays within the
+current month.
+
+ccDown        <Down>, <CtrlX>, <CtrlZ>
+Highlight bar down one week.
+
+ccHome        <Home>
+Highlight bar to first day of month.
+
+ccEnd         <End>
+Highlight bar to last day of month.
+
+Calendar Movement
+
+ccIncMonth    <PgDn>, <CtrlC>
+Switch to same day, next month.
+
+ccDecMonth    <PgUp>, <CtrlR>
+Switch to same day, previous month.
+
+ccIncYear     <CtrlPgDn>, <CtrlQ><C>
+Switch to same day and month, next year.
+
+ccDecYear     <CtrlPgUp>, <CtrlQ><R>
+Switch to same day and month, previous year.
+
+ccToday       <CtrlHome>
+Switch to day, month, and year for today's date.
+
+Other
+
+ccSelect      <Enter>, <CtrlM>
+Select current day and exit. (Choice available via GetCurrentDate.)
+
+ccMouseSel    <ClickLeft>
+Move highlight to indicated day. If the same as the currently highlighted
+day, exit with the selection.
+
+ccQuit        <Esc>, <ClickRight>
+Exit without a selection.
+
+ccHelp        <F1>, <ClickBoth>
+Request help.
+!WRAP
+
+See also:  0169CalCommands  0155Calendar.ProcessSelf

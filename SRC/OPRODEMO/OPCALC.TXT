@@ -1,0 +1,383 @@
+;
+;------------------------------------------------------------
+!TOPIC 171 OpCalc
+The OpCalc unit contains the Calculator object and related routines.
+
+  0172Calculator                0199Commands                0189Declarations
+;
+;------------------------------------------------------------
+!TOPIC 172 Calculator
+!NOINDEX
+0171OpCalc.Calculator = object(3045CommandWindow)
+!LINE
+CalculatorPtr = ^Calculator;
+
+The Calculator object is derived from the CommandWindow object. It draws a
+calculator on the screen and provides typical calculator functions until
+<Esc> is pressed. It includes hexadecimal, decimal, floating point and
+binary formats. It also has a save register for storing values. And, it can
+return the result of the last calculation to the caller.
+
+  0180caOptionsAreOn            0179caOptionsOff            0178caOptionsOn
+  0186DrawSubheads              0177GetResult               0173Init
+  0174InitCustom                0187Load                    0176ProcessSelf
+  0182SetHighlightAttr          0181SetSubheadAttr          0185ShowCommandList
+  0184ShowMode                  0188Store                   0175UpdateContents
+  0183UpdateDisplay
+;
+;------------------------------------------------------------
+!TOPIC 173 Init,Calculator
+!NOINDEX
+constructor 172Calculator.Init(X1, Y1 : Byte); 
+
+Initialize the calculator.
+
+See also:  3046CommandWindow.Init  0174InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 174 InitCustom,Calculator
+!NOINDEX
+constructor 172Calculator.InitCustom(X1, Y1 : Byte;
+                                  LeftTee, CrossBar, RightTee : Char;
+                                  var Colors : ColorSet;
+                                  Options : LongInt); 
+
+Initialize the calculator with custom colors and options.
+
+See also:  0173Init  3046CommandWindow.Init
+;
+;------------------------------------------------------------
+!TOPIC 175 UpdateContents,Calculator
+!NOINDEX
+procedure 172Calculator.UpdateContents; virtual; 
+
+Redraw the calculator window.
+
+See also:  2969CommandWindow.UpdateContents  0183UpdateDisplay
+;
+;------------------------------------------------------------
+!TOPIC 176 ProcessSelf,Calculator
+!NOINDEX
+procedure 172Calculator.ProcessSelf; virtual; 
+
+Process calculator commands.
+
+See also:  3048CommandWindow.Process
+;
+;------------------------------------------------------------
+!TOPIC 177 GetResult
+!NOINDEX
+function 172Calculator.GetResult(TypedConst : Boolean) : string; 
+
+Return the result of the last calculation as a string, optionally in typed
+constant format. If calculation not finished, value being entered is
+returned.
+;
+;------------------------------------------------------------
+!TOPIC 178 caOptionsOn
+!NOINDEX
+procedure 172Calculator.caOptionsOn(OptionFlags : Byte); 
+
+Activate multiple options.
+
+See also:  0198Calculator options  0180caOptionsAreOn  0179caOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 179 caOptionsOff
+!NOINDEX
+procedure 172Calculator.caOptionsOff(OptionFlags : Byte); 
+
+Deactivate multiple options.
+
+See also:  0198Calculator options  0180caOptionsAreOn  0178caOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 180 caOptionsAreOn
+!NOINDEX
+function 172Calculator.caOptionsAreOn(OptionFlags : Byte) : Boolean; 
+
+Return true if all specified options are on.
+
+See also:  0198Calculator options  0179caOptionsOff  0178caOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 181 SetSubheadAttr
+!NOINDEX
+procedure 172Calculator.SetSubheadAttr(Color, Mono : Byte); 
+
+Set attributes for subheads.
+;
+;------------------------------------------------------------
+!TOPIC 182 SetHighlightAttr,Calculator
+!NOINDEX
+procedure 172Calculator.SetHighlightAttr(Color, Mono : Byte); 
+
+Set attributes for highlighted characters.
+;
+;------------------------------------------------------------
+!TOPIC 183 UpdateDisplay
+!NOINDEX
+procedure 172Calculator.UpdateDisplay; virtual; 
+
+Update the calculator display.
+
+See also:  0175UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 184 ShowMode
+!NOINDEX
+procedure 172Calculator.ShowMode; virtual; 
+
+Show the current calculation mode.
+
+See also:  0185ShowCommandList
+;
+;------------------------------------------------------------
+!TOPIC 185 ShowCommandList
+!NOINDEX
+procedure 172Calculator.ShowCommandList; virtual; 
+
+Display help on available commands.
+
+See also:  0184ShowMode
+;
+;------------------------------------------------------------
+!TOPIC 186 DrawSubheads
+!NOINDEX
+procedure 172Calculator.DrawSubheads; virtual; 
+
+Draw subheads over the top of the window dividers.
+;
+;------------------------------------------------------------
+!TOPIC 187 Load,Calculator
+!NOINDEX
+constructor 172Calculator.Load(var S : IdStream); 
+
+Load a calculator from a stream. The registration procedure for Calculator is
+CalculatorStream.
+
+See also:  3068CommandWindow.Load  0188Store
+;
+;------------------------------------------------------------
+!TOPIC 188 Store,Calculator
+!NOINDEX
+procedure 172Calculator.Store(var S : IdStream); 
+
+Store a calculator in a stream. The registration procedure for Calculator is
+CalculatorStream.
+
+See also:  0187Load  3069CommandWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 189 Declarations,OpCalc
+!NOINDEX
+!NOSEARCH
+OpCalc provides the following types, constants and variables for working
+with the Calculator object:
+
+  0197CalcCommands              0196CalcMode                0195CalcType
+  0192Calculator chars          0198Calculator options      0194CalculatorHeight
+  0193CalculatorWidth           0190Configuration data      0191DefCalcOptions
+;
+;------------------------------------------------------------
+!TOPIC 190 Configuration data,OpCalc
+!NOINDEX
+!NOSEARCH
+const
+  CalcKeyMax = 160;
+  CalcKeyID : string[11] = 'opcalc keys';
+  CalcKeySet : array[0..CalcKeyMax] of Byte = (...);
+  CalcCfgEnd : Byte = 0;
+
+CalcKeyId is an ID string used to mark the beginning of the
+configuration data area for OpCalc; CalcCfgEnd marks the end of the
+configuration data area. In between them is CalcKeySet, the command table
+used by CalcCommands. CalcKeyMax is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 191 DefCalcOptions
+!NOINDEX
+const
+  DefCalcOptions : Byte = 0;
+
+No default options.
+;
+;------------------------------------------------------------
+!TOPIC 192 Calculator chars
+!NOINDEX
+!NOSEARCH
+const
+  DefCrossBar : Char = 'Ä';
+  DefLeftTee  : Char = 'Ã';
+  DefRightTee : Char = '´';
+
+Default horizontal line drawing/joining characters.
+;
+;------------------------------------------------------------
+!TOPIC 193 CalculatorWidth
+!NOINDEX
+const
+  CalculatorWidth  = 43;     {width of calculator window}
+
+Fixed width of Calculator window.
+;
+;------------------------------------------------------------
+!TOPIC 194   CalculatorHeight
+!NOINDEX
+const
+  CalculatorHeight = 8;      {height of inner calculator window}
+
+Fixed height of Calculator window.
+;
+;------------------------------------------------------------
+!TOPIC 195   CalcType
+!NOINDEX
+type
+  CalcType = (None, Add, Subtract, Multiply, Divide,
+    AndOp, ModOp, NotOp, OrOp, XorOp, ShlOp, ShrOp);
+
+Type of calculation.
+;
+;------------------------------------------------------------
+!TOPIC 196 CalcMode
+!NOINDEX
+type
+  CalcMode = (Decimal, Hexadecimal, Binary, FloatPt, Exponential);
+
+Mode of calculation.
+;
+;------------------------------------------------------------
+!TOPIC 197 CalcCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  CalcCommands : DragProcessor;
+  {$ELSE}
+  CalcCommands : CommandProcessor;
+  {$ENDIF}
+
+CommandProcessor used by Calculator.
+;
+;------------------------------------------------------------
+!TOPIC 198 Calculator options
+!NOINDEX
+!NOSEARCH
+No options defined -- reserved for future use.
+;
+;------------------------------------------------------------
+!TOPIC 199 Commands,Calculator
+!NOINDEX
+!NOSEARCH
+The commands available while using the calculator are arranged by category
+in the list below. In each case the first line gives the name of the
+command, followed by the key(s) to which it is normally assigned. The
+second and following lines give a brief description of the command.
+
+Note that the calculator-specific commands (ccAdd..ccDecimalPt) are
+assigned to the user-defined command codes 150 through 175.
+
+!NOWRAP
+Basic Calculator Commands
+
+ccClearAll      <C>
+Clear all. Clear the entire calculation window.
+
+ccClearEntry    <E>
+Clear Entry. Clear the current Entry (second line of calculation window).
+
+ccSaveValue     <S>
+Save. Save the current entry in the active Save Buffer.
+
+ccInsertValue   <I>
+Insert. Make the number in the active Save Buffer the current entry.
+
+Mode Commands
+
+ccBinaryMode    <B>
+Binary. Switch to binary mode (integer).
+
+ccDecimalMode   <D>
+Decimal. Switch to decimal mode (integer).
+
+ccHexMode       <H>
+Hexadecimal. Switch to hexadecimal mode (integer).
+
+ccFloatMode     <F>
+Floating point. Switch to regular floating point mode (real). Results are
+displayed without exponents whenever possible--e.g., '0.0057' rather than
+'5.7E-03'.
+
+ccExpMode       <P>
+exPonential. Switch to exponential floating point mode (real). Results are
+always displayed in exponential format--e.g., '5.7E-03' rather than
+'0.0057'.
+
+Arithmetic Operators
+
+ccAdd           <+>
+Add Value1 and Value2.
+
+ccSubtract      <->
+Subtract Value2 from Value1.
+
+ccMultiply      <*>
+Multiply Value1 by Value2.
+
+ccDivide        </>
+Divide Value1 by Value2.
+
+ccMod           <M>
+Mod. Remainder after dividing Value1 by Value2 (integer modes only).
+
+Logical operators (integer modes only)
+
+ccAnd           <A>
+And. Do a bit-wise AND of Value1 with Value2; result has all bits that are
+set in both Value1 and Value2.
+
+ccShl           <L>
+shL. Shift Value1 left by Value2 bits. If Value2 is greater than 31 or less
+than 0, the result is 0.
+
+ccNot           <N>
+Not. Do a bit-wise negation of the current entry.
+
+ccOr            <O>
+Or. Do a bit-wise OR of Value1 with Value2; result has all bits that are
+set in Value1 or Value2.
+
+ccShr           <R>
+shR. Shift Value1 right by Value2 bits. If Value2 is greater than 31 or
+less than 0, the result is 0.
+
+ccXor           <X>
+Xor. Do a bit-wise eXclusive OR of Value1 with Value2; result has all bits
+that are set in Value1 or Value2 but not both.
+
+Other Commands
+
+ccBack          <CtrlH>
+Delete previous character.
+
+ccHexA..ccHexF  <CtrlA>..<CtrlF>
+When in hexadecimal mode, these keys can be used to enter the values $A
+through $F, respectively.
+
+ccDecimalPt     <.>
+Enter decimal point.
+
+ccSelect        <CtrlM>, <Enter>, <=>
+Compute current operation.
+
+ccMouseSel      <ClickLeft>
+Does nothing unless hot spots have been added or the wAllMouseEvents option
+has been activated.
+
+ccQuit          <Esc>, <ClickRight>, <CtrlBreak>
+Close calculator window.
+
+ccHelp          <ClickBoth>, <F1>
+Request help.
+!WRAP
+
+See also:   0197CalcCommands  0176Calculator.ProcessSelf

@@ -1,0 +1,859 @@
+;
+;------------------------------------------------------------
+!TOPIC 2127 OpPrint
+Whereas 2211OpPrnLow focused on transferring characters to the printer
+and reading back the status, OpPrint deals with the appearance of printed
+characters on the page. OpPrint's primary object, Printer, provides the
+power needed to change fonts, enable alternate printing modes, modify lines
+per inch, draw lines and boxes--basically to take advantage of all the
+features of any printer.
+
+  2128Printer                   2206PrintMode
+;
+;------------------------------------------------------------
+!TOPIC 2128 Printer
+!NOINDEX
+2127OpPrint.Printer = object(2306Root)
+!LINE
+PrinterPtr = ^Printer;
+
+The Printer object is a large one, with over 50 documented methods and
+another 70 or so for internal use. If the printer you wish to access is
+already supported by 0554OpDevice, the apparent complexity of Printer
+drops immediately, since many of the methods are intended for
+initialization of specific printer characteristics, and OpDevice takes
+care of that for you. The remaining methods are used primarily for enabling
+and disabling print modes, positioning the printhead, and writing strings.
+
+  2207Declarations              2210General methods         2208Print modes
+  2209Print output
+;
+;------------------------------------------------------------
+!TOPIC 2129 Init,Printer
+!NOINDEX
+constructor 2128Printer.Init(Name : String; DeviceType : PrnType;
+                         OptionFlags : Word);
+
+Initialize a Printer.
+
+See also:  2130InitCustom  2183Load
+;
+;------------------------------------------------------------
+!TOPIC 2130 InitCustom,Printer
+!NOINDEX
+constructor 2128Printer.InitCustom(Device : BasePrinterPtr;
+                               LPI, CPI, Point, LPP : Dimension;
+                               OptionFlags : Word);
+
+Initialize a printer with full control over printer device and character
+dimensions.
+
+See also:  2129Init  2183Load
+;
+;------------------------------------------------------------
+!TOPIC 2131 Done,Printer
+!NOINDEX
+destructor 2128Printer.Done; virtual;
+
+Destroy a printer.
+
+See also:  2220BasePrinter.PrnFlush
+;
+;------------------------------------------------------------
+!TOPIC 2132 PrintStr
+!NOINDEX
+procedure 2128Printer.PrintStr(S : String); virtual;
+
+Print a String at the current position.
+
+See also:  2134Position
+;
+;------------------------------------------------------------
+!TOPIC 2133 PrintStrPos
+!NOINDEX
+procedure 2128Printer.PrintStrPos(S : String;
+                              Row, Col : Dimension;
+                              Relative : RelativeType); virtual;
+
+Print a string at the specified position.
+
+See also:  2134Position
+;
+;------------------------------------------------------------
+!TOPIC 2134 Position
+!NOINDEX
+procedure 2128Printer.Position(Row, Col : Dimension;
+                           Relative : RelativeType); virtual;
+
+Position the printer to the desired place on the page.
+
+See also:  2133PrintStrPos  2161SetPositionPrim
+;
+;------------------------------------------------------------
+!TOPIC 2135 FormFeed
+!NOINDEX
+procedure 2128Printer.FormFeed;
+
+Advance to next page.
+
+See also:  2136AdvanceLine  2139ResetPage
+;
+;------------------------------------------------------------
+!TOPIC 2136 AdvanceLine
+!NOINDEX
+procedure 2128Printer.AdvanceLine(NumLines : Byte);
+
+Advances NumLines number of lines.
+
+See also:  2138AdvanceLinePreserveX  2135FormFeed
+;
+;------------------------------------------------------------
+!TOPIC 2137 AdvanceSingleLine
+!NOINDEX
+procedure 2128Printer.AdvanceSingleLine; virtual;
+
+Advances to the next line.
+
+See also:  2136AdvanceLine  2138AdvanceLinePreserveX
+;
+;------------------------------------------------------------
+!TOPIC 2138 AdvanceLinePreserveX
+!NOINDEX
+procedure 2128Printer.AdvanceLinePreserveX(NumLines : Byte); virtual;
+
+Advances NumLines lines, preserving the current column.
+
+See also:  2136AdvanceLine  2137AdvanceSingleLine
+;
+;------------------------------------------------------------
+!TOPIC 2139 ResetPage
+!NOINDEX
+procedure 2128Printer.ResetPage;
+
+Reset position information.
+
+See also:  2135FormFeed
+;
+;------------------------------------------------------------
+!TOPIC 2140 SetPrinterInfo
+!NOINDEX
+procedure 2128Printer.SetPrinterInfo(LPI, CPI, Point, LPP : Dimension);
+
+Sets lines per inch, characters per inch, character height and lines per page.
+;
+;------------------------------------------------------------
+!TOPIC 2141 GetPrinterInfo
+!NOINDEX
+procedure 2128Printer.GetPrinterInfo(var LPI, CPI, Point, LPP : Dimension);
+
+Returns lines per inch, characters per inch, character height and lines per
+page.
+;
+;------------------------------------------------------------
+!TOPIC 2142 SetLPI
+!NOINDEX
+procedure 2128Printer.SetLPI(LPI : Dimension);
+
+Sets lines per inch.
+;
+;------------------------------------------------------------
+!TOPIC 2143 SetCPI
+!NOINDEX
+procedure 2128Printer.SetCPI(CPI : Dimension);
+
+Sets chars per inch.
+;
+;------------------------------------------------------------
+!TOPIC 2144 SetPoint
+!NOINDEX
+procedure 2128Printer.SetPoint(Point : Dimension);
+
+Sets the character point.
+;
+;------------------------------------------------------------
+!TOPIC 2145 SetLPP
+!NOINDEX
+procedure 2128Printer.SetLPP(LPP : Dimension);
+
+Sets lines per page.
+;
+;------------------------------------------------------------
+!TOPIC 2146 SetYRatio
+!NOINDEX
+procedure 2128Printer.SetYRatio(Ratio : Dimension);
+
+Sets the Y scaling ratio.
+;
+;------------------------------------------------------------
+!TOPIC 2147 SetXRatio
+!NOINDEX
+procedure 2128Printer.SetXRatio(Ratio : Dimension);
+
+Sets the X scaling ratio.
+;
+;------------------------------------------------------------
+!TOPIC 2148 GetLPI
+!NOINDEX
+function 2128Printer.GetLPI : Dimension;
+
+Returns lines per inch.
+;
+;------------------------------------------------------------
+!TOPIC 2149 GetCPI
+!NOINDEX
+function 2128Printer.GetCPI : Dimension;
+
+Returns chars per inch.
+;
+;------------------------------------------------------------
+!TOPIC 2150 GetPoint
+!NOINDEX
+function 2128Printer.GetPoint : Dimension;
+
+Returns the character point.
+;
+;------------------------------------------------------------
+!TOPIC 2151 GetLPP
+!NOINDEX
+function 2128Printer.GetLPP : Dimension;
+
+Returns lines per page.
+;
+;------------------------------------------------------------
+!TOPIC 2152 GetYRatio
+!NOINDEX
+function 2128Printer.GetYRatio : Dimension;
+
+Returns the Y scaling ratio.
+;
+;------------------------------------------------------------
+!TOPIC 2153 GetXRatio
+!NOINDEX
+function 2128Printer.GetXRatio : Dimension;
+
+Returns the X scaling ratio.
+;
+;------------------------------------------------------------
+!TOPIC 2154 GetRegisteredType
+!NOINDEX
+function 2128Printer.GetRegisteredType : Word;
+
+Returns the hardware type registered to this Printer.
+
+See also:  2155SetRegisteredType
+;
+;------------------------------------------------------------
+!TOPIC 2155 SetRegisteredType
+!NOINDEX
+procedure 2128Printer.SetRegisteredType(HardwareType : Word);
+
+Sets the registered hardware type.
+;
+;------------------------------------------------------------
+!TOPIC 2156 GetBasePrinter
+!NOINDEX
+function 2128Printer.GetBasePrinter : BasePrinterPtr;
+
+Returns the BasePrinterPtr.
+
+See also:  2186LinkToPrinter
+;
+;------------------------------------------------------------
+!TOPIC 2157 GetPhysicalTopMargin
+!NOINDEX
+procedure 2128Printer.GetPhysicalTopMargin(var Top : Dimension);
+
+Returns the physical top margin.
+;
+;------------------------------------------------------------
+!TOPIC 2158 SetPhysicalTopMargin
+!NOINDEX
+procedure 2128Printer.SetPhysicalTopMargin(Top : Dimension);
+
+Sets the physical top margin. Note: does not send any codes to the
+printer, simply updates the data field in Printer object.
+;
+Sets the option flags for this printer.
+;
+;------------------------------------------------------------
+!TOPIC 2159 GetCurrentFont
+!NOINDEX
+function 2128Printer.GetCurrentFont : Byte;
+
+Returns the current font's Mode ID or zero if no current font.
+
+See also:  2164GetDefaultFont
+;
+;------------------------------------------------------------
+!TOPIC 2160 SetPrintErrorFunc
+!NOINDEX
+procedure 2128Printer.SetPrintErrorFunc(PEF : PrintErrorFunc);
+
+Set the print error function.
+;
+;------------------------------------------------------------
+!TOPIC 2161 SetPositionPrim
+!NOINDEX
+procedure 2128Printer.SetPositionPrim(PosFunc : PrinterPosFunc);
+
+Set printer position primitive.
+;
+;------------------------------------------------------------
+!TOPIC 2162 AddPrintMode,Printer
+!NOINDEX
+procedure 2128Printer.AddPrintMode(Name,OnEscSeq, OffEscSeq : String;
+                               Width, Height : Dimension;
+                               ID : Byte; OptionFlags : Word);
+
+Add a Print Mode to the linked list of modes.
+
+See also:
+  2167TurnOffByID               2169TurnOffByName           2166TurnOnByID
+  2168TurnOnByName
+;
+;------------------------------------------------------------
+!TOPIC 2163 SetDefaultFont
+!NOINDEX
+procedure 2128Printer.SetDefaultFont(Attr : Byte);
+
+Sets the default font for this printer.
+
+See also:  2165EnableDefaultFont  2164GetDefaultFont
+;
+;------------------------------------------------------------
+!TOPIC 2164 GetDefaultFont
+!NOINDEX
+function 2128Printer.GetDefaultFont : Byte;
+
+Returns the Attr of the default font.
+
+See also:  2159GetCurrentFont  2163SetDefaultFont
+;
+;------------------------------------------------------------
+!TOPIC 2165 EnableDefaultFont
+!NOINDEX
+procedure 2128Printer.EnableDefaultFont;
+
+Enables the default font.
+
+See also:  2164GetDefaultFont  2163SetDefaultFont  2166TurnOnByID
+;
+;------------------------------------------------------------
+!TOPIC 2166 TurnOnByID
+!NOINDEX
+procedure 2128Printer.TurnOnByID(ID : Byte);
+
+Turn a print mode on by ID.
+
+See also:  2167TurnOffByID
+;
+;------------------------------------------------------------
+!TOPIC 2167 TurnOffByID
+!NOINDEX
+procedure 2128Printer.TurnOffByID(ID : Byte);
+
+Turn a print mode off by ID.
+
+See also:  2166TurnOnByID
+;
+;------------------------------------------------------------
+!TOPIC 2168 TurnOnByName
+!NOINDEX
+procedure 2128Printer.TurnOnByName(Name : String);
+
+Turn a print mode on by Name.
+
+See also:  2169TurnOffByName
+;
+;------------------------------------------------------------
+!TOPIC 2169 TurnOffByName
+!NOINDEX
+procedure 2128Printer.TurnOffByName(Name : String);
+
+Turn a print mode off by Name.
+;
+;------------------------------------------------------------
+!TOPIC 2170 PrinterReady
+!NOINDEX
+function 2128Printer.PrinterReady : Boolean;
+
+Returns true if printer ready.
+
+See also:  2218BasePrinter.PrnStatus
+;
+;------------------------------------------------------------
+!TOPIC 2171 pOptionsOn
+!NOINDEX
+procedure 2128Printer.pOptionsOn(OptionFlags : Word);
+
+Turn on multiple Printer options.
+
+See also:  2173pOptionsAreOn  2172pOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 2172 pOptionsOff
+!NOINDEX
+procedure 2128Printer.pOptionsOff(OptionFlags : Word);
+
+Turn off multiple printer options.
+
+See also:  2173pOptionsAreOn  2171pOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2173 pOptionsAreOn
+!NOINDEX
+function 2128Printer.pOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all of the specified OptionFlags are on.
+
+See also:  2172pOptionsOff  2171pOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2174 pGetLastError
+!NOINDEX
+function 2128Printer.pGetLastError : Word;
+
+Return the last error code and reset to zero.
+;
+;------------------------------------------------------------
+!TOPIC 2175 EnableDoubleStrike
+!NOINDEX
+procedure 2128Printer.EnableDoubleStrike;
+
+Enable multi-strike mode.
+
+See also:  2176DisableDoubleStrike
+;
+;------------------------------------------------------------
+!TOPIC 2176 DisableDoubleStrike
+!NOINDEX
+procedure 2128Printer.DisableDoubleStrike;
+
+Disable multi-strike mode.
+
+See also:  2175EnableDoubleStrike
+;
+;------------------------------------------------------------
+!TOPIC 2177 InDoubleStrike
+!NOINDEX
+function 2128Printer.InDoubleStrike : Boolean;
+
+Returns true if multi-strike mode activated.
+
+See also:  2175EnableDoubleStrike
+;
+;------------------------------------------------------------
+!TOPIC 2178 InLandscape
+!NOINDEX
+function 2128Printer.InLandscape : Boolean;
+
+Returns true if in Landscape mode.
+
+See also:  2162AddPrintMode
+;
+;------------------------------------------------------------
+!TOPIC 2179 StrikeCount
+!NOINDEX
+function 2128Printer.StrikeCount : ShortInt;
+
+Returns the current value of pStrikeCount.
+
+See also:  2180SetStrikeCount
+;
+;------------------------------------------------------------
+!TOPIC 2180 SetStrikeCount
+!NOINDEX
+procedure 2128Printer.SetStrikeCount(Strikes : ShortInt);
+
+Set the number of strikes needed when double strike is enabled.
+
+See also:  2175EnableDoubleStrike
+;
+;------------------------------------------------------------
+!TOPIC 2181 TurnOffAllActiveModes
+!NOINDEX
+procedure 2128Printer.TurnOffAllActiveModes;
+
+Turn off all the currently active print modes.
+
+See also:  2187LinkToModes
+;
+;------------------------------------------------------------
+!TOPIC 2182 DisposeAllModes
+!NOINDEX
+procedure 2128Printer.DisposeAllModes;
+
+Disposes of all print modes associated with this printer.
+
+See also:  2162AddPrintMode
+;
+;------------------------------------------------------------
+!TOPIC 2183 Load,Printer
+!NOINDEX
+constructor 2128Printer.Load(var S : IdStream);
+
+Load a Printer from a stream. The stream registration procedure for Printer is
+PrinterStream.
+
+See also:  2184Store
+;
+;------------------------------------------------------------
+!TOPIC 2184 Store,Printer
+!NOINDEX
+procedure 2128Printer.Store(var S : IdStream);
+
+Store a Printer in a stream. The stream registration procedure for Printer is
+PrinterStream.
+
+See also:  2241BiosPrinter.Init  2236DosPrinter.Init  2183Load
+;
+;------------------------------------------------------------
+!TOPIC 2185 GetPosition,Printer
+!NOINDEX
+procedure 2128Printer.GetPosition(var Row, Col : Dimension);
+
+Returns the current Row and Column of the print head.
+;
+;------------------------------------------------------------
+!TOPIC 2186 LinkToPrinter
+!NOINDEX
+procedure 2128Printer.LinkToPrinter(Device : BasePrinterPtr);
+
+Links the object with the specified Device.
+;
+;------------------------------------------------------------
+!TOPIC 2187 LinkToModes
+!NOINDEX
+procedure 2128Printer.LinkToModes(var Modes : SingleList);
+
+Links the object to the specified Print Mode List.
+
+See also:  2182DisposeAllModes
+;
+;------------------------------------------------------------
+!TOPIC 2188 Print mode options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+pmFont              = $0001;
+pmChangesLPI        = $0004;
+pmChangesLPP        = $0008;
+pmChangesCPI        = $0010;
+pmChangesPoint      = $0020;
+pmChangesTopMargin  = $0040;
+pmChangesLandscape  = $0080;
+pmChangesStrike     = $0100;
+!WRAP
+
+These are the options that apply to each PrintMode added to a Printer. One
+or more of these values are passed to the AddPrintMode method.
+
+pmFont indicates that the mode refers to a non-toggling font (e.g., bold
+roman on a LaserJet).
+
+pmChangesLPI, pmChangesLPP, pmChangesCPI, pmChangesPoint, and
+pmChangesTopMargin indicate that the mode changes the indicated
+characteristic of the page or character dimensions. The appropriate
+dimensional value from the PrintMode object will update the current value
+of LPI, LPP, CPI, Point, or TopMargin in the Printer object when such a
+mode is turned on.
+
+pmChangesLandscape indicates that the mode changes the printer orientation,
+which again updates a flag internal to the Printer object when enabled.
+pmChangesStrike indicates that the mode changes the double-strike behavior
+of the printer.
+
+See also:  2162Printer.AddPrintMode
+;
+;------------------------------------------------------------
+!TOPIC 2189 pPlain
+!NOINDEX
+const
+  pPlain = 0;
+
+A hardware registration number that means no particular printer device type
+has been registered to this Printer. Additional registration numbers and
+routines for specific printers are available within the OpDevice unit.
+
+See also:  0554OpDevice
+;
+;------------------------------------------------------------
+!TOPIC 2190 FontStackSize
+!NOINDEX
+const
+  FontStackSize       = 255;
+
+Maximum number of fonts that can be pushed on the font stack.
+;
+;------------------------------------------------------------
+!TOPIC 2191 pMaxPrintModes
+!NOINDEX
+const
+  pMaxPrintModes      = 255;
+
+Maximum number of print modes that can be associated with a given printer.
+;
+;------------------------------------------------------------
+!TOPIC 2192 Printer options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+pPositionable       = $0001;
+pBackSpaceAllowed   = $0002;
+pNoFormFeed         = $0004;
+pSoftFormFeed       = $0008;
+pSupportsHPRules    = $0010;
+pUseDeciPoints      = $0020;
+pNoFontStack        = $0040;
+pNoSortPositionable = $0080;
+pLJColAdjust        = $0100;
+!WRAP
+
+These option flags apply to a Printer as a whole.
+
+pPositionable indicates that the physical printer's internal cursor can be
+positioned randomly on the page; this generally applies to laser printers
+only.
+
+pBackSpaceAllowed indicates that the printer interprets ^H as a command to
+move the printhead one column to the left.
+
+If pNoFormFeed is enabled, Printer ignores calls to the FormFeed method;
+this may be useful when generating draft versions of reports.
+
+If pSoftFormFeed is enabled, Printer ejects a page by printing enough
+CR/LF's to fill out the page; otherwise it just writes a form feed
+character.
+
+pSupportsHPRules indicates that the printer supports the Hewlett-Packard
+LaserJet line and box drawing commands. This option enables extra
+functionality in the OpForm unit.
+
+If pUseDeciPoints is set and a LaserJet printer is registered (see
+OpDevice) coordinates passed to Position and PrintStrPos methods are
+interpreted in decipoints rather than in rows and columns.
+
+pNoFontStack specifies that a font stack should not be used.
+
+If you are using OpForm to print a form on a printer is positionable, and
+the form has no directives (added with PrintedForm.AddDirective), printing
+can be sped up significantly by setting the pNoSortPositionable option for
+the Printer object associated with the form.
+
+The pLJColAdjust option is used to correct an off-by-one problem that occurs
+with LaserJet printers (see the READ.1ST file for details).
+
+See also:
+    2173Printer.pOptionsAreOn      2172Printer.pOptionsOff
+    2171Printer.pOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2193 PrintMode codes
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+DoubleStrike        = 255;
+PrinterReset        = 254;
+Italics             = 253;
+Bold                = 252;
+Dim                 = 251;
+Compressed          = 250;
+Underline           = 249;
+Unidirectional      = 248;
+DoubleWidth         = 247;
+LetterQuality       = 246;
+SelectPrimaryFont   = 245;
+SelectSecondaryFont = 244;
+DefaultFont         = 243;
+Normal              = 242;
+!WRAP
+
+Standard identification codes associated with PrintMode objects. It's
+recommended that you pass these constants to methods like TurnOnByID and
+TurnOffByID rather than referring to specific numbers. DoubleStrike is
+interpreted as a special case: when enabled, OpPrint backspaces and
+reprints the characters a specified number of times. PrinterReset is also
+treated as a special case when enabled; besides sending the control
+sequence it also clears the font stack. Not all printers may support all of
+these modes, and OpDevice does not add print modes for every one. You may
+assign additional codes in the range 1..241.
+
+See also:  2162Printer.AddPrintMode
+;
+;------------------------------------------------------------
+!TOPIC 2194 DefaultStrikes
+!NOINDEX
+const
+  DefaultStrikes : Byte = 2;
+
+The default number of strikes in double strike mode.
+;
+;------------------------------------------------------------
+!TOPIC 2195 DefaultLPI
+!NOINDEX
+const
+  DefaultLPI : Dimension = 6.0;
+
+The default number of lines per inch used by Printer.Init.
+;
+;------------------------------------------------------------
+!TOPIC 2196 DefaultCPI
+!NOINDEX
+const
+  DefaultCPI : Dimension = 10.0;
+
+The default number of characters per inch used by Printer.Init.
+;
+;------------------------------------------------------------
+!TOPIC 2197 DefaultPoint
+!NOINDEX
+const
+  DefaultPoint : Dimension = 12.0;
+
+The default character point used by Printer.Init.
+;
+;------------------------------------------------------------
+!TOPIC 2198 DefaultLPP
+!NOINDEX
+const
+  DefaultLPP : Dimension = 66.0;
+
+The default number of lines per page used by Printer.Init.
+;
+;------------------------------------------------------------
+!TOPIC 2199 BackSpaceChar
+!NOINDEX
+const
+  BackSpaceChar : Char = ^H;
+
+The character used to backspace the printhead.
+;
+;------------------------------------------------------------
+!TOPIC 2200 LineAdvanceStr
+!NOINDEX
+const
+  LineAdvanceStr : String[11] = ^M^J;
+
+The string used to advance to the beginning of the next line.
+;
+;------------------------------------------------------------
+!TOPIC 2201 FormFeedStr
+!NOINDEX
+const
+  FormFeedStr : String[11] = ^L;
+
+The string used to issue a form feed.
+;
+;------------------------------------------------------------
+!TOPIC 2202 Dimension
+!NOINDEX
+type
+  {$IFOPT N+}
+  Dimension = Double;
+  {$ELSE}
+  Dimension = Real;
+  {$ENDIF}
+
+The data type used to store all printhead coordinates, height, and width data
+within the PrintMode and Printer object types. This type is also used by the
+OpDevice and OpForm units. If the N+ compiler directive is in effect,
+then Dimension will be a synonym for type Double, otherwise Dimension will be
+a synonym for type Real.
+;
+;------------------------------------------------------------
+!TOPIC 2203 RelativeType
+!NOINDEX
+type
+  RelativeType = (rtAbsolute, rtCurrent);
+
+The two types of positioning available: rtAbsolute means that specified Row
+and Col coordinates are interpreted with respect to the upper left corner of
+the page; rtCurrent means that they are relative to the last known position of
+the printhead. Note that, unless the Printer's pPositionable flag is set, the
+printhead cannot back up vertically.
+;
+;------------------------------------------------------------
+!TOPIC 2204 PrintErrorFunc
+!NOINDEX
+type
+  PrintErrorFunc = function(P : PrinterPtr; ErrorCode : Word;
+                            Recoverable : Boolean) : Boolean;
+
+Function type for a printer error handler.
+;
+;------------------------------------------------------------
+!TOPIC 2205 PrinterPosFunc
+!NOINDEX
+type
+  PrinterPosFunc = function(Row, Col : Dimension; Relative : RelativeType;
+                            P : PrinterPtr) : Word;
+
+Function type definition for the primitive routine used to position the
+printhead.
+;
+;------------------------------------------------------------
+!TOPIC 2206 PrintMode
+!NOINDEX
+2127OpPrint.PrintMode = object(2425SingleListNode)
+!LINE
+PrintModePtr = ^PrintMode;
+
+The PrintMode object is used internally by the Printer object. It is not
+documented further in this help system.
+;
+;------------------------------------------------------------
+!TOPIC 2207 Declarations,OpPrint
+!NOINDEX
+!NOSEARCH
+OpPrint provides the following types, constants and variables for
+managing Printer objects:
+
+  2199BackSpaceChar             2196DefaultCPI              2195DefaultLPI
+  2198DefaultLPP                2197DefaultPoint            2194DefaultStrikes
+  2202Dimension                 2190FontStackSize           2201FormFeedStr
+  2200LineAdvanceStr            2191pMaxPrintModes          2189pPlain
+  2188Print mode options        2192Printer options         2204PrintErrorFunc
+  2205PrinterPosFunc            2193PrintMode codes         2203RelativeType
+;
+;------------------------------------------------------------
+!TOPIC 2208 Print modes
+!NOINDEX
+!NOSEARCH
+The following methods are used to manage the print modes of a Printer object:
+
+  2162AddPrintMode              2176DisableDoubleStrike     2182DisposeAllModes
+  2165EnableDefaultFont         2175EnableDoubleStrike      2159GetCurrentFont
+  2164GetDefaultFont            2177InDoubleStrike          2178InLandscape
+  2187LinkToModes               2163SetDefaultFont          2180SetStrikeCount
+  2179StrikeCount               2181TurnOffAllActiveModes   2167TurnOffByID
+  2169TurnOffByName             2166TurnOnByID              2168TurnOnByName
+;
+;------------------------------------------------------------
+!TOPIC 2209 Print output
+!NOINDEX
+!NOSEARCH
+The following methods are used to send output to a printer:
+
+  2136AdvanceLine               2138AdvanceLinePreserveX    2137AdvanceSingleLine
+  2135FormFeed                  2170PrinterReady            2132PrintStr
+  2133PrintStrPos
+;
+;------------------------------------------------------------
+!TOPIC 2210 General methods,Printer
+!NOINDEX
+!NOSEARCH
+The following methods are general purpose Printer methods (not specifically
+for controlling print modes or sending output to the printer):
+
+  2131Done                      2156GetBasePrinter          2149GetCPI
+  2148GetLPI                    2151GetLPP                  2157GetPhysicalTopMargin
+  2150GetPoint                  2141GetPrinterInfo          2154GetRegisteredType
+  2153GetXRatio                 2152GetYRatio               2129Init
+  2130InitCustom                2186LinkToPrinter           2183Load
+  2174pGetLastError             2173pOptionsAreOn           2172pOptionsOff
+  2171pOptionsOn                2134Position                2139ResetPage
+  2143SetCPI                    2142SetLPI                  2145SetLPP
+  2158SetPhysicalTopMargin      2144SetPoint                2161SetPositionPrim
+  2140SetPrinterInfo            2160SetPrintErrorFunc       2155SetRegisteredType
+  2147SetXRatio                 2146SetYRatio               2184Store
+  2185GetPosition

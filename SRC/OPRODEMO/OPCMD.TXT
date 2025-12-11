@@ -1,0 +1,850 @@
+;
+;------------------------------------------------------------
+!TOPIC 217 OpCmd
+The OpCmd unit contains the CommandProcessor object, the CommandPacker
+object and several standalone routines. It also contains the standard
+command code constants and various other declarations used by
+CommandProcessor.
+
+    0218CommandProcessor                  0251CommandPacker
+    0260Command procedures                0261Command codes
+    0276Declarations
+;
+;------------------------------------------------------------
+!TOPIC 218 CommandProcessor
+!NOINDEX
+0217OpCmd.CommandProcessor = object(2306Root)
+!LINE
+CommandProcessorPtr = ^CommandProcessor;
+
+The CommandProcessor is the standard keyboard/command handler for Object
+Professional. CommandProcessor gets keystrokes and translates them into
+command codes. All CommandWindow derived objects in Object Professional use a
+CommandProcessor and its standard codes.
+
+    0223AddCommand                        0224AddSecondaryCommand
+    0244CheckForConflict                  0246CommandStringPending
+    0235cpGetHelp                         0233cpGetKey
+    0234cpKeyPressed                      0232cpOptionsAreOn
+    0231cpOptionsOff                      0230cpOptionsOn
+    0236cpUserHook                        0221Done
+    0243GetCmdAssignment                  0222GetCommand
+    0247GetCommandString                  0242GetKeyAssignment
+    0238GetKeyPtr                         0225GetLastError
+    0240GetSecondaryKeyPtr                0219Init
+    0220InitCustom                        0248Load
+    0250MouseEnabled                      0241SetAltKeySet
+    0245SetCommandList                    0226SetGetKeyProc
+    0228SetHelpProc                       0227SetKeyPressedProc
+    0237SetKeyPtr                         0239SetSecondaryKeyPtr
+    0229SetUserHookProc                   0249Store
+    0277cpUserMatch                       0278SetUserMatchFunc
+;
+;------------------------------------------------------------
+!TOPIC 219 Init,CommandProcessor
+!NOINDEX
+constructor 0218CommandProcessor.Init(KeysPtr : CmdTablePtr;
+                                  MaxIndex : Word);
+
+Initialize a command processor with only one command table.
+
+See also:  0220InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 220 InitCustom,CommandProcessor
+!NOINDEX
+constructor 0218CommandProcessor.InitCustom(PrimaryKeys : CmdTablePtr;
+                                        PrimaryMaxIndex : Word;
+                                        SecondaryKeys : CmdTablePtr;
+                                        SecondaryMaxIndex : Word;
+                                        Options : Word);
+
+Initialize a command processor with custom options.
+
+See also:  0219Init
+;
+;------------------------------------------------------------
+!TOPIC 221 Done,CommandProcessor
+!NOINDEX
+destructor 0218CommandProcessor.Done; virtual;
+
+Dispose of any memory that was allocated by the command processor.
+;
+;------------------------------------------------------------
+!TOPIC 222 GetCommand
+!NOINDEX
+function 0218CommandProcessor.GetCommand(var Key : Word) : Word;
+
+Get next command or character.
+
+See also:  0236cpUserHook  0277cpUserMatch
+;
+;------------------------------------------------------------
+!TOPIC 223 AddCommand
+!NOINDEX
+procedure 0218CommandProcessor.AddCommand(Cmd : Word;
+                                      NumKeys : Byte;
+                                      Key1, Key2 : Word);
+
+Add a new primary command key assignment or change an existing one.
+
+See also:  0224AddSecondaryCommand  0225GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 224 AddSecondaryCommand
+!NOINDEX
+procedure 0218CommandProcessor.AddSecondaryCommand(Cmd : Word;
+                                               NumKeys : Byte;
+                                               Key1, Key2 : Word);
+
+Add a new secondary command key assignment or change an existing one.
+
+See also:  0223AddCommand
+;
+;------------------------------------------------------------
+!TOPIC 225 GetLastError,CommandProcessor
+!NOINDEX
+function 0218CommandProcessor.GetLastError : Word;
+
+Returns last error code and clears it.
+
+See also:  0223AddCommand
+;
+;------------------------------------------------------------
+!TOPIC 226 SetGetKeyProc
+!NOINDEX
+procedure 0218CommandProcessor.SetGetKeyProc(GKP : GetKeyProc);
+
+Change the cpGetKey routine.
+
+See also:  0233cpGetKey  0266GetKeyProc  0227SetKeyPressedProc
+;
+;------------------------------------------------------------
+!TOPIC 227 SetKeyPressedProc
+!NOINDEX
+procedure 0218CommandProcessor.SetKeyPressedProc(KPP : KeyPressedProc);
+
+Change the cpKeyPressed routine.
+
+See also:  0234cpKeyPressed  0266GetKeyProc  0226SetGetKeyProc
+;
+;------------------------------------------------------------
+!TOPIC 228 SetHelpProc
+!NOINDEX
+procedure 0218CommandProcessor.SetHelpProc(GHP : GetHelpProc);
+
+Change the HelpProc field.
+
+See also:  0235cpGetHelp  0265GetHelpProc
+;
+;------------------------------------------------------------
+!TOPIC 229 SetUserHookProc
+!NOINDEX
+procedure 0218CommandProcessor.SetUserHookProc(UHP : UserHookProc);
+
+Specify a routine to be called each time a keystroke is evaluated.
+
+See also:  0236cpUserHook  0222GetCommand  0270UserHookProc
+;
+;------------------------------------------------------------
+!TOPIC 230 cpOptionsOn
+!NOINDEX
+procedure 0218CommandProcessor.cpOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  0232cpOptionsAreOn  0231cpOptionsOff  0263Options
+;
+;------------------------------------------------------------
+!TOPIC 231 cpOptionsOff
+!NOINDEX
+procedure 0218CommandProcessor.cpOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  0232cpOptionsAreOn  0230cpOptionsOn  0263Options
+;
+;------------------------------------------------------------
+!TOPIC 232 cpOptionsAreOn
+!NOINDEX
+function 0218CommandProcessor.cpOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return true if all specified options are on.
+
+See also:  0231cpOptionsOff  0230cpOptionsOn  0263Options
+;
+;------------------------------------------------------------
+!TOPIC 233 cpGetKey
+!NOINDEX
+function 0218CommandProcessor.cpGetKey : Word; virtual;
+
+Called to get next keystroke.
+
+See also:  0234cpKeyPressed  0226SetGetKeyProc
+;
+;------------------------------------------------------------
+!TOPIC 234 cpKeyPressed
+!NOINDEX
+function 0218CommandProcessor.cpKeyPressed : Boolean; virtual;
+
+Called to determine if a key has been pressed.
+
+See also:  0233cpGetKey  0227SetKeyPressedProc
+;
+;------------------------------------------------------------
+!TOPIC 235 cpGetHelp
+!NOINDEX
+procedure 0218CommandProcessor.cpGetHelp(UnitCode : Byte;
+                                     IdPtr : Pointer;
+                                     HelpIndex : Word); virtual;
+
+Called when help is requested.
+
+See also:  0228SetHelpProc
+;
+;------------------------------------------------------------
+!TOPIC 236 cpUserHook
+!NOINDEX
+procedure 0218CommandProcessor.cpUserHook(MT : MatchType;
+                                      Key : Word); virtual;
+
+Called each time a keystroke is processed.
+
+See also:  0229SetUserHookProc
+;
+;------------------------------------------------------------
+!TOPIC 237 SetKeyPtr
+!NOINDEX
+procedure 0218CommandProcessor.SetKeyPtr(KeysPtr : CmdTablePtr;
+                                     MaxIndex : Word);
+
+Change the primary command table.
+
+See also:  0239SetSecondaryKeyPtr
+;
+;------------------------------------------------------------
+!TOPIC 238 GetKeyPtr
+!NOINDEX
+function 0218CommandProcessor.GetKeyPtr(var MaxIndex : Word) : CmdTablePtr;
+
+Return a pointer to the primary command table.
+
+See also:  0240GetSecondaryKeyPtr  0237SetKeyPtr
+;
+;------------------------------------------------------------
+!TOPIC 239 SetSecondaryKeyPtr
+!NOINDEX
+procedure 0218CommandProcessor.SetSecondaryKeyPtr(KeysPtr : CmdTablePtr;
+                                              MaxIndex : Word);
+
+Change the secondary command table.
+
+See also:  0237SetKeyPtr
+;
+;------------------------------------------------------------
+!TOPIC 240 GetSecondaryKeyPtr
+!NOINDEX
+function 0218CommandProcessor.GetSecondaryKeyPtr(var MaxIndex : Word) :
+                                                       CmdTablePtr;
+
+Return a pointer to the secondary command table.
+
+See also:  0238GetKeyPtr  0239SetSecondaryKeyPtr
+;
+;------------------------------------------------------------
+!TOPIC 241 SetAltKeySet
+!NOINDEX
+procedure 0218CommandProcessor.SetAltKeySet(var CS : CharSet);
+
+Specify set of Alt keys to recognize.
+;
+;------------------------------------------------------------
+!TOPIC 242 GetKeyAssignment
+!NOINDEX
+procedure 0218CommandProcessor.GetKeyAssignment(Cmd : Word;
+                                            var NumKeys : Byte;
+                                            var Key1, Key2 : Word);
+
+Return one set of key(s) assigned to the specified command.
+NumKeys = 0 if none found.
+
+See also:  0243GetCmdAssignment
+;
+;------------------------------------------------------------
+!TOPIC 243 GetCmdAssignment
+!NOINDEX
+function 0218CommandProcessor.GetCmdAssignment(NumKeys : Byte;
+                                           Key1, Key2 : Word;
+                                           var Primary : Boolean) : Word;
+
+Return command associated with specified key combination, or ccNone
+if none found. Primary is False only if match found in secondary
+key set.
+
+See also:  0223AddCommand  0242GetKeyAssignment
+;
+;------------------------------------------------------------
+!TOPIC 244 CheckForConflict
+!NOINDEX
+function 0218CommandProcessor.CheckForConflict(NumKeys : Byte;
+                                           Key1, Key2 : Word) : MatchType;
+
+Check to see if the specified key combination conflicts with an
+existing one.
+
+See also:  0223AddCommand
+;
+;------------------------------------------------------------
+!TOPIC 245 SetCommandList
+!NOINDEX
+procedure 0218CommandProcessor.SetCommandList(CmdList : Pointer;
+                                          NumCmds : Word);
+
+Specify a list of commands to be auto-executed.
+
+See also:  0246CommandStringPending  0247GetCommandString
+;
+;------------------------------------------------------------
+!TOPIC 246 CommandStringPending
+!NOINDEX
+function 0218CommandProcessor.CommandStringPending : Boolean;
+
+Returns True if a text string is pending in the list of
+auto-executed commands.
+
+See also:  0247GetCommandString  0245SetCommandList
+;
+;------------------------------------------------------------
+!TOPIC 247 GetCommandString
+!NOINDEX
+function 0218CommandProcessor.GetCommandString : string;
+
+Returns a text string when CommandStringPending is True.
+
+See also:  0246CommandStringPending  0245SetCommandList
+;
+;------------------------------------------------------------
+!TOPIC 248 Load,CommandProcessor
+!NOINDEX
+constructor 0218CommandProcessor.Load(var S : IdStream);
+
+Load a command processor from a stream. The stream registration procedure
+for CommandProcessor is CommandProcessorStream.
+
+See also:  0249Store
+;
+;------------------------------------------------------------
+!TOPIC 249 Store,CommandProcessor
+!NOINDEX
+procedure 0218CommandProcessor.Store(var S : IdStream);
+
+Store a command processor in a stream. The stream registration procedure
+for CommandProcessor is CommandProcessorStream.
+
+See also:  0248Load
+;
+;------------------------------------------------------------
+!TOPIC 250 MouseEnabled
+!NOINDEX
+function 0218CommandProcessor.MouseEnabled : Boolean;
+
+Return True if mouse support enabled.
+
+See also:  0232cpOptionsAreOn
+;
+;------------------------------------------------------------
+!TOPIC 251 CommandPacker
+!NOINDEX
+0217OpCmd.CommandPacker = object(2306Root)
+!LINE
+CommandPackerPtr = ^CommandPacker;
+
+The CommandPacker is used to unpack and pack the standard keyset used by
+CommandProcessor. This is useful for installation programs that need to
+modify the keyset table.
+
+  0256ConflictsFound            0255GetKeyRecPtr            0252Init
+  0253PackKeys                  0254SizeKeys
+;
+;------------------------------------------------------------
+!TOPIC 252 Init,CommandPacker
+!NOINDEX
+constructor 0251CommandPacker.Init(PKeys : CmdTablePtr;
+                               MaxCmd : Word; MaxIndex : Word;
+                               UKeys : UnpackedCmdPtr;
+                               Columns : Byte;
+                               CmdsAreWords : Boolean);
+
+Initialize pointers to packed/unpacked command tables.
+
+See also:  0253PackKeys
+;
+;------------------------------------------------------------
+!TOPIC 253 PackKeys
+!NOINDEX
+function 0251CommandPacker.PackKeys : Boolean;
+
+Convert unpacked array into a packed list of keys again.
+
+See also:  0254SizeKeys
+;
+;------------------------------------------------------------
+!TOPIC 254 SizeKeys
+!NOINDEX
+function 0251CommandPacker.SizeKeys : Word;
+
+Return number of bytes in packed version of UnpackedKeys.
+
+See also:  0253PackKeys
+;
+;------------------------------------------------------------
+!TOPIC 255 GetKeyRecPtr
+!NOINDEX
+function 0251CommandPacker.GetKeyRecPtr(Cmd : Word; Col : Byte) : KeyRecPtr;
+
+Returns a pointer to the KeyRec for the Col'th instance of Cmd.
+;
+;------------------------------------------------------------
+!TOPIC 256 ConflictsFound
+!NOINDEX
+function 0251CommandPacker.ConflictsFound : Boolean;
+
+Check unpacked commands for conflicts. Returns True if conflicts found.
+;
+;------------------------------------------------------------
+!TOPIC 257 SetBell
+!NOINDEX
+procedure 0217OpCmd.SetBell(Pitch, Duration : Word);
+
+Set pitch and duration for bell.
+
+See also:  0258RingBell
+;
+;------------------------------------------------------------
+!TOPIC 258 RingBell
+!NOINDEX
+procedure 0217OpCmd.RingBell;
+
+Ring the bell.
+
+See also:  0257SetBell
+;
+;------------------------------------------------------------
+!TOPIC 259 DefaultErrorProc
+!NOINDEX
+procedure 0217OpCmd.DefaultErrorProc(UnitCode : Byte; var ErrorCode : Word;
+                                 ErrorMsg : string);
+
+Default error handler--just beeps.
+
+See also:  0258RingBell
+;
+;------------------------------------------------------------
+!TOPIC 260 Command procedures
+!NOSEARCH
+!NOINDEX
+Ancillary (non-object-oriented) routines for use with CommandProcessor and
+CommandPacker.
+
+  0259DefaultErrorProc        0258RingBell             0257SetBell
+;
+;------------------------------------------------------------
+!TOPIC 261 Command Codes
+!NOSEARCH
+!NOINDEX
+Command codes returned by CommandProcessor objects and the typical meaning of
+each command.
+
+!NOWRAP
+ccNone        = 000; {Invalid command}
+ccChar        = 001; {A regular character (alphas, punctuation, etc.)}
+ccCtrlChar    = 002; {Accept control character}
+ccSelect      = 003; {Select/accept item, field; new line}
+ccQuit        = 004; {Quit processing, ignore changes}
+ccError       = 005; {Quit due to "fatal" error}
+ccMouseSel    = 006; {Mouse selection of item, field, etc.}
+ccRestore     = 007; {Restore default value and continue}
+ccHome        = 008; {Cursor to beginning of line/list}
+ccEnd         = 009; {Cursor to end of line/list}
+ccLeft        = 010; {Cursor left by one character/column}
+ccRight       = 011; {Cursor right by one character/column}
+ccUp          = 012; {Up}
+ccDown        = 013; {Down}
+ccScrollUp    = 014; {Scroll window up}
+ccScrollDn    = 015; {Scroll window down}
+ccWordLeft    = 016; {Cursor left one word}
+ccWordRight   = 017; {Cursor right one word}
+ccPageUp      = 018; {Page up}
+ccPageDn      = 019; {Page down}
+ccScreenTop   = 020; {Top of screen}
+ccScreenBot   = 021; {Bottom of screen}
+ccTopOfFile   = 022; {Top of file}
+ccEndOfFile   = 023; {End of file}
+ccBack        = 024; {Backspace one character}
+ccDel         = 025; {Delete current character}
+ccDelEol      = 026; {Delete from cursor to end of line}
+ccDelBol      = 027; {Delete from beginning of line to cursor}
+ccDelLine     = 028; {Delete entire line}
+ccDelWord     = 029; {Delete word to right of cursor}
+ccIns         = 030; {Toggle insert mode}
+ccHelp        = 031; {Invoke help routine}
+ccTab         = 032; {Cursor to next tab stop/subfield}
+ccBackTab     = 033; {Cursor to previous tab stop/subfield}
+
+{Special OPMEMO/OPEDITOR commands}
+ccIndent      = 034; {Toggle indent mode}
+ccWordWrap    = 035; {Toggle word wrap}
+ccReformatP   = 036; {Reformat paragraph}
+ccReformatG   = 037; {Global reformat}
+
+{Special OPSELECT/OPENTRY commands}
+ccIncChoice   = 038; {Increment choice}
+ccDecChoice   = 039; {Decrement choice}
+ccNextField   = 040; {Cursor to next field}
+ccPrevField   = 041; {Cursor to previous field}
+ccNextRec     = 042; {Next record (an exit command)}
+ccPrevRec     = 043; {Previous record (an exit command)}
+ccFirstFld    = 044; {Cursor to first field}
+ccLastFld     = 045; {Cursor to last field}
+ccNested      = 046; {Exit for nested form}
+ccDone        = 047; {Completely finished with editing}
+
+{Special commands generated internally--should not be assigned to keys}
+ccClickExit   = 048; {Double mouse click produced an exit}
+ccAutoAdvance = 049; {Auto-advance to next field}
+ccExitAtTop   = 050; {Exit at top edge of window}
+ccExitAtBot   = 051; {Exit at bottom edge of window}
+ccExitLeft    = 052; {Exit at left edge of window}
+ccExitRight   = 053; {Exit at right edge of window}
+ccAltKey      = 054; {Alt key in special char set pressed}
+
+{Special OPHELP commands}
+ccPrevTopic   = 055; {Display the most recent help topic}
+ccIndex       = 056; {Display an index of all help topics}
+ccNextXref    = 057; {Jump to the next cross-reference}
+ccPrevXref    = 058; {Jump to the previous cross-reference}
+
+{Special OPBROWSE/OPEDITOR commands}
+ccSetMark0    = 060; {Set text marker 0..9}
+{ccSetMark1...ccSetMark8}
+ccSetMark9    = 069;
+ccJmpMark0    = 070; {Jump to text marker 0..9}
+{ccJmpMark1...ccJmpMark8}
+ccJmpMark9    = 079;
+ccMarkToggle  = 080; {Toggle text marker display}
+ccBlkBegin    = 081; {Mark start of block}
+ccBlkEnd      = 082; {Mark end of block}
+ccBlkBottom   = 083; {Mark end of block (at bottom of browse window)}
+ccBlkToggle   = 084; {Toggle block display}
+ccBlkRead     = 085; {Read block}
+ccBlkWrite    = 086; {Write block}
+ccBlkCopy     = 087; {Copy block}
+ccBlkMove     = 088; {Move block}
+ccBlkDelete   = 089; {Delete block}
+ccBlkWord     = 090; {Mark current word as block}
+ccBlkUCase    = 091; {Change characters in block to upper case}
+ccBlkLCase    = 092; {Change characters in block to lower case}
+ccBlkTCase    = 093; {Toggle case of characters in block}
+ccBlkIndent   = 094; {Indent marked block one level}
+ccBlkUnindent = 095; {Unindent marked block one level}
+ccSetIndent   = 096; {Set indentation level for block indent/unindent}
+ccPrevPos     = 097; {Cursor to previous position in file}
+ccJmpBegin    = 098; {Jump to beginning of marked block}
+ccJmpEnd      = 099; {Jump to end of marked block}
+ccJmpLine     = 100; {Jump to line}
+ccInsertLine  = 101; {Insert line at cursor}
+ccCenterLine  = 102; {Center current line}
+ccSearch      = 103; {Search}
+ccReplace     = 104; {Search and replace}
+ccReSearch    = 105; {Search again}
+ccHexMode     = 106; {Toggle hex mode}
+ccTabExpand   = 107; {Toggle tab expansion}
+ccTabToggle   = 108; {Toggle smart tabs/fixed tabs}
+ccTabSize     = 109; {Set size of fixed tabs}
+ccRtMargin    = 110; {Set right margin}
+ccStripHigh   = 111; {Toggle stripping of high bits}
+ccNewFile     = 112; {Read a new file}
+ccSaveFile    = 113; {Save a file}
+ccSaveNamed   = 114; {Save a file under a new name}
+ccSaveExit    = 115; {Save file and exit}
+ccSaveSwitch  = 116; {Save file and load new one}
+ccAbandonFile = 117; {Abandon file}
+ccBlkPrint    = 118; {Print marked block}
+
+{Special OPPICK multi-item selection commands}
+ccToggle      = 119; {Toggle selection of an item}
+
+{Special OPMENU submenu selection commands}
+ccSubPrev     = 120; {Move to previous submenu}
+ccSubNext     = 121; {Move to next submenu}
+ccSubQuit     = 122; {Exit current submenu}
+
+{Diagonal cursor movement commands}
+ccUpLeft      = 130; {Cursor up and to the left}
+ccDownLeft    = 131; {Cursor down and to the left}
+ccUpRight     = 132; {Cursor up and to the right}
+ccDownRight   = 133; {Cursor down and to the right}
+
+{Mouse down commands, used by OPDRAG}
+ccMouseDown   = 134; {left mouse button pressed (not released)}
+ccMouseAuto   = 135; {left button down: autorepeat or mouse move}
+
+{Special OPDIALOG commands}
+ccItemChange  = 140; {cluster item selected/changed}
+
+{Special OPEDITOR commands}
+ccBlkAppend   = 141;
+
+{User-defined exit commands}
+ccUser0       = 200;
+{ccUser1...ccUser53}
+ccUser54      = 254;
+ccUser55      = 255;   {Reserved for internal use}
+ccUser65335   = 65535; {Values > ccUser55 valid if using word commands}
+!WRAP
+;
+;------------------------------------------------------------
+!TOPIC 262 BadCmdOptions
+!NOINDEX
+const
+  BadCmdOptions : Word = cpDoingChars+cpDeallocP+cpDeallocS;
+
+Option settings that exist for internal use only, and may not be altered by
+calling cpOptionsOn or cpOptionsOff.
+
+See also:  0263Options
+;
+;------------------------------------------------------------
+!TOPIC 263 Options,CommandProcessor
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+cpMapWordStar    = $0001;
+cpEnableMouse    = $0002;
+cpUpcase         = $0004;
+cpWordCmds       = $0008;
+cpSwitchPriority = $0010;
+cpCtrlsAreChars  = $0020;
+cpDoingChars     = $2000;
+cpDeallocP       = $4000;
+cpDeallocS       = $8000;
+!WRAP
+
+CommandProcessor options that can be enabled/disabled by calling
+cpOptionsOn or cpOptionsOff.
+
+cpMapWordStar indicates that the CommandProcessor should treat key
+sequences like <CtrlK><D> as being equivalent to <CtrlK><CtrlD>.
+
+cpEnableMouse is used to enable or disable mouse support.
+
+cpUpcase indicates that alpha keys entered by the user should be uppercased
+before the command table is scanned; this option should usually be selected
+if any commands are assigned to alpha keys, such as <A>.
+
+cpWordCmds indicates that all the commands in the command table(s) are
+word-sized rather than byte-sized.
+
+cpSwitchPriority indicates that the secondary command table should be
+scanned before the primary command table.
+
+cpCtrlsAreChars indicates that any control characters that are not assigned
+to specific commands should be treated as ordinary characters. For example,
+if the user presses <CtrlC>, and <CtrlC> has not been assigned to a
+command, GetCommand will return ccChar if the option is on, rather than
+ccNone.
+
+The other options are for internal use only.
+;
+;------------------------------------------------------------
+!TOPIC 264 DefCmdOptions
+!NOINDEX
+const
+  DefCmdOptions : Word = cpMapWordStar;
+
+Default options for a CommandProcessor.
+
+See also:  0263Options
+;
+;------------------------------------------------------------
+!TOPIC 265 GetHelpProc
+!NOINDEX
+type
+  GetHelpProc = procedure (UnitCode : Byte; IdPtr : Pointer;
+                           HelpIndex : Word);
+
+A procedure to be called when the ccHelp command is issued.
+
+See also:  0228CommandProcessor.SetHelpProc
+;
+;------------------------------------------------------------
+!TOPIC 266 GetKeyProc
+!NOINDEX
+type
+  GetKeyProc = function : Word;
+
+A function to be called to retrieve the next key pressed by the user.
+
+See also:  0226CommandProcessor.SetGetKeyProc
+;
+;------------------------------------------------------------
+!TOPIC 267 CmdTable
+!NOINDEX
+type
+  CmdTable = array[0..32000] of Byte;
+  CmdTablePtr = ^CmdTable;
+
+Abstract definition of a command table (a zero-based array of byte). The value
+32,000 is arbitrary. A CmdTable is actually of a variable size.
+;
+;------------------------------------------------------------
+!TOPIC 268 KeyPressedProc
+!NOINDEX
+type
+  KeyPressedProc = function : Boolean;
+
+A function to be called to determine whether or not a key has been pressed by
+the user.
+
+See also:  0227CommandProcessor.SetKeyPressedProc
+;
+;------------------------------------------------------------
+!TOPIC 269 MatchType
+!NOINDEX
+type
+  MatchType = (NoMatch, PartMatch, FullMatch);
+
+Used when determining if a given key code matches any of the commands in a
+command table. NoMatch means that the key definitely does not correspond to any
+of the commands. PartMatch indicates a partial match--for example, if <CtrlK>
+is pressed, and one of the commands is assigned to <CtrlK><CtrlQ>. FullMatch
+means that there is a precise match between the key(s) pressed and one of the
+commands.
+;
+;------------------------------------------------------------
+!TOPIC 270 UserHookProc
+!NOINDEX
+type
+  UserHookProc = procedure (CPP : CommandProcessorPtr; MT : MatchType;
+                            Key : Word);
+
+A procedure to be called immediately after a keypress has been evaluated.
+CPP is a pointer to the current command processor. MT indicates whether the
+key pressed corresponds to a command. Key is the key that was pressed by
+the user.
+
+See also:  0229CommandProcessor.SetUserHookProc
+;
+;------------------------------------------------------------
+!TOPIC 271 KeyLength
+!NOINDEX
+const
+  KeyLength = 6;
+
+The maximum length of a KeyString.
+
+See also:  0273KeyString
+;
+;------------------------------------------------------------
+!TOPIC 272 MaxCommands
+!NOINDEX
+const
+  MaxCommands = 255*3;
+
+Stated maximum number of commands in an unpacked command table. Value is
+arbitrary; the array can actually be larger if necessary.
+;
+;------------------------------------------------------------
+!TOPIC 273 KeyString
+!NOINDEX
+type
+  KeyString = string[KeyLength];
+
+A string representation of a key sequence.
+
+See also:  0271KeyLength
+;
+;------------------------------------------------------------
+!TOPIC 274 KeyRecPtr
+!NOINDEX
+type
+  KeyRecPtr = ^KeyRec;
+  KeyRec =
+    record
+      Modified : Boolean;
+      Conflict : Boolean;
+      CmdCode  : Word;
+      Keys     : KeyString;
+    end;
+
+An element in an unpacked command table. CmdCode is the code for the
+command whose key assignment is to be modified. Keys is a string
+representing the keys assigned to it: for example, if the command is
+assigned to <F10>, whose scan code is $4400, Keys would contain '#0#$44'
+(two characters); if the command is assigned to <CtrlK><CtrlD>, Keys would
+contain '^K^D' (two characters). If no assignment has been made, the string
+would be empty. The Conflict field is set to False when the KeyRec is
+initialized, and is set to True only if ConflictsFound determines that the
+key assignment creates a conflict. The Modified field is set to False when
+the KeyRec is initialized, and its value is never changed by any of the
+methods in the CommandPacker. It simply sets aside space for user-written
+routines that need to flag key assignments that have been changed.
+;
+;------------------------------------------------------------
+!TOPIC 275 UnpackedCmdTable
+!NOINDEX
+type
+  UnpackedCmdTable = array[1..MaxCommands] of KeyRec;
+  UnpackedCmdPtr = ^UnpackedCmdTable;
+
+A command table after unpacking.
+;
+;------------------------------------------------------------
+!TOPIC 276 Declarations,OpCmd
+!NOINDEX
+!NOSEARCH
+OpCmd provides the following types, constants and variables for working with
+CommandProcessor and CommandPacker objects:
+
+    0262BadCmdOptions                     0267CmdTable
+    0263Options                           0264DefCmdOptions
+    0265GetHelpProc                       0266GetKeyProc
+    0271KeyLength                         0268KeyPressedProc
+    0274KeyRecPtr                         0273KeyString
+    0269MatchType                         0272MaxCommands
+    0275UnpackedCmdTable                  0270UserHookProc
+    0279UserMatchFunc
+;
+;------------------------------------------------------------
+!TOPIC 277 cpUserMatch
+!NOINDEX
+function 0218CommandProcessor.cpUserMatch(var Key, Cmd : Word) : MatchType; virtual;
+
+Called each time a keystroke is generated, before the keystroke is searched
+for in the command table.
+
+See also:  0278SetUserMatchFunc
+;
+;------------------------------------------------------------
+!TOPIC 278 SetUserMatchFunc
+!NOINDEX
+procedure 0218CommandProcessor.SetUserMatchFunc(UMF : UserMatchFunc);
+
+Specify a routine to be called each time a keystroke is generated.
+
+See also:  0277cpUserMatch  0222GetCommand  0279UserMatchFunc
+;
+;------------------------------------------------------------
+!TOPIC 279 UserMatchFunc
+!NOINDEX
+type
+  UserMatchFunc = function(    CPP : CommandProcessorPtr;
+                           var Key, Cmd : Word) : MatchType;
+
+A function to be called each time a keypress is generated.  CPP is a pointer
+to the current command processor.  Key is the keystroke that was generated.
+Cmd is the command generated, or ccNone if none.  The function returns
+FullMatch if the UserMatchFunc generated a command, or NoMatch if no
+command was generated.
+
+See also:  0278CommandProcessor.SetUserMatchFunc  0269MatchType

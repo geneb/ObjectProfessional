@@ -1,0 +1,515 @@
+;
+;------------------------------------------------------------
+!TOPIC 1610 OpInline
+One of the most powerful language extensions in Turbo Pascal is the "inline
+procedure" or "inline macro." Unlike normal procedures and functions, whose
+code resides at a fixed location in memory, the entire contents of an
+inline procedure are inserted directly into the object code produced by the
+compiler each time it is referenced.
+
+The macros, routines, and types in OpInline generally fall into one of
+the following categories:
+
+  1657Bit manipulation          1658Data manipulation       1659Declarations
+  1660Jumps and calls           1661Pointer manipulation
+;
+;------------------------------------------------------------
+!TOPIC 1611 SetJump
+!NOINDEX
+function 1610OpInline.SetJump(var JumpDest : JumpRecord) : Word;
+
+Save current SP, BP, and a jump destination. SetJump returns 0 to indicate
+that the jump record was just initialized. If the value returned is
+anything other than 0, the value was passed as the Result parameter to
+LongJump.
+
+See also:  1654JumpRecord  1612LongJump
+;
+;------------------------------------------------------------
+!TOPIC 1612 LongJump
+!NOINDEX
+procedure 1610OpInline.LongJump(var JumpDest : JumpRecord; Result : Word);
+
+Restore SP, BP, and jump to JumpDest.JmpPt. Result is the value to be
+returned as SetJump's "function result."
+
+See also:  1654JumpRecord  1611SetJump
+;
+;------------------------------------------------------------
+!TOPIC 1613 FarCall
+!NOINDEX
+procedure 1610OpInline.FarCall(ProcAddr : Pointer);
+
+ProcAddr is the address of a routine to be called far. Can be used to
+implement jump tables if procedures take no parameters.
+
+See also:  1614NearCall
+;
+;------------------------------------------------------------
+!TOPIC 1614 NearCall
+!NOINDEX
+procedure 1610OpInline.NearCall(ProcOfs : Word);
+
+ProcOfs is the offset of a routine to be called near.
+
+See also:  1613FarCall
+;
+;------------------------------------------------------------
+!TOPIC 1615 JumpToOldIsr
+!NOINDEX
+procedure 1610OpInline.JumpToOldIsr(OldIsr : Pointer);
+
+Jump to previous ISR from an interrupt procedure.
+
+See also:  1621CallOldIsr  1667OpInt.ChainInt
+;
+;------------------------------------------------------------
+!TOPIC 1616 MakeLongInt
+!NOINDEX
+function 1610OpInline.MakeLongInt(H, L : Word) : LongInt;
+
+Constructs a LongInt from two Words. Places H in the high word of the
+function result, L in the low word.
+
+See also:  1617MakeInteger  1619MakeWord
+;
+;------------------------------------------------------------
+!TOPIC 1617 MakeInteger
+!NOINDEX
+function 1610OpInline.MakeInteger(H, L : Byte) : Integer;
+
+Constructs an integer from two bytes. Places H in the high byte of the
+function result, L in the low byte.
+
+See also:  1616MakeLongInt  1619MakeWord
+;
+;------------------------------------------------------------
+!TOPIC 1618 MakeByte
+!NOINDEX
+function 1610OpInline.MakeByte(H, L : Byte) : Byte;
+
+This routine constructs a byte value given two nibble values, H (high)
+and L (low). E.g., if H is $F and L is $A, MakeByte returns $FA.
+
+See also:  1623HiNibble  1624LoNibble  1619MakeWord
+;
+;------------------------------------------------------------
+!TOPIC 1619 MakeWord
+!NOINDEX
+function 1610OpInline.MakeWord(H, L : Byte) : Word;
+
+Constructs a word from two bytes. Places H in the high byte of the function
+result, L in the low byte.
+
+See also:  1617MakeInteger  1616MakeLongInt
+;
+;------------------------------------------------------------
+!TOPIC 1620 Array2Str
+!NOINDEX
+function 1610OpInline.Array2Str(var A; Len : Byte) : string;
+
+Convert an array of char to a string.
+;
+;------------------------------------------------------------
+!TOPIC 1621 CallOldIsr
+!NOINDEX
+procedure 1610OpInline.CallOldIsr(OldIsr : Pointer);
+
+Simulates an interrupt by pushing the CPU flags and calling FAR to the
+address passed as OldIsr. Note that the BX register is destroyed by this
+macro.
+
+See also:  1670OpInt.EmulateInt  1615JumpToOldIsr
+;
+;------------------------------------------------------------
+!TOPIC 1622 Reboot
+!NOINDEX
+procedure 1610OpInline.Reboot;
+
+This macro forces the machine to perform a warm reboot.
+;
+;------------------------------------------------------------
+!TOPIC 1623 HiNibble
+!NOINDEX
+function 1610OpInline.HiNibble(N : Byte) : Byte;
+
+Return the high nibble of a byte value.
+
+See also:  1624LoNibble
+;
+;------------------------------------------------------------
+!TOPIC 1624 LoNibble
+!NOINDEX
+function 1610OpInline.LoNibble(N : Byte) : Byte;
+
+Return the low nibble of a byte value.
+
+See also:  1623HiNibble
+;
+;------------------------------------------------------------
+!TOPIC 1625 HiWord
+!NOINDEX
+function 1610OpInline.HiWord(L : LongInt) : Word;
+
+Return high-order word of L.
+
+See also:  1656LH  1626LoWord  1628SwapWord
+;
+;------------------------------------------------------------
+!TOPIC 1626 LoWord
+!NOINDEX
+function 1610OpInline.LoWord(L : LongInt) : Word;
+
+Return low-order word of L.
+
+See also:  1625HiWord  1656LH  1628SwapWord
+;
+;------------------------------------------------------------
+!TOPIC 1627 SwapNibble
+!NOINDEX
+function 1610OpInline.SwapNibble(B : Byte) : Byte;
+
+Swap the high and low nibbles of B: e.g., SwapNibble($F0) returns $0F.
+
+See also:  1628SwapWord
+;
+;------------------------------------------------------------
+!TOPIC 1628 SwapWord
+!NOINDEX
+function 1610OpInline.SwapWord(L : LongInt) : LongInt;
+
+Swap low- and high-order words of L: e.g., SwapWord($FFFF0000) returns
+$0000FFFF.
+
+See also:  1627SwapNibble
+;
+;------------------------------------------------------------
+!TOPIC 1629 Normalized
+!NOINDEX
+function 1610OpInline.Normalized(P : Pointer) : Pointer;
+
+Return P as a normalized pointer: e.g., Normalized(Ptr($0000, $0410)) would
+return $0041:$0000.
+
+See also:  1653AddLongToPtr  1649AddWordToPtr
+;
+;------------------------------------------------------------
+!TOPIC 1630 SetFlag
+!NOINDEX
+procedure 1610OpInline.SetFlag(var Flags : Word; FlagMask : Word);
+
+Set the bit(s) specified by FlagMask in Flags.
+
+See also:  1631ClearFlag  1632FlagIsSet
+;
+;------------------------------------------------------------
+!TOPIC 1631 ClearFlag
+!NOINDEX
+procedure 1610OpInline.ClearFlag(var Flags : Word; FlagMask : Word);
+
+Clear the bit(s) specified by FlagMask in Flags.
+
+See also:  1632FlagIsSet  1630SetFlag
+;
+;------------------------------------------------------------
+!TOPIC 1632 FlagIsSet
+!NOINDEX
+function 1610OpInline.FlagIsSet(Flags, FlagMask : Word) : Boolean;
+
+Returns True if any of the bits set in FlagMask are also set in Flags.
+
+See also:  1631ClearFlag  1630SetFlag
+;
+;------------------------------------------------------------
+!TOPIC 1633 SetByteFlag
+!NOINDEX
+procedure 1610OpInline.SetByteFlag(var Flags : Byte; FlagMask : Byte);
+
+Set the bit(s) specified by FlagMask in Flags.
+
+See also:  1635ByteFlagIsSet  1634ClearByteFlag
+;
+;------------------------------------------------------------
+!TOPIC 1634 ClearByteFlag
+!NOINDEX
+procedure 1610OpInline.ClearByteFlag(var Flags : Byte; FlagMask : Byte);
+
+Clear the bit(s) specified by FlagMask in Flags.
+
+See also:  1635ByteFlagIsSet  1633SetByteFlag
+;
+;------------------------------------------------------------
+!TOPIC 1635 ByteFlagIsSet
+!NOINDEX
+function 1610OpInline.ByteFlagIsSet(Flags, FlagMask : Byte) : Boolean;
+
+Returns True if any of the bits set in FlagMask are also set in Flags.
+
+See also:  1634ClearByteFlag  1633SetByteFlag
+;
+;------------------------------------------------------------
+!TOPIC 1636 SetLongFlag
+!NOINDEX
+procedure 1610OpInline.SetLongFlag(var Flags : LongInt; FlagMask : LongInt);
+
+Set the bit(s) specified by FlagMask in Flags.
+
+See also:  1637ClearLongFlag  1638LongFlagIsSet
+;
+;------------------------------------------------------------
+!TOPIC 1637 ClearLongFlag
+!NOINDEX
+procedure 1610OpInline.ClearLongFlag(var Flags : LongInt; FlagMask : LongInt);
+
+Clear the bit(s) specified by FlagMask in Flags.
+
+See also:  1638LongFlagIsSet  1636SetLongFlag
+;
+;------------------------------------------------------------
+!TOPIC 1638 LongFlagIsSet
+!NOINDEX
+function 1610OpInline.LongFlagIsSet(Flags, FlagMask : LongInt) : Boolean;
+
+Returns True if any of the bits set in FlagMask are also set in Flags.
+
+See also:  1637ClearLongFlag  1636SetLongFlag
+;
+;------------------------------------------------------------
+!TOPIC 1639 ExchangeBytes
+!NOINDEX
+procedure 1610OpInline.ExchangeBytes(var I, J : Byte);
+
+Exchange bytes I and J.
+
+See also:  1641ExchangeLongInts  1642ExchangeStructs  1640ExchangeWords
+;
+;------------------------------------------------------------
+!TOPIC 1640 ExchangeWords
+!NOINDEX
+procedure 1610OpInline.ExchangeWords(var I, J : Word);
+
+Exchange words I and J.
+
+See also:  1639ExchangeBytes  1641ExchangeLongInts  1642ExchangeStructs
+;
+;------------------------------------------------------------
+!TOPIC 1641 ExchangeLongInts
+!NOINDEX
+procedure 1610OpInline.ExchangeLongInts(var I, J : LongInt);
+
+Exchange LongInts I and J.
+
+See also:  1639ExchangeBytes  1642ExchangeStructs  1640ExchangeWords
+;
+;------------------------------------------------------------
+!TOPIC 1642 ExchangeStructs
+!NOINDEX
+procedure 1610OpInline.ExchangeStructs(var I, J; Size : Word);
+
+Exchange the contents of structures I and J. Size is the size of both I and J.
+
+See also:  1639ExchangeBytes  1641ExchangeLongInts  1640ExchangeWords
+;
+;------------------------------------------------------------
+!TOPIC 1643 MinWord
+!NOINDEX
+function 1610OpInline.MinWord(A, B : Word) : Word;
+
+Returns the smaller of A and B.
+
+See also:  1644MaxWord  1645MinLong
+;
+;------------------------------------------------------------
+!TOPIC 1644 MaxWord
+!NOINDEX
+function 1610OpInline.MaxWord(A, B : Word) : Word;
+
+Returns the greater of A and B.
+
+See also:  1646MaxLong  1643MinWord
+;
+;------------------------------------------------------------
+!TOPIC 1645 MinLong
+!NOINDEX
+function 1610OpInline.MinLong(A, B : LongInt) : LongInt;
+
+Returns the smaller of A and B.
+
+See also:  1646MaxLong  1643MinWord
+;
+;------------------------------------------------------------
+!TOPIC 1646 MaxLong
+!NOINDEX
+function 1610OpInline.MaxLong(A, B : LongInt) : LongInt;
+
+Returns the greater of A and B.
+
+See also:  1644MaxWord  1645MinLong
+;
+;------------------------------------------------------------
+!TOPIC 1647 FillWord
+!NOINDEX
+procedure 1610OpInline.FillWord(var Dest; Count, Filler : Word);
+
+Fill memory starting at Dest with Count instances of Filler.
+
+See also:  1648FillStruct
+;
+;------------------------------------------------------------
+!TOPIC 1648 FillStruct
+!NOINDEX
+procedure 1610OpInline.FillStruct(var Dest; Count : Word;
+                              var Filler; FillerSize : Word);
+
+Fill memory starting at Dest with Count instances of Filler, whose size is
+given by FillerSize.
+
+See also:  1647FillWord
+;
+;------------------------------------------------------------
+!TOPIC 1649 AddWordToPtr
+!NOINDEX
+function 1610OpInline.AddWordToPtr(P : Pointer; W : Word) : Pointer;
+
+Add a Word to a pointer, thereby incrementing the offset portion of the
+address. No normalization or wrap checking is performed.
+
+See also:  1653AddLongToPtr  1629Normalized
+;
+;------------------------------------------------------------
+!TOPIC 1650 PtrToLong
+!NOINDEX
+function 1610OpInline.PtrToLong(P : Pointer) : LongInt;
+
+Convert a pointer, in the range $0:$0 to $FFFF:$000F, to a LongInt. Used to
+convert segmented addresses into linear addresses.
+
+See also:  1651LongToPtr  1652PtrDiff
+;
+;------------------------------------------------------------
+!TOPIC 1651 LongToPtr
+!NOINDEX
+function 1610OpInline.LongToPtr(L : LongInt) : Pointer;
+
+Return LongInt L as a normalized pointer. Used to convert linear addresses
+into segmented addresses.
+
+See also:  1650PtrToLong
+;
+;------------------------------------------------------------
+!TOPIC 1652 PtrDiff
+!NOINDEX
+function 1610OpInline.PtrDiff(P1, P2 : Pointer) : LongInt;
+
+Return the absolute number of bytes between P1^ and P2^. The order of the two
+parameters doesn't matter.
+
+See also:  1650PtrToLong
+;
+;------------------------------------------------------------
+!TOPIC 1653 AddLongToPtr
+!NOINDEX
+function 1610OpInline.AddLongToPtr(P : Pointer; L : LongInt) : Pointer;
+
+Add a LongInt to a pointer, returning a normalized pointer.
+
+See also:  1649AddWordToPtr  1629Normalized
+;
+;------------------------------------------------------------
+!TOPIC 1654 JumpRecord
+!NOINDEX
+type
+  JumpRecord =
+    record
+      SpReg, BpReg : Word;
+      JmpPt : Pointer;
+    end;
+
+Data type used by SetJump and LongJump to store data needed to perform
+non-local goto's.
+
+See also:  1612LongJump  1611SetJump
+;
+;------------------------------------------------------------
+!TOPIC 1655 OS
+!NOINDEX
+type
+  OS =
+    record
+      O, S : Word;
+    end;
+
+Data type used for typecasting pointers; allows easy access to both the
+segment (S) and offset (O) portions of the address.
+
+See also:  1656LH
+;
+;------------------------------------------------------------
+!TOPIC 1656 LH
+!NOINDEX
+type
+  LH =
+    record
+      L, H : Word;
+    end;
+
+Data type used for typecasting long integers; allows easy access to both the
+high (H) and low (L) words that make up the LongInt.
+
+See also:  1625HiWord  1626LoWord
+;
+;------------------------------------------------------------
+!TOPIC 1657 Bit manipulation
+!NOINDEX
+!NOSEARCH
+OpInline provides the following routines for manipulating bit flags
+(individual bits used as Booleans):
+
+  1635ByteFlagIsSet             1634ClearByteFlag           1631ClearFlag
+  1637ClearLongFlag             1632FlagIsSet               1638LongFlagIsSet
+  1633SetByteFlag               1630SetFlag                 1636SetLongFlag
+;
+;------------------------------------------------------------
+!TOPIC 1658 Data manipulation
+!NOINDEX
+!NOSEARCH
+OpInline provides the following routines for manipulating data in various
+ways:
+
+  1620Array2Str                 1639ExchangeBytes           1641ExchangeLongInts
+  1642ExchangeStructs           1640ExchangeWords           1648FillStruct
+  1647FillWord                  1623HiNibble                1625HiWord
+  1624LoNibble                  1626LoWord                  1618MakeByte
+  1617MakeInteger               1616MakeLongInt             1619MakeWord
+  1646MaxLong                   1644MaxWord                 1645MinLong
+  1643MinWord                   1627SwapNibble              1628SwapWord
+
+;
+;------------------------------------------------------------
+!TOPIC 1659 Declarations,OpInline
+!NOINDEX
+!NOSEARCH
+OpInline declares the following types:
+
+  1654JumpRecord                1656LH                      1655OS
+;
+;------------------------------------------------------------
+!TOPIC 1660 Jumps and calls
+!NOINDEX
+!NOSEARCH
+OpInline provides the following routines for indirectly transferring
+control to another location in memory:
+
+  1621CallOldIsr                1613FarCall                 1615JumpToOldIsr
+  1612LongJump                  1614NearCall                1622Reboot
+  1611SetJump
+;
+;------------------------------------------------------------
+!TOPIC 1661 Pointer manipulation
+!NOINDEX
+!NOSEARCH
+OpInline provides the following routines for manipulating pointers and
+performing pointer arithmetic:
+
+  1653AddLongToPtr              1649AddWordToPtr            1651LongToPtr
+  1629Normalized                1652PtrDiff                 1650PtrToLong

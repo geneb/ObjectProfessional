@@ -1,0 +1,456 @@
+;
+;------------------------------------------------------------
+!TOPIC 1752 OpMacro
+The OpMacro unit contains all the low-level routines you need to
+incorporate keyboard macro facilities into your programs. These routines
+fall into the following general categories:
+
+    1792Activate/deactivate               1793Conversion
+    1794Create/destroy                    1791Declarations
+    1795Macro files                       1796Miscellaneous
+;
+;------------------------------------------------------------
+!TOPIC 1753 DefineMacro
+!NOINDEX
+function 1752OpMacro.DefineMacro(Key : Word; var Macro) : Boolean;
+
+Define a new macro or delete an existing one.
+
+See also:  1756AllocateMacro  1757DeallocateMacro
+;
+;------------------------------------------------------------
+!TOPIC 1754 MacroAddress
+!NOINDEX
+function 1752OpMacro.MacroAddress(Key : Word) : Pointer;
+
+Returns a pointer to the macro corresponding to Key, or Nil if the key is
+not associated with a macro.
+
+See also:  1767StartMacroByKey
+;
+;------------------------------------------------------------
+!TOPIC 1755 MacroCount
+!NOINDEX
+function 1752OpMacro.MacroCount : Word;
+
+Returns the number of macros that have been defined.
+;
+;------------------------------------------------------------
+!TOPIC 1756 AllocateMacro
+!NOINDEX
+function 1752OpMacro.AllocateMacro(Key : Word; var Macro;
+                               var Name : string) : Byte;
+
+Defines a Macro and allocates space for both the macro and its Name (if
+any). If there is already a macro assigned to Key, both the old macro and
+the old name are deleted and their memory deallocated. AllocateMacro
+returns one of the following values:
+
+  0  Macro allocated
+  1  Macro table full
+  2  Out of heap space
+  3  Macro was blank
+
+See also:  1758AssignMacroName  1757DeallocateMacro  1753DefineMacro
+;
+;------------------------------------------------------------
+!TOPIC 1757 DeallocateMacro
+!NOINDEX
+function 1752OpMacro.DeallocateMacro(Key : Word) : Boolean;
+
+If the macro corresponding to Key exists, this routine erases it and
+deallocates its memory. Returns False if the macro was not found.
+
+See also:  1756AllocateMacro  1753DefineMacro
+;
+;------------------------------------------------------------
+!TOPIC 1758 AssignMacroName
+!NOINDEX
+function 1752OpMacro.AssignMacroName(Key : Word;
+                                 var Name : string) : Boolean;
+
+Assign a Name to the macro corresponding to Key, deleting the existing name
+assigned to the macro, if any. Returns False if insufficient memory exists
+or macro not found.
+
+See also:  1756AllocateMacro
+;
+;------------------------------------------------------------
+!TOPIC 1759 ReadMacroFile
+!NOINDEX
+function 1752OpMacro.ReadMacroFile(FName : string; Merge : Boolean) : Byte;
+
+Reads the contents of a macro file into memory. If Merge is False, any
+existing macros are deleted before the file is read. If True, existing
+macros that do not conflict with new ones are left in memory. Returns 0 if
+successful, $FF if not a valid macro file, $FE if it ran out of memory,
+else IOresult.
+
+See also:  1781MacroFileID  1760WriteMacroFile
+;
+;------------------------------------------------------------
+!TOPIC 1760 WriteMacroFile
+!NOINDEX
+function 1752OpMacro.WriteMacroFile(FName : string) : Byte;
+
+Saves the current macros to a file. Returns 0 if successful, else IOresult.
+
+See also:  1781MacroFileID  1759ReadMacroFile
+;
+;------------------------------------------------------------
+!TOPIC 1761 ClearMacros
+!NOINDEX
+procedure 1752OpMacro.ClearMacros;
+
+Deletes and deallocates all macros and macro names.
+
+See also:  1757DeallocateMacro  1753DefineMacro
+;
+;------------------------------------------------------------
+!TOPIC 1762 MacrosOn
+!NOINDEX
+procedure 1752OpMacro.MacrosOn;
+
+Turns macro processing on.
+
+See also:  1785MacrosAreOn  1763MacrosOff
+;
+;------------------------------------------------------------
+!TOPIC 1763 MacrosOff
+!NOINDEX
+procedure 1752OpMacro.MacrosOff;
+
+Turns macro processing off.
+
+See also:  1785MacrosAreOn  1762MacrosOn
+;
+;------------------------------------------------------------
+!TOPIC 1764 MacroRecordingOn
+!NOINDEX
+procedure 1752OpMacro.MacroRecordingOn;
+
+Turns macro recording on.
+
+See also:  1786MacroRecording  1765MacroRecordingOff
+;
+;------------------------------------------------------------
+!TOPIC 1765 MacroRecordingOff
+!NOINDEX
+procedure 1752OpMacro.MacroRecordingOff;
+
+Turns macro recording off.
+
+See also:  1756AllocateMacro  1786MacroRecording  1764MacroRecordingOn
+;
+;------------------------------------------------------------
+!TOPIC 1766 StartMacro,OpMacro
+!NOINDEX
+procedure 1752OpMacro.StartMacro(Macro : Pointer);
+
+Starts execution of the specified Macro. If a macro is already in progress
+it will immediately be replaced by the specified macro.
+
+See also:  1767StartMacroByKey
+;
+;------------------------------------------------------------
+!TOPIC 1767 StartMacroByKey
+!NOINDEX
+procedure 1752OpMacro.StartMacroByKey(Key : Word);
+
+Starts execution of the macro attached to Key, if any. If a macro is
+already in progress it will immediately be replaced by the specified macro.
+
+See also:  1766StartMacro
+;
+;------------------------------------------------------------
+!TOPIC 1768 RemoveMacros
+!NOINDEX
+procedure 1752OpMacro.RemoveMacros;
+
+Restores all vectors associated with macros, disabling the macro engine.
+
+See also:  1771InitMacros  1766StartMacro
+;
+;------------------------------------------------------------
+!TOPIC 1769 SetEndOfMacroProc,OpMacro
+!NOINDEX
+procedure 1752OpMacro.SetEndOfMacroProc(P : Pointer);
+
+Provides a hook that allows you to chain macros together. P is the address
+of a routine that is to be called immediately after a macro has been played
+back.
+
+See also:  1766StartMacro  1767StartMacroByKey
+;
+;------------------------------------------------------------
+!TOPIC 1770 FindMacroIndex
+!NOINDEX
+function 1752OpMacro.FindMacroIndex(Key : Word) : Word;
+
+Returns the array index for the macro corresponding to Key, or 0 if not
+found.
+
+See also:  1754MacroAddress
+;
+;------------------------------------------------------------
+!TOPIC 1771 InitMacros
+!NOINDEX
+function 1752OpMacro.InitMacros : Boolean;
+
+Initializes macros. After this routine is called, no macros will be defined
+and both macro processing and macro recording will be turned off. Returns
+false if INT $16 cannot be taken over.
+
+See also:  1768RemoveMacros
+;
+;------------------------------------------------------------
+!TOPIC 1772 CharToMacro,OpMacro
+!NOINDEX
+function 1752OpMacro.CharToMacro(MacroChar : Char) : Word;
+
+Converts a character to a keyboard code/char representation.
+
+See also:  1775KeyToString  1773StringToMacro
+;
+;------------------------------------------------------------
+!TOPIC 1773 StringToMacro,OpMacro
+!NOINDEX
+procedure 1752OpMacro.StringToMacro(S : string; MRP : MacroRecPtr;
+                                MaxKeys : Word);
+
+Turns a string (S) into a macro. MRP should point to the macro record used
+to store the macro. MaxKeys is the maximum number of keys that MRP^ can
+hold.
+
+See also:  1772CharToMacro  1774StringToScrapMacro
+;
+;------------------------------------------------------------
+!TOPIC 1774 StringToScrapMacro,OpMacro
+!NOINDEX
+procedure 1752OpMacro.StringToScrapMacro(S : string);
+
+Converts S to a macro and stores it in the global variable ScrapMacro.
+
+See also:  1773StringToMacro
+;
+;------------------------------------------------------------
+!TOPIC 1775 KeyToString
+!NOINDEX
+procedure 1752OpMacro.KeyToString(Key : Word; var S : string;
+                              var Special : Boolean);
+
+Returns a string (S) representing a Key. Special is set to False if a
+simple character is being returned.
+
+See also:  1772CharToMacro
+;
+;------------------------------------------------------------
+!TOPIC 1776 MaxMacros
+!NOINDEX
+const
+  MaxMacros = 100;
+
+The maximum number of macros that OpMacro can handle at one time.
+
+See also:  1784DefinedKeys  1789MacroNames  1788MacroPointers
+;
+;------------------------------------------------------------
+!TOPIC 1777 MaxKeysInMacro,OpMacro
+!NOINDEX
+const
+  MaxKeysInMacro = 1000;
+
+The maximum number of keys in a macro.
+
+See also:  1782MacroRec
+;
+;------------------------------------------------------------
+!TOPIC 1778 EndOfMacro,OpMacro
+!NOINDEX
+const
+  EndOfMacro = $0FFFF;
+
+Used to mark the end of a macro. Also used to mark unused entries in the
+DefinedKeys array.
+
+See also:  1782MacroRec
+;
+;------------------------------------------------------------
+!TOPIC 1779 Int16Handle
+!NOINDEX
+const
+  Int16Handle = 12;
+
+1662OpInt handle number assigned to the INT $16 handler.
+;
+;------------------------------------------------------------
+!TOPIC 1780 PlaybackDelay
+!NOINDEX
+const
+  PlaybackDelay : Word = 0;
+
+Number of milliseconds to delay before playing back a particular keystroke in
+a macro.
+;
+;------------------------------------------------------------
+!TOPIC 1781 MacroFileID
+!NOINDEX
+const
+  MacroFileID : LongInt = $04001087;
+
+Macro file identification values. These values are stored at the beginning
+of any valid macro file to insure validity.
+
+See also:  1759ReadMacroFile  1760WriteMacroFile
+;
+;------------------------------------------------------------
+!TOPIC 1782 MacroRec,OpMacro
+!NOINDEX
+type
+  MacroRecPtr = ^MacroRec;
+  MacroRec =
+    record
+      NumKeys : Word;
+      KeyArray : array[1..MaxKeysInMacro] of Word;
+      Overflow : Word;
+    end;
+
+A macro. NumKeys is the number of keys in the macro, not counting the last,
+which is always EndOfMacro ($FFFF). KeyArray contains the actual
+keystrokes. Overflow holds the end of macro marker when KeyArray is
+completely full.
+
+See also:  1778EndOfMacro  1777MaxKeysInMacro
+;
+;------------------------------------------------------------
+!TOPIC 1783 StringPointer
+!NOINDEX
+type
+  StringPointer = ^string;
+
+Pointer to a string.
+;
+;------------------------------------------------------------
+!TOPIC 1784 DefinedKeys
+!NOINDEX
+var
+  DefinedKeys : array[1..MaxMacros] of Word;
+
+Table of defined macro keys. Unused entries contain EndOfMacro.
+
+See also:  1778EndOfMacro  1776MaxMacros
+;
+;------------------------------------------------------------
+!TOPIC 1785 MacrosAreOn
+!NOINDEX
+var
+  MacrosAreOn : Boolean;
+
+If True, macro processing is enabled.
+
+See also:  1762MacrosOn
+;
+;------------------------------------------------------------
+!TOPIC 1786 MacroRecording
+!NOINDEX
+var
+  MacroRecording : Boolean;
+
+If True, macro recording is enabled.
+
+See also:  1765MacroRecordingOff  1764MacroRecordingOn
+;
+;------------------------------------------------------------
+!TOPIC 1787 MacroInProgress
+!NOINDEX
+var
+  MacroInProgress : Boolean;
+
+If True, a macro is currently being played back.
+;
+;------------------------------------------------------------
+!TOPIC 1788 MacroPointers
+!NOINDEX
+var
+  MacroPointers : array[1..MaxMacros] of Pointer;
+
+Array of pointers to defined macros.
+
+See also:  1776MaxMacros
+;
+;------------------------------------------------------------
+!TOPIC 1789 MacroNames
+!NOINDEX
+var
+  MacroNames : array[1..MaxMacros] of Pointer;
+
+Array of pointers to macro names.
+
+See also:  1758AssignMacroName  1776MaxMacros
+;
+;------------------------------------------------------------
+!TOPIC 1790 ScrapMacro
+!NOINDEX
+var
+  ScrapMacro     : MacroRec;
+  ScrapMacroKey  : Word;
+  ScrapMacroName : string;
+
+ScrapMacro is used by the macro engine when recording keystrokes.
+ScrapMacroKey can be used to store the key associated with ScrapMacro.
+ScrapMacroName can be used to store the name associated with ScrapMacro.
+
+See also:  1782MacroRec  1764MacroRecordingOn
+;------------------------------------------------------------
+!TOPIC 1791 Declarations,OpMacro
+!NOINDEX
+!NOSEARCH
+OpMacro defines the following types, constants, and variables:
+
+  1784DefinedKeys               1778EndOfMacro              1779Int16Handle
+  1781MacroFileID               1787MacroInProgress         1789MacroNames
+  1788MacroPointers             1782MacroRec                1786MacroRecording
+  1785MacrosAreOn               1777MaxKeysInMacro          1776MaxMacros
+  1780PlaybackDelay             1790ScrapMacro              1783StringPointer
+;------------------------------------------------------------
+!TOPIC 1792 Activate/deactivate
+!NOINDEX
+!NOSEARCH
+OpMacro provides the following routines for activating and deactivating
+macros:
+
+  1771InitMacros                1765MacroRecordingOff       1764MacroRecordingOn
+  1763MacrosOff                 1762MacrosOn                1766StartMacro
+  1767StartMacroByKey
+;------------------------------------------------------------
+!TOPIC 1793 Conversion
+!NOINDEX
+!NOSEARCH
+OpMacro provides the following conversion routines:
+
+  1772CharToMacro               1775KeyToString             1773StringToMacro
+  1774StringToScrapMacro
+;------------------------------------------------------------
+!TOPIC 1794 Create/destroy
+!NOINDEX
+!NOSEARCH
+OpMacro provides the following routines for creating and destroying
+macros:
+
+  1756AllocateMacro             1761ClearMacros             1757DeallocateMacro
+  1753DefineMacro               1768RemoveMacros
+;------------------------------------------------------------
+!TOPIC 1795 Macro files
+!NOINDEX
+!NOSEARCH
+OpMacro provides the following routines for working with macro files:
+
+  1759ReadMacroFile             1760WriteMacroFile
+;------------------------------------------------------------
+!TOPIC 1796 Miscellaneous,OpMacro
+!NOINDEX
+!NOSEARCH
+OpMacro also provides the following routines:
+
+  1758AssignMacroName           1770FindMacroIndex          1754MacroAddress
+  1755MacroCount                1769SetEndOfMacroProc

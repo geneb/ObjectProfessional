@@ -1,0 +1,213 @@
+;
+;------------------------------------------------------------
+!TOPIC 1662 OpInt
+OpInt's primary purpose is to manage your interrupt service routines
+(ISRs) for you. Not only does it automatically restore the interrupts when
+your program ends, it also provides a number of other routines for stack
+control.
+
+OpInt provides the following routines:
+
+  1674AllocateStack             1667ChainInt                1675DeallocateStack
+  1680Declarations              1670EmulateInt              1671InitVector
+  1664InterruptsOff             1663InterruptsOn            1666IntReturn
+  1673RestoreAllVectors         1672RestoreVector           1665SendEOI
+  1669SwapStackAndCall          1668SwapStackAndCallNear
+;
+;------------------------------------------------------------
+!TOPIC 1663 InterruptsOn,OpInt
+!NOINDEX
+procedure 1662OpInt.InterruptsOn;
+
+Simple inline macro to turn interrupts on.
+
+See also:  1664InterruptsOff
+;
+;------------------------------------------------------------
+!TOPIC 1664 InterruptsOff,OpInt
+!NOINDEX
+procedure 1662OpInt.InterruptsOff;
+
+Simple inline macro to turn interrupts off.
+
+See also:  1663InterruptsOn
+;
+;------------------------------------------------------------
+!TOPIC 1665 SendEOI
+!NOINDEX
+procedure 1662OpInt.SendEOI;
+
+This inline macro sends an End Of Interrupt (EOI) command to the
+Programmable Interrupt Controller (PIC).
+;
+;------------------------------------------------------------
+!TOPIC 1666 IntReturn
+!NOINDEX
+procedure 1662OpInt.IntReturn(var IntRegs : IntRegisters);
+
+This routine lets you return from an interrupt from almost anywhere in your
+program, provided that the current procedure has been passed a VAR
+parameter of type IntRegisters by the actual ISR. IntReturn is needed only
+if the stack has been changed.
+
+See also:
+  1667ChainInt                  1677IntRegisters            1669SwapStackAndCall
+  1668SwapStackAndCallNear
+;
+;------------------------------------------------------------
+!TOPIC 1667 ChainInt
+!NOINDEX
+procedure 1662OpInt.ChainInt(var Regs : IntRegisters; JumpAddr : Pointer);
+
+Restores stack, registers from Regs and 'jumps' to JumpAddr.
+
+See also:  1670EmulateInt  1677IntRegisters  1615OpInline.JumpToOldIsr
+;
+;------------------------------------------------------------
+!TOPIC 1668 SwapStackAndCallNear
+!NOINDEX
+procedure 1662OpInt.SwapStackAndCallNear(Routine : Word; SP : Pointer;
+                                     var Regs : IntRegisters);
+
+Switches to stack designated by SP and calls Routine with Regs as a
+parameter. The Routine must be a NEAR call from the current ISR.
+
+See also:  1669SwapStackAndCall
+;
+;------------------------------------------------------------
+!TOPIC 1669 SwapStackAndCall
+!NOINDEX
+procedure 1662OpInt.SwapStackAndCall(Routine, SP : Pointer;
+                                 var Regs : IntRegisters);
+
+Switches to stack designated by SP and calls Routine with Regs as a
+parameter. The Routine must be a FAR call from the current ISR.
+
+See also:  1668SwapStackAndCallNear
+;
+;------------------------------------------------------------
+!TOPIC 1670 EmulateInt,OpInt
+!NOINDEX
+procedure 1662OpInt.EmulateInt(var Regs : IntRegisters; IntAddr : Pointer);
+
+Emulates an interrupt by filling the CPU registers with the values in Regs,
+clearing interrupts, pushing the flags, and calling FAR to IntAddr.
+
+See also:  1621OpInline.CallOldIsr  1667ChainInt  1677IntRegisters
+;
+;------------------------------------------------------------
+!TOPIC 1671 InitVector
+!NOINDEX
+function 1662OpInt.InitVector(IntNumber, Handle : Byte;
+                          UserRoutine : Pointer) : Boolean;
+
+InitVector allows you to change an interrupt vector (IntNumber) to point to
+an interrupt service routine that you have written (pointed to by
+UserRoutine). The Handle is the number that you want to use to identify the
+ISR in question.
+
+See also:  1673RestoreAllVectors  1672RestoreVector
+;
+;------------------------------------------------------------
+!TOPIC 1672 RestoreVector
+!NOINDEX
+procedure 1662OpInt.RestoreVector(Handle : Byte);
+
+Restores an interrupt vector previously grabbed using a call to InitVector.
+
+See also:  1671InitVector  1673RestoreAllVectors
+;
+;------------------------------------------------------------
+!TOPIC 1673 RestoreAllVectors,OpInt
+!NOINDEX
+procedure 1662OpInt.RestoreAllVectors;
+
+Restores all captured interrupt vectors.
+
+See also:  1672RestoreVector
+;
+;------------------------------------------------------------
+!TOPIC 1674 AllocateStack,OpInt
+!NOINDEX
+function 1662OpInt.AllocateStack(var P : Pointer;
+                             SizeInBytes : Word) : Boolean;
+
+Allocates a stack of size SizeInBytes and returns a pointer to the end of
+the stack in P.
+
+See also:  1675DeallocateStack
+;
+;------------------------------------------------------------
+!TOPIC 1675 DeallocateStack,OpInt
+!NOINDEX
+procedure 1662OpInt.DeallocateStack(P : Pointer);
+
+Frees a stack allocated by a call to AllocateStack.
+
+See also:  1674AllocateStack
+;
+;------------------------------------------------------------
+!TOPIC 1676 MaxISRs
+!NOINDEX
+const
+  MaxISRs = 20;
+
+The maximum number of interrupt service routines that can be managed by
+OpInt.
+
+See also:  1679IsrArray
+;
+;------------------------------------------------------------
+!TOPIC 1677 IntRegisters,OpInt
+!NOINDEX
+type
+  IntRegisters =
+    record case Byte of
+      1 : (BP, ES, DS, DI, SI, DX, CX, BX, AX, IP, CS, Flags : Word);
+      2 : (Dummy : Dummy5; DL, DH, CL, CH, BL, BH, AL, AH : Byte);
+    end;
+
+A record whose structure mirrors the contents of the stack frame in an
+interrupt procedure.
+
+See also:  1667ChainInt  1670EmulateInt  1666IntReturn
+;
+;------------------------------------------------------------
+!TOPIC 1678 IsrRecord
+!NOINDEX
+type
+  IsrRecord =
+    record
+      IntNum : Byte;
+      OrigAddr : Pointer;
+      NewAddr : Pointer;
+      Captured : Boolean;
+    end;
+
+A record containing information about a particular interrupt service
+routine. IntNum is the vector that was taken over. OrigAddr is the address
+of the previous ISR. NewAddr is the address of the current ISR. And
+Captured is used internally to determine whether or not the vector has
+already been restored.
+
+See also:  1679IsrArray
+;
+;------------------------------------------------------------
+!TOPIC 1679 IsrArray
+!NOINDEX
+var
+  IsrArray : array[1..MaxISRs] of IsrRecord;
+
+The global array of records containing information about the ISR's being
+managed by OpInt.
+
+See also:  1678IsrRecord  1676MaxISRs
+;
+;------------------------------------------------------------
+!TOPIC 1680 Declarations,OpInt
+!NOINDEX
+!NOSEARCH
+OpInt declares the following types, constants, and variables:
+
+  1677IntRegisters              1679IsrArray                1678IsrRecord
+  1676MaxISRs

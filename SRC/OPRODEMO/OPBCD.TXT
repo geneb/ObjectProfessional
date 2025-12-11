@@ -1,0 +1,356 @@
+;
+;------------------------------------------------------------
+!TOPIC 63 OpBcd
+The OpBcd unit offers an extended set of BCD arithmetic routines
+providing 18 digit accuracy using decimal arithmetic. A BCD real is
+represented as an array[1..10] of byte, with the same internal format as
+Turbo Pascal 3.0's BCD reals. Besides a full complement of arithmetic,
+comparison and format conversion routines, OPBCD provides the
+transcendental functions: Sqrt, Exp, Ln, Sin, Cos, and ArcTan. In addition,
+OpBcd includes a Form function for easy formatting of numeric results.
+
+  0070AbsBCD                    0076AddBCD                  0086ArcTanBCD
+  0100BCD                       0093BcdSize                 0066BCDtoReal
+  0094CommaForPeriod            0087CosBCD                  0079DivBCD
+  0080EqualBCD                  0088ExpBCD                  0075Form
+  0071FracBCD                   0082GreaterBCD              0083GreaterEqualBCD
+  0072IntBCD                    0084LessBCD                 0085LessEqualBCD
+  0089LnBCD                     0065LongintToBCD            0095MaxBCD
+  0096MinBCD                    0097MoneySign               0078MultBCD
+  0081NotEqualBCD               0098PiBcd                   0064RealToBCD
+  0073RoundBCD                  0090SinBCD                  0091SqrBCD
+  0092SqrtBCD                   0067StrBCD                  0068StrExpBCD
+  0077SubBCD                    0074TruncBCD                0069ValBCD
+  0099ZeroBcd
+;
+;------------------------------------------------------------
+!TOPIC 64 RealToBCD
+!NOINDEX
+procedure 0063OpBcd.RealToBCD(R : Real; var B : BCD);
+
+Convert a Real to a BCD.
+
+See also:  0065LongintToBCD
+;
+;------------------------------------------------------------
+!TOPIC 65 LongintToBCD
+!NOINDEX
+procedure 0063OpBcd.LongintToBCD(L : LongInt; var B : BCD);
+
+Convert a Longint to a BCD.
+
+See also:  0064RealToBCD
+;
+;------------------------------------------------------------
+!TOPIC 66 BCDtoReal
+!NOINDEX
+function 0063OpBcd.BCDtoReal(B : BCD) : Real;
+
+Convert a BCD to a Real.
+
+See also:  0065LongintToBCD  0064RealToBCD
+;
+;------------------------------------------------------------
+!TOPIC 67 StrBCD
+!NOINDEX
+function 0063OpBcd.StrBCD(B : BCD; Width, Places : Byte) : string;
+
+Return a BCD as a string.
+
+See also:  0075Form  0068StrExpBCD
+;
+;------------------------------------------------------------
+!TOPIC 68 StrExpBCD
+!NOINDEX
+function 0063OpBcd.StrExpBCD(B : BCD; Width : Byte) : string;
+
+Return B as a string in exponential format.
+
+See also:  0075Form  0067StrBCD
+;
+;------------------------------------------------------------
+!TOPIC 69 ValBCD
+!NOINDEX
+procedure 0063OpBcd.ValBCD(S : string; var B : BCD; var Code : Word);
+
+Convert a string to a BCD.
+
+See also:  0075Form  0067StrBCD  0068StrExpBCD
+;
+;------------------------------------------------------------
+!TOPIC 70 AbsBCD
+!NOINDEX
+procedure 0063OpBcd.AbsBCD(B1 : BCD; var B2 : BCD);
+
+Returns absolute value of B1 in B2.
+;
+;------------------------------------------------------------
+!TOPIC 71 FracBCD
+!NOINDEX
+procedure 0063OpBcd.FracBCD(B1 : BCD; var B2 : BCD);
+
+Returns the fractional part of B1 in B2.
+;
+;------------------------------------------------------------
+!TOPIC 72 IntBCD
+!NOINDEX
+procedure 0063OpBcd.IntBCD(B1 : BCD; var B2 : BCD);
+
+Returns the integer part of B1 in B2.
+;
+;------------------------------------------------------------
+!TOPIC 73 RoundBCD
+!NOINDEX
+function 0063OpBcd.RoundBCD(B1 : BCD) : LongInt;
+
+Returns the value of B1 rounded to the nearest long integer.
+
+See also:  0074TruncBCD
+;
+;------------------------------------------------------------
+!TOPIC 74 TruncBCD
+!NOINDEX
+function 0063OpBcd.TruncBCD(B1 : BCD) : LongInt;
+
+Returns the greatest long integer less than or equal to B1.
+
+See also:  0073RoundBCD
+;
+;------------------------------------------------------------
+!TOPIC 75 Form,OpBcd
+!NOINDEX
+function 0063OpBcd.Form(Mask : string; B : BCD) : string;
+
+Returns a formatted string with digits from B merged into the Mask.
+
+See also:  2743OpString.Form  0067StrBCD  0068StrExpBCD
+;
+;------------------------------------------------------------
+!TOPIC 76 AddBCD
+!NOINDEX
+procedure 0063OpBcd.AddBCD(B1, B2 : BCD; var B3 : BCD);
+
+Add B1 to B2 and put result in B3.
+;
+;------------------------------------------------------------
+!TOPIC 77 SubBCD
+!NOINDEX
+procedure 0063OpBcd.SubBCD(B1, B2 : BCD; var B3 : BCD);
+
+Subtract B2 from B1 and put result in B3.
+;
+;------------------------------------------------------------
+!TOPIC 78 MultBCD
+!NOINDEX
+procedure 0063OpBcd.MultBCD(B1, B2 : BCD; var B3 : BCD);
+
+Multiply B1 by B2 and put result in B3.
+;
+;------------------------------------------------------------
+!TOPIC 79 DivBCD
+!NOINDEX
+procedure 0063OpBcd.DivBCD(B1, B2 : BCD; var B3 : BCD);
+
+Divide B1 by B2 and put result in B3.
+;
+;------------------------------------------------------------
+!TOPIC 80 EqualBCD
+!NOINDEX
+function 0063OpBcd.EqualBCD(B1, B2 : BCD) : Boolean;
+
+Returns true if B1 = B2.
+
+See also:  0081NotEqualBCD
+;
+;------------------------------------------------------------
+!TOPIC 81 NotEqualBCD
+!NOINDEX
+function 0063OpBcd.NotEqualBCD(B1, B2 : BCD) : Boolean;
+
+Returns true if B1 <> B2.
+
+See also:  0080EqualBCD
+;
+;------------------------------------------------------------
+!TOPIC 82 GreaterBCD
+!NOINDEX
+function 0063OpBcd.GreaterBCD(B1, B2 : BCD) : Boolean;
+
+Returns true if B1 > B2.
+;
+;------------------------------------------------------------
+!TOPIC 83 GreaterEqualBCD
+!NOINDEX
+function 0063OpBcd.GreaterEqualBCD(B1, B2 : BCD) : Boolean;
+
+Returns true if B1 >= B2.
+;
+;------------------------------------------------------------
+!TOPIC 84 LessBCD
+!NOINDEX
+function 0063OpBcd.LessBCD(B1, B2 : BCD) : Boolean;
+
+Returns true if B1 < B2.
+;
+;------------------------------------------------------------
+!TOPIC 85 LessEqualBCD
+!NOINDEX
+function 0063OpBcd.LessEqualBCD(B1, B2 : BCD) : Boolean;
+
+Returns true if B1 <= B2.
+;
+;------------------------------------------------------------
+!TOPIC 86 ArcTanBCD
+!NOINDEX
+procedure 0063OpBcd.ArcTanBCD(B1 : BCD; var B2 : BCD);
+
+Returns arc tangent of B1 in B2.
+;
+;------------------------------------------------------------
+!TOPIC 87 CosBCD
+!NOINDEX
+procedure 0063OpBcd.CosBCD(B1 : BCD; var B2 : BCD);
+
+Returns cosine of B1 in B2.
+
+See also:  0090SinBCD
+;
+;------------------------------------------------------------
+!TOPIC 88 ExpBCD
+!NOINDEX
+procedure 0063OpBcd.ExpBCD(B1 : BCD; var B2 : BCD);
+
+Returns the exponential of B1 in B2.
+
+See also:  0089LnBCD
+;
+;------------------------------------------------------------
+!TOPIC 89 LnBCD
+!NOINDEX
+procedure 0063OpBcd.LnBCD(B1 : BCD; var B2 : BCD);
+
+Returns the natural log of B1 in B2.
+
+See also:  0088ExpBCD
+;
+;------------------------------------------------------------
+!TOPIC 90 SinBCD
+!NOINDEX
+procedure 0063OpBcd.SinBCD(B1 : BCD; var B2 : BCD);
+
+Returns the sine of B1 in B2.
+
+See also:  0087CosBCD
+;
+;------------------------------------------------------------
+!TOPIC 91 SqrBCD
+!NOINDEX
+procedure 0063OpBcd.SqrBCD(B1 : BCD; var B2 : BCD);
+
+Returns the square of B1 in B2.
+
+See also:  0078MultBCD
+;
+;------------------------------------------------------------
+!TOPIC 92 SqrtBCD
+!NOINDEX
+procedure 0063OpBcd.SqrtBCD(B1 : BCD; var B2 : BCD);
+
+Returns the square root of B1 in B2.
+;
+;------------------------------------------------------------
+!TOPIC 93 BcdSize
+!NOINDEX
+const
+  BCDsize = 10;
+
+Specifies the number of bytes used to store a BCD real. The value 10 is
+consistent with the BCD reals used by Turbo Pascal 3.0. By changing this
+constant and an equivalent constant in OPBCDLOW.ASM, BCD reals of higher
+accuracy can be obtained for all but the transcendental operations.
+
+Important note: The value can be increased, but not decreased, and it
+must be an even number. You will need Borland's Turbo Assembler or
+MicroSoft's Macro Assembler in order to reassemble OPBCD.ASM and
+BCDTRANS.ASM.
+
+Ten byte BCD reals offer 18 digits of accuracy, and two additional digits
+of accuracy would be gained for each extra byte used. Transcendental
+operations do not necessarily gain in accuracy because the algorithms to
+compute the functions are designed to provide only 18 digits of precision.
+More accurate algorithms would require more time and space than the
+existing ones.
+
+See also:  0100BCD
+;
+;------------------------------------------------------------
+!TOPIC 94 CommaForPeriod,OpBCD
+!NOINDEX
+const
+  CommaForPeriod  : Boolean = False;
+
+If True, the Form function will return '.' for ',' and vice versa. This makes
+it a bit easier to write programs that can be used both in the U.S. and in
+countries that use commas for decimal points.
+;
+;------------------------------------------------------------
+!TOPIC 95 MaxBCD
+!NOINDEX
+const
+  MaxBCD : BCD = ($7F,$00,$00,$00,$00,$00,$00,$00,$00,$99); {+9.9e+63}
+
+Maximum value for a BCD real.
+
+See also:  0096MinBCD
+
+;
+;------------------------------------------------------------
+!TOPIC 96 MinBCD
+!NOINDEX
+const
+  MinBCD : BCD = ($FF,$00,$00,$00,$00,$00,$00,$00,$00,$99); {-9.9e+63}
+
+Minimum value for a BCD real.
+
+See also:  0095MaxBCD
+;
+;------------------------------------------------------------
+!TOPIC 97 MoneySign,OpBCD
+!NOINDEX
+const
+  MoneySign  : Char = '$';
+
+This character is used when displaying values in dollars-and-cents format. If
+desired, you could change this constant to #156, for example, allowing Form to
+display amounts in terms of British pounds rather than dollars.
+;
+;------------------------------------------------------------
+!TOPIC 98 PiBcd
+!NOINDEX
+const
+  PiBcd  : BCD = ($40, $24, $93, $97, $58, $53, $26, $59, $41, $31);
+
+Specifies Pi to 18 digits in BCD format.
+
+See also:  0099ZeroBcd
+;
+;------------------------------------------------------------
+!TOPIC 99 ZeroBcd
+!NOINDEX
+const
+  ZeroBcd  : BCD = ($0, $0, $0, $0, $0, $0, $0, $0, $0, $0);
+
+0 in BCD format.
+
+See also:  0098PiBcd
+;
+;------------------------------------------------------------
+!TOPIC 100 BCD
+!NOINDEX
+type
+  BCD  = array[1..BCDsize] of Byte;
+
+The internal format of a BCD real. See OPBCD.ASM for a more detailed
+description of the BCD format.
+
+See also:  0093BcdSize

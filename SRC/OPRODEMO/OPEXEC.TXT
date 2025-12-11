@@ -1,0 +1,229 @@
+;
+;------------------------------------------------------------
+!TOPIC 1262 OpExec
+OpExec provides a way to squeeze more code into the 640K DOS memory
+limit. ExecDosSwap, the main procedure in OpExec, executes a specified
+program using the DOS Exec function. Its major advantage over other Exec
+implementations is that it swaps most of the calling program into expanded
+memory or to disk and gives all that free memory to the called program.
+When the subprocess is complete, the calling program is swapped back into
+place and continues normally.
+
+OpExec includes the following routines:
+
+  1278Declarations              1267ExecDosSwap             1264ExecWithSwap
+  1265PrepareExecWithSwap       1266RemoveExecWithSwap      1263SetSwapMsgOn
+;
+;------------------------------------------------------------
+!TOPIC 1263 SetSwapMsgOn,OpExec
+!NOINDEX
+procedure 1262OpExec.SetSwapMsgOn(On : Boolean);
+
+Turns Swap message on or off. The swap message is turned on by default. The
+boolean typed constant NoSwapMsgForEms also controls whether the message
+appears when swapping to EMS.
+
+See also:  1272NoSwapMsgForEms
+;
+;------------------------------------------------------------
+!TOPIC 1264 ExecWithSwap
+!NOINDEX
+procedure 1262OpExec.ExecWithSwap(Path, CmdLine : String);
+
+DOS shell with swapping to EMS or disk. Implements one component of the
+actions taken by ExecDosSwap. ExecWithSwap assumes that the swap device has
+already been validated and opened by a call to PrepareExecWithSwap. You
+must later call RemoveExecWithSwap to close the swap device. Path is the
+complete pathname of the program to execute. CmdLine is the command line to
+pass to that program.
+
+See also:  1267ExecDosSwap  1265PrepareExecWithSwap  1266RemoveExecWithSwap
+;
+;------------------------------------------------------------
+!TOPIC 1265 PrepareExecWithSwap
+!NOINDEX
+function 1262OpExec.PrepareExecWithSwap(LastToSave : Pointer;
+                                    SwapFileName : PathStr) : Boolean;
+
+Set up for a shell with swapping, returning true if successful. Implements
+one component of the actions taken by ExecWithSwap.
+
+LastToSave specifies an address just beyond the last memory location that
+ExecWithSwap will swap in and out. SwapFileName specifies the name and
+location of the swap file.
+
+See also:  1267ExecDosSwap
+;
+;------------------------------------------------------------
+!TOPIC 1266 RemoveExecWithSwap
+!NOINDEX
+procedure 1262OpExec.RemoveExecWithSwap;
+
+Deallocate EMS space or erase swap file, whichever was allocated.
+RemoveExecWithSwap cleans up after PrepareExecWithSwap. You don't need to
+call this routine if you're using just ExecDosSwap.
+
+See also:  1267ExecDosSwap
+;
+;------------------------------------------------------------
+!TOPIC 1267 ExecDosSwap
+!NOINDEX
+function 1262OpExec.ExecDosSwap(Command : string; UseSecond : Boolean;
+                            EDP : Pointer; SwapFName : PathStr) : Integer;
+
+Execute any DOS command, after swapping as much memory as possible to disk
+or EMS. Command is the name of a program or DOS command to be executed, or
+an empty string (which means "shell to DOS"). UseSecond determines whether
+a second copy of COMMAND.COM is loaded to process the Exec call. If it is
+False, Command must be the full pathname of the program to be executed,
+including its extension.
+
+EDP is the address of a user-written routine that will be called to display
+status information, etc. The user routine must be of the form
+
+{$F+}
+!LINE
+procedure MyExecDosProc(ActionCode : ActionCodeType; Param : Word);
+
+SwapFName is the complete pathname of a file to hold the swapped-out parent
+program.
+
+See also:
+  0863OpDos.ExecDos             1264ExecWithSwap            1265PrepareExecWithSwap
+  1266RemoveExecWithSwap
+;
+;------------------------------------------------------------
+!TOPIC 1268 ActionCodeType,OpExec
+!NOINDEX
+const
+  ExecSaveScreen    = 0;
+  ExecShowMemory    = 1;
+  ExecPauseAfterRun = 2;
+  ExecRestoreScreen = 3;
+!LINE
+type
+  ActionCodeType = ExecSaveScreen..ExecRestoreScreen;
+
+An ExecDosSwap action code, passed to a user routine. ExecSaveScreen is
+passed at an opportune time for saving the screen. ExecShowMemory is passed
+just before DOS is called. At the same time, a second parameter (a Word) is
+passed, indicating the approximate amount of memory available (in KB).
+ExecPauseAfterRun is passed when the Exec call returns. ExecRestoreScreen is
+passed immediately after that, giving you a chance to restore the screen.
+
+See also:  1267ExecDosSwap
+;
+;------------------------------------------------------------
+!TOPIC 1269 UseEmsIfAvailable
+!NOINDEX
+const
+  UseEmsIfAvailable : Boolean = True;
+
+If this constant is True when PrepareExecWithSwap or ExecDosSwap is called,
+OpExec will attempt to allocate the space needed to store the parent's
+memory image from expanded (EMS) memory.
+
+See also:  1267ExecDosSwap  1265PrepareExecWithSwap
+;
+;------------------------------------------------------------
+!TOPIC 1270 UseXmsIfAvailable
+!NOINDEX
+const
+  {$IFDEF SupportXms}
+  UseXmsIfAvailable : Boolean = False;
+  {$ENDIF}
+
+If this constant is True when PrepareExecWithSwap or ExecDosSwap is called,
+OpExec will attempt to allocate the space needed to store the parent's
+memory image from XMS memory.
+
+See also:  1267ExecDosSwap  1265PrepareExecWithSwap  1271UseEmsOverXms
+;
+;------------------------------------------------------------
+!TOPIC 1271 UseEmsOverXms
+!NOINDEX
+const
+  {$IFDEF SupportXms}
+  UseEmsOverXms     : Boolean = True;
+  {$ENDIF}
+
+If both XMS and EMS are available, then the default behavior is to use EMS.
+UseXmsOverEms will cause XMS to be used instead if it is set to True.
+
+See also:  1267ExecDosSwap  1265PrepareExecWithSwap  1270UseXmsIfAvailable
+;
+;------------------------------------------------------------
+!TOPIC 1272 NoSwapMsgForEms
+!NOINDEX
+const
+  NoSwapMsgForEms : Boolean = True;
+
+If this constant is True, OpExec will never display a message while
+swapping to and from EMS. The swap message is enabled or disabled globally
+by calling the SetSwapMsgOn procedure.
+
+See also:  1263SetSwapMsgOn
+;
+;------------------------------------------------------------
+!TOPIC 1273 NoOfBytesSwapped
+!NOINDEX
+var
+  NoOfBytesSwapped : LongInt;
+
+After PrepareExecWithSwap has been called, this variable will hold the
+number of bytes that will be swapped to and from EMS or disk.
+
+See also:  1265PrepareExecWithSwap
+;
+;------------------------------------------------------------
+!TOPIC 1274 EmsAllocated,OpExec
+!NOINDEX
+var
+  EmsAllocated : Boolean;
+  SwapFileAllocated : Boolean;
+  XmsAllocated : Boolean;
+
+After a successful call to PrepareExecWithSwap, one of these three variables
+will be set to True, indicating the location of the swap storage.
+
+See also:  1265PrepareExecWithSwap
+;
+;------------------------------------------------------------
+!TOPIC 1275 AllowRemovable
+!NOINDEX
+const
+  AllowRemovable : Boolean = False;
+
+If AllowRemovable is False, swapping to a removable (floppy) drive is
+disallowed.
+;
+;------------------------------------------------------------
+!TOPIC 1276 HideSwapFile
+!NOINDEX
+const
+  HideSwapFile : Boolean = True;
+
+If HideSwapFile is True, the swap file created when swapping to disk is
+marked with the system and hidden attributes, to prevent it from being
+deleted accidentally.
+;
+;------------------------------------------------------------
+!TOPIC 1277 XmsAllocated
+!NOINDEX
+var
+  XmsAllocated : Boolean;
+
+If HideSwapFile is True, the swap file created when swapping to disk is
+marked with the system and hidden attributes, to prevent it from being
+deleted accidentally.
+;
+;------------------------------------------------------------
+!TOPIC 1278 Declarations,OpExec
+!NOINDEX
+!NOSEARCH
+OpExec declares the following types, constants, and variables:
+
+  1268ActionCodeType            1275AllowRemovable          1274EmsAllocated
+  1276HideSwapFile              1273NoOfBytesSwapped        1272NoSwapMsgForEms
+  1269UseEmsIfAvailable         1271UseEmsOverXms           1270UseXmsIfAvailable
+  1277XmsAllocated

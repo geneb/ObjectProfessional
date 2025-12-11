@@ -1,0 +1,928 @@
+;
+;------------------------------------------------------------
+!TOPIC 2726 OpString
+The OpString unit consists primarily of general purpose string manipulation
+routines. Also notable is a complete set of routines for massaging DOS file
+and path names, which allow you to add and remove extension and path
+identifiers, and clean up filenames with extraneous characters. OpString
+also includes routines to search large arrays for the location of a specified
+string.
+
+OpString provides routines in the following categories:
+
+  2801Declarations              2810DOS pathnames           2811Dynamic allocation
+  2812General purpose           2813Numeric conversion      2814Searching/comparison
+;
+;------------------------------------------------------------
+!TOPIC 2727 HexB
+!NOINDEX
+function 2726OpString.HexB(B : Byte) : string;
+
+Return two-character hex string for Byte.
+
+See also:  2729HexL  2728HexW
+;
+;------------------------------------------------------------
+!TOPIC 2728 HexW
+!NOINDEX
+function 2726OpString.HexW(W : Word) : string;
+
+Return four-character hex string for Word.
+
+See also:  2727HexB  2729HexL
+;
+;------------------------------------------------------------
+!TOPIC 2729 HexL
+!NOINDEX
+function 2726OpString.HexL(L : LongInt) : string;
+
+Return eight-character hex string for LongInt.
+
+See also:  2727HexB  2728HexW
+;
+;------------------------------------------------------------
+!TOPIC 2730 HexPtr
+!NOINDEX
+function 2726OpString.HexPtr(P : Pointer) : string;
+
+Return nine-character hex string for Pointer.
+
+See also:  2729HexL
+;
+;------------------------------------------------------------
+!TOPIC 2731 BinaryB
+!NOINDEX
+function 2726OpString.BinaryB(B : Byte) : string;
+
+Return eight-character binary string for Byte.
+
+See also:  2733BinaryL  2732BinaryW
+;
+;------------------------------------------------------------
+!TOPIC 2732 BinaryW
+!NOINDEX
+function 2726OpString.BinaryW(W : Word) : string;
+
+Return sixteen-character binary string for Word.
+
+See also:  2731BinaryB  2733BinaryL
+;
+;------------------------------------------------------------
+!TOPIC 2733 BinaryL
+!NOINDEX
+function 2726OpString.BinaryL(L : LongInt) : string;
+
+Return thirty two-character binary string for LongInt.
+
+See also:  2731BinaryB  2732BinaryW
+;
+;------------------------------------------------------------
+!TOPIC 2734 OctalB
+!NOINDEX
+function 2726OpString.OctalB(B : Byte) : string;
+
+Return three-character octal string for Byte.
+
+See also:  2736OctalL  2735OctalW
+;
+;------------------------------------------------------------
+!TOPIC 2735 OctalW
+!NOINDEX
+function 2726OpString.OctalW(W : Word) : string;
+
+Return six-character octal string for Word.
+
+See also:  2734OctalB  2736OctalL
+;
+;------------------------------------------------------------
+!TOPIC 2736 OctalL
+!NOINDEX
+function 2726OpString.OctalL(L : LongInt) : string;
+
+Return twelve-character octal string for LongInt.
+
+See also:  2734OctalB  2735OctalW
+;
+;------------------------------------------------------------
+!TOPIC 2737 Str2Int
+!NOINDEX
+function 2726OpString.Str2Int(S : string; var I : Integer) : Boolean;
+
+Convert a String to an Integer, returning True if successful.
+
+See also:  2739Str2Long  2738Str2Word
+;
+;------------------------------------------------------------
+!TOPIC 2738 Str2Word
+!NOINDEX
+function 2726OpString.Str2Word(S : string; var I : Word) : Boolean;
+
+Convert a String to a Word, returning True if successful.
+
+See also:  2741Long2Str  2737Str2Int  2739Str2Long
+;
+;------------------------------------------------------------
+!TOPIC 2739 Str2Long
+!NOINDEX
+function 2726OpString.Str2Long(S : string; var I : LongInt) : Boolean;
+
+Convert a String to a LongInt, returning True if successful.
+
+See also:  2741Long2Str  2737Str2Int  2738Str2Word
+;
+;------------------------------------------------------------
+!TOPIC 2740 Str2Real
+!NOINDEX
+function 2726OpString.Str2Real(S : string; var R : Float) : Boolean;
+
+Convert a String to a Real, returning True if successful.
+
+See also:  2806Float  2742Real2Str
+;
+;------------------------------------------------------------
+!TOPIC 2741 Long2Str
+!NOINDEX
+function 2726OpString.Long2Str(L : LongInt) : string;
+
+Convert a LongInt/Word/Integer/Byte/ShortInt to a String.
+
+See also:  2739Str2Long
+;
+;------------------------------------------------------------
+!TOPIC 2742 Real2Str
+!NOINDEX
+function 2726OpString.Real2Str(R : Float; Width : Byte;
+                           Places : ShortInt) : string;
+
+Convert a Real to a String of the specified Width with Places decimal
+places.
+
+See also:  2806Float  2740Str2Real
+;
+;------------------------------------------------------------
+!TOPIC 2743 Form,OpString
+!NOINDEX
+function 2726OpString.Form(Mask : string; R : Float) : string;
+
+Returns a formatted string with digits from R merged into the Mask. The
+following is a brief summary of the characters that have special meaning
+within the picture mask:
+
+ #  A digit position, blank if not available. Implies floating minus sign.
+ *  A digit position, fill with asterisk if not available.
+ @  A digit position, fill with zero if not available.
+ $  A digit position, activating a floating dollar sign.
+ -  A sign position, needed if * or @ digits used exclusively.
+ +  A sign position, shows '+' for positive numbers as well.
+ ,  A decimal comma or a separator comma.
+ .  A decimal period or a separator period.
+
+See also:
+  2809CommaForPeriod            0075OpBcd.Form              2744LongIntForm
+  2808MoneySign
+;
+;------------------------------------------------------------
+!TOPIC 2744 LongIntForm
+!NOINDEX
+function 2726OpString.LongIntForm(Mask : string; L : LongInt) : string;
+
+Returns a formatted string with digits from L merged into the Mask. (Appends a
+'.' to the end of Mask and calls Form.)
+
+See also:  2743Form
+;
+;------------------------------------------------------------
+!TOPIC 2745 UpCaseMac
+!NOINDEX
+function 2726OpString.UpCaseMac(Ch : Char) : Char;
+
+Uppercase character macro, with no international character support.
+
+See also:  2746LoCaseMac  2747Upcase
+;
+;------------------------------------------------------------
+!TOPIC 2746 LoCaseMac
+!NOINDEX
+function 2726OpString.LoCaseMac(Ch : Char) : Char;
+
+Lowercase character macro, with no international character support.
+
+See also:  2749LoCase  2745UpCaseMac
+;
+;------------------------------------------------------------
+!TOPIC 2747 Upcase
+!NOINDEX
+function 2726OpString.Upcase(Ch : Char) : Char;
+
+Return uppercase of Ch, with international character support.
+
+See also:  2749LoCase  2748StUpcase  2745UpCaseMac
+;
+;------------------------------------------------------------
+!TOPIC 2748 StUpcase
+!NOINDEX
+function 2726OpString.StUpcase(S : string) : string;
+
+Convert lower case letters in S to uppercase, with international character
+support.
+
+See also:  2750StLocase  2747Upcase
+;
+;------------------------------------------------------------
+!TOPIC 2749 LoCase
+!NOINDEX
+function 2726OpString.LoCase(Ch : Char) : Char;
+
+Return lowercase of Ch, with international character support.
+
+See also:  2746LoCaseMac  2750StLocase  2747Upcase
+;
+;------------------------------------------------------------
+!TOPIC 2750 StLocase
+!NOINDEX
+function 2726OpString.StLocase(S : string) : string;
+
+Convert upper case letters in S to lowercase, with international character
+support.
+
+See also:  2749LoCase  2748StUpcase
+;
+;------------------------------------------------------------
+!TOPIC 2751 CharStr
+!NOINDEX
+function 2726OpString.CharStr(Ch : Char; Len : Byte) : string;
+
+Return a string of length Len filled with Ch.
+
+See also:  2760CenterCh  2752PadCh
+;
+;------------------------------------------------------------
+!TOPIC 2752 PadCh
+!NOINDEX
+function 2726OpString.PadCh(S : string; Ch : Char; Len : Byte) : string;
+
+Return a string (S) right-padded to length Len with Ch.
+
+See also:  2753Pad
+;
+;------------------------------------------------------------
+!TOPIC 2753 Pad
+!NOINDEX
+function 2726OpString.Pad(S : string; Len : Byte) : string;
+
+Return a string (S) right-padded to length Len with blanks.
+
+See also:  2761Center  2755LeftPad  2752PadCh
+;
+;------------------------------------------------------------
+!TOPIC 2754 LeftPadCh
+!NOINDEX
+function 2726OpString.LeftPadCh(S : string; Ch : Char; Len : Byte) : string;
+
+Return a string (S) left-padded to length Len with Ch.
+
+See also:  2761Center  2755LeftPad  2753Pad
+;
+;------------------------------------------------------------
+!TOPIC 2755 LeftPad
+!NOINDEX
+function 2726OpString.LeftPad(S : string; Len : Byte) : string;
+
+Return a string (S) left-padded to length Len with blanks.
+
+See also:  2761Center  2754LeftPadCh  2753Pad
+;
+;------------------------------------------------------------
+!TOPIC 2756 TrimLead
+!NOINDEX
+function 2726OpString.TrimLead(S : string) : string;
+
+Return a string (S) with leading white space removed.
+
+See also:  2758Trim  2757TrimTrail
+;
+;------------------------------------------------------------
+!TOPIC 2757 TrimTrail
+!NOINDEX
+function 2726OpString.TrimTrail(S : string) : string;
+
+Return a string (S) with trailing white space removed.
+
+See also:  2758Trim  2756TrimLead
+;
+;------------------------------------------------------------
+!TOPIC 2758 Trim
+!NOINDEX
+function 2726OpString.Trim(S : string) : string;
+
+Return a string (S) with leading and trailing white space removed.
+
+See also:  2756TrimLead  2759TrimSpaces  2757TrimTrail
+;
+;------------------------------------------------------------
+!TOPIC 2759 TrimSpaces
+!NOINDEX
+function 2726OpString.TrimSpaces(S : string) : string;
+
+Return a string (S) with leading and trailing spaces removed.
+
+See also:  2758Trim
+;
+;------------------------------------------------------------
+!TOPIC 2760 CenterCh
+!NOINDEX
+function 2726OpString.CenterCh(S : string; Ch : Char; Width : Byte) : string;
+
+Return a string (S) centered in a string of Ch with specified Width.
+
+See also:  2761Center
+;
+;------------------------------------------------------------
+!TOPIC 2761 Center
+!NOINDEX
+function 2726OpString.Center(S : string; Width : Byte) : string;
+
+Return a string (S) centered in a string of blanks of specified Width.
+
+See also:  2760CenterCh
+;
+;------------------------------------------------------------
+!TOPIC 2762 EnTab
+!NOINDEX
+function 2726OpString.EnTab(S : string; TabSize : Byte) : string;
+
+Convert blanks in a string (S) to tabs on spacing TabSize.
+
+See also:  2763DeTab
+;
+;------------------------------------------------------------
+!TOPIC 2763 DeTab
+!NOINDEX
+function 2726OpString.DeTab(S : string; TabSize : Byte) : string;
+
+Expand tabs in a string to blanks on spacing TabSize.
+
+See also:  2762EnTab
+;
+;------------------------------------------------------------
+!TOPIC 2764 WordCount
+!NOINDEX
+function 2726OpString.WordCount(S : string; WordDelims : CharSet) : Byte;
+
+Given a set of word delimiters, return the number of words in S.
+
+See also:  2803CharSet  2766ExtractWord
+;
+;------------------------------------------------------------
+!TOPIC 2765 WordPosition
+!NOINDEX
+function 2726OpString.WordPosition(N : Byte; S : string;
+                               WordDelims : CharSet) : Byte;
+
+Given a set of word delimiters, return the starting position of the N'th
+word in S.
+
+See also:  2803CharSet  2766ExtractWord  2764WordCount
+;
+;------------------------------------------------------------
+!TOPIC 2766 ExtractWord
+!NOINDEX
+function 2726OpString.ExtractWord(N : Byte; S : string;
+                              WordDelims : CharSet) : string;
+
+Given a set of word delimiters, return the N'th word in S.
+
+See also:  2803CharSet  2764WordCount  2765WordPosition
+;
+;------------------------------------------------------------
+!TOPIC 2767 AsciiCount
+!NOINDEX
+function 2726OpString.AsciiCount(S : string; WordDelims : CharSet;
+                             Quote : Char) : Byte;
+
+Given a set of word delimiters, return number of words in S.
+
+See also:  2768AsciiPosition  2769ExtractAscii
+;
+;------------------------------------------------------------
+!TOPIC 2768 AsciiPosition
+!NOINDEX
+function 2726OpString.AsciiPosition(N : Byte; S : string; WordDelims : CharSet;
+                                Quote : Char) : Byte;
+
+Given a set of word delimiters, return start position of N'th word in S.
+
+See also:  2767AsciiCount  2769ExtractAscii
+;
+;------------------------------------------------------------
+!TOPIC 2769 ExtractAscii
+!NOINDEX
+function 2726OpString.ExtractAscii(N : Byte; S : string; WordDelims : CharSet;
+                                Quote : Char) : string;
+
+Given a set of word delimiters, return the N'th word in S.
+
+See also:  2767AsciiCount  2768AsciiPosition
+;
+;------------------------------------------------------------
+!TOPIC 2770 WordWrap
+!NOINDEX
+procedure 2726OpString.WordWrap(InSt : string;
+                            var OutSt, Overlap : string;
+                            Margin : Byte; PadToMargin : Boolean);
+
+Wrap InSt at Margin, storing the result in OutSt and the remainder in
+Overlap. If PadToMargin is True, OutSt is padded with blanks to a length
+of Margin.
+
+See also:  2763DeTab
+;
+;------------------------------------------------------------
+!TOPIC 2771 CompString
+!NOINDEX
+function 2726OpString.CompString(S1, S2 : string) : CompareType;
+
+Compare two strings.
+
+See also:  2804CompareType  2772CompUCString
+;
+;------------------------------------------------------------
+!TOPIC 2772 CompUCString
+!NOINDEX
+function 2726OpString.CompUCString(S1, S2 : string) : CompareType;
+
+Compare two strings in a case-insensitive manner.
+
+See also:  2804CompareType  2771CompString
+;
+;------------------------------------------------------------
+!TOPIC 2773 CompStruct
+!NOINDEX
+function 2726OpString.CompStruct(var S1, S2; Size : Word) : CompareType;
+
+Compare two fixed-size structures.
+
+See also:  2804CompareType  2771CompString
+;
+;------------------------------------------------------------
+!TOPIC 2774 Search
+!NOINDEX
+function 2726OpString.Search(var Buffer; BufLength : Word;
+                         var Match; MatLength : Word) : Word;
+
+Search through Buffer for Match. BufLength is length of range to search.
+MatLength is length of string to match. Returns number of bytes searched
+to find Match, $FFFF if not found.
+
+See also:  2779BMSearch  0040OpAsciiz.PosAsc  2775SearchUC
+;
+;------------------------------------------------------------
+!TOPIC 2775 SearchUC
+!NOINDEX
+function 2726OpString.SearchUC(var Buffer; BufLength : Word;
+                           var Match; MatLength : Word) : Word;
+
+Search through Buffer for Match in a case-insensitive manner; otherwise
+same as Search.
+
+See also:  2780BMSearchUC  2774Search
+;
+;------------------------------------------------------------
+!TOPIC 2776 Replace
+!NOINDEX
+function 2726OpString.Replace(var Buffer; BufLength : Word;
+                          var Match; MatLength : Word;
+                          var Repl; RepLength : Word;
+                          var NewLength : Word;
+                          MaxLength : Word; All : Boolean) : Word;
+
+Search through Buffer for Match, replacing occurrences of Match
+with Repl.
+
+NewLength is the length of the buffer after replacements.
+
+If All is set to True, all occurrences of Match are replaced with Repl.
+
+Returns the byte offset of the last replacement, or $FFFF if an error
+occurred.
+
+See also:  2774Search  2775SearchUC  2777ReplaceUC
+;
+;------------------------------------------------------------
+!TOPIC 2777 ReplaceUC
+!NOINDEX
+function 2726OpString.ReplaceUC(var Buffer; BufLength : Word;
+                            var Match; MatLength : Word;
+                            var Repl; RepLength : Word;
+                            var NewLength : Word;
+                            MaxLength : Word; All : Boolean) : Word;
+
+Search through Buffer for Match, replacing occurrences of Match
+with Repl.  This routine is not case-sensitive.
+
+NewLength is the length of the buffer after replacements.
+
+If All is set to True, all occurrences of Match are replaced with Repl.
+
+Returns the byte offset of the last replacement, or $FFFF if an error
+occurred.
+
+See also:  2774Search  2775SearchUC  2776Replace
+;
+;------------------------------------------------------------
+!TOPIC 2778 BMMakeTable
+!NOINDEX
+procedure 2726OpString.BMMakeTable(MatchString : string; var BT : BTable);
+
+Build a Boyer-Moore link table for use with BMSearch.
+
+See also:  2779BMSearch  2780BMSearchUC  2805BTable
+;
+;------------------------------------------------------------
+!TOPIC 2779 BMSearch
+!NOINDEX
+function 2726OpString.BMSearch(var Buffer; BufLength : Word;
+                           BT : BTable; MatchString : string) : Word;
+
+Search Buffer for MatchString. BufLength is length of range to search.
+Returns number of bytes searched to find MatchString, $FFFF if not found.
+BT must first be initialized by calling BMMakeTable.
+
+See also:
+  2778BMMakeTable               2780BMSearchUC              2805BTable
+  2774Search
+;
+;------------------------------------------------------------
+!TOPIC 2780 BMSearchUC
+!NOINDEX
+function 2726OpString.BMSearchUC(var Buffer; BufLength : Word;
+                             BT : BTable; MatchString : string) : Word;
+
+Search Buffer for MatchString in a case-insensitive manner. Assumes
+MatchString is already in uppercase. Otherwise same as BMSearch.
+
+See also:
+  2778BMMakeTable               2779BMSearch                2805BTable
+  2775SearchUC
+;
+;------------------------------------------------------------
+!TOPIC 2781 Soundex
+!NOINDEX
+function 2726OpString.Soundex(S : string) : string;
+
+Return 4 character soundex of input string. Comparing two soundex strings
+yields a match when the original input strings sound alike.
+
+See also:  2783CompareLetterSets
+;
+;------------------------------------------------------------
+!TOPIC 2782 MakeLetterSet
+!NOINDEX
+function 2726OpString.MakeLetterSet(S : string) : LongInt;
+
+Return a bit-mapped LongInt storing the individual letters contained in S.
+Calling CompareLetterSets with letter sets generated from two strings
+yields a number proportional to how similar the strings are.
+
+See also:  2783CompareLetterSets
+;
+;------------------------------------------------------------
+!TOPIC 2783 CompareLetterSets
+!NOINDEX
+function 2726OpString.CompareLetterSets(Set1, Set2 : LongInt) : Word;
+
+Returns the sum of the values of the letters common to Set1 and Set2.
+
+See also:  2807LetterValues  2782MakeLetterSet  2781Soundex
+;
+;------------------------------------------------------------
+!TOPIC 2784 StringToHeap
+!NOINDEX
+function 2726OpString.StringToHeap(S : string) : StringPtr;
+
+Allocate space for S and return a pointer to it.
+
+See also:  2786DisposeString  2785StringFromHeap  2802StringPtr
+;
+;------------------------------------------------------------
+!TOPIC 2785 StringFromHeap
+!NOINDEX
+function 2726OpString.StringFromHeap(P : StringPtr) : string;
+
+Return string at P^. If P is nil, the empty string is returned.
+
+See also:  2786DisposeString  2802StringPtr  2784StringToHeap
+;
+;------------------------------------------------------------
+!TOPIC 2786 DisposeString
+!NOINDEX
+procedure 2726OpString.DisposeString(P : StringPtr);
+
+Deallocate space for the string stored at P^.
+
+See also:  2785StringFromHeap  2802StringPtr  2784StringToHeap
+;
+;------------------------------------------------------------
+!TOPIC 2787 DefaultExtension
+!NOINDEX
+function 2726OpString.DefaultExtension(Name : string; Ext : ExtStr) : string;
+
+Add the extension Ext to Name if it doesn't already have an extension.
+
+See also:  2788ForceExtension
+;
+;------------------------------------------------------------
+!TOPIC 2788 ForceExtension
+!NOINDEX
+function 2726OpString.ForceExtension(Name : string; Ext : ExtStr) : string;
+
+Force the extension Ext onto the filename Name, even if it already has an
+extension.
+
+See also:  2787DefaultExtension
+;
+;------------------------------------------------------------
+!TOPIC 2789 JustFilename
+!NOINDEX
+function 2726OpString.JustFilename(PathName : string) : string;
+
+Return just the filename and extension of a pathname (no drive or directory).
+
+See also:  2791JustExtension  2790JustName  2792JustPathname
+;
+;------------------------------------------------------------
+!TOPIC 2790 JustName
+!NOINDEX
+function 2726OpString.JustName(PathName : string) : string;
+
+Return just the name (no extension, no path) of a pathname.
+
+See also:  2791JustExtension  2789JustFilename  2792JustPathname
+;
+;------------------------------------------------------------
+!TOPIC 2791 JustExtension
+!NOINDEX
+function 2726OpString.JustExtension(Name : string) : ExtStr;
+
+Return just the extension of a pathname.
+
+See also:  2789JustFilename  2790JustName  2792JustPathname
+;
+;------------------------------------------------------------
+!TOPIC 2792 JustPathname
+!NOINDEX
+function 2726OpString.JustPathname(PathName : string) : string;
+
+Return just the drive:\directory portion of a pathname.
+
+See also:  2791JustExtension  2789JustFilename  2790JustName
+;
+;------------------------------------------------------------
+!TOPIC 2793 AddBackSlash
+!NOINDEX
+function 2726OpString.AddBackSlash(DirName : string) : string;
+
+Add a default backslash to a directory name to form a lead-in path.
+
+See also:  2795FullPathName
+;
+;------------------------------------------------------------
+!TOPIC 2794 CleanPathName
+!NOINDEX
+function 2726OpString.CleanPathName(PathName : string) : string;
+
+Return a pathname cleaned up as DOS will do it: no filenames longer than eight
+characters, no extensions longer than three characters.
+
+See also:  2795FullPathName
+;
+;------------------------------------------------------------
+!TOPIC 2795 FullPathName
+!NOINDEX
+function 2726OpString.FullPathName(FName : string) : string;
+
+Given file FName (known to exist), return a full pathname.
+
+See also:  0872OpDos.ExistOnPath
+;
+;------------------------------------------------------------
+!TOPIC 2796 MoveFast
+!NOINDEX
+procedure 2726OpString.MoveFast(var Src, Dest; Count : Word);
+
+Move Count bytes from Src to Dest, moving by word where possible.
+;
+;------------------------------------------------------------
+!TOPIC 2797 Substitute
+!NOINDEX
+function 2726OpString.Substitute(S, FromStr, ToStr : String) : String;
+
+Return string S after mapping characters found in FromStr to the
+corresponding ones in ToStr.
+;
+;------------------------------------------------------------
+!TOPIC 2798 Filter
+!NOINDEX
+function 2726OpString.Filter(S : String; CS : CharSet) : String;
+
+Return string S after removing all characters in CS from it
+;
+;------------------------------------------------------------
+!TOPIC 2799 SetInternationalUpcase
+!NOINDEX
+procedure 2726OpString.SetInternationalUpcase;
+
+Activate DOS international uppercase function for current code page. After
+this procedure has been called, the Upcase and StUpcase functions in
+OPSTRING will use a special DOS function to convert characters to upper
+case. This function uses the DOS country code information to determine how
+to convert characters to upper case, and it exists only under DOS 3.x or
+higher. If such a function does not exist, the built-in function associated
+with SetDefaultUpcase will be used instead. Note that
+SetInternationalUpcase is called automatically by OPSTRING's initialization
+code.
+
+See also:  2800SetDefaultUpcase  2748StUpcase  2747Upcase
+;
+;------------------------------------------------------------
+!TOPIC 2800 SetDefaultUpcase
+!NOINDEX
+procedure 2726OpString.SetDefaultUpcase;
+
+Activate default uppercase function. The uppercasing function associated
+with SetDefaultUpcase is normally used only in cases where a DOS function
+is not available (see the discussion of SetInternationalUpcase). You may
+also call this routine explicitly if you need to restore the uppercasing
+behavior found in versions of OPSTRING prior to 1.02 (the behavior
+described in the manual).
+
+See also:  2799SetInternationalUpcase
+;
+;------------------------------------------------------------
+!TOPIC 2801 Declarations,OpString
+!NOINDEX
+!NOSEARCH
+OpString declares the following types and constants:
+
+  2805BTable                    2803CharSet                 2809CommaForPeriod
+  2804CompareType               2806Float                   2807LetterValues
+  2808MoneySign                 2802StringPtr
+;
+;------------------------------------------------------------
+!TOPIC 2802 StringPtr
+!NOINDEX
+type
+  StringPtr = ^String;
+
+A pointer to a string variable.
+
+See also:  2786DisposeString  2785StringFromHeap  2784StringToHeap
+;
+;------------------------------------------------------------
+!TOPIC 2803 CharSet
+!NOINDEX
+type
+  CharSet = set of Char;
+
+A set of characters.
+
+See also:  2766ExtractWord  2764WordCount  2765WordPosition
+;
+;------------------------------------------------------------
+!TOPIC 2804 CompareType
+!NOINDEX
+type
+  CompareType = (Less, Equal, Greater);
+
+The result of a comparison of two variables.
+
+See also:  2771CompString  2773CompStruct  2772CompUCString
+;
+;------------------------------------------------------------
+!TOPIC 2805 BTable
+!NOINDEX
+type
+  BTable = array[0..255] of Byte;
+
+A table used by the Boyer-Moore search routines.
+
+See also:  2778BMMakeTable  2779BMSearch  2780BMSearchUC
+;
+;------------------------------------------------------------
+!TOPIC 2806 Float
+!NOINDEX
+type
+  {$IFOPT N+}
+   Float = Extended;
+  {$ELSE}
+   Float = Real;
+  {$ENDIF}
+
+If OpString is compiled with {$N+}, Float is defined as an Extended
+rather than a Real. The definition of Float affects the Real2Str and
+Str2Real routines.
+
+See also:  2742Real2Str  2740Str2Real
+;
+;------------------------------------------------------------
+!TOPIC 2807 LetterValues
+!NOINDEX
+const
+  LetterValues : array['A'..'Z'] of Byte = (
+    3 {A}, 6 {B}, 5 {C}, 4 {D}, 3 {E}, 5 {F}, 5 {G}, 4 {H}, 3 {I},
+    8 {J}, 7 {K}, 4 {L}, 5 {M}, 3 {N}, 3 {O}, 5 {P}, 7 {Q}, 4 {R},
+    3 {S}, 3 {T}, 4 {U}, 6 {V}, 5 {W}, 8 {X}, 8 {Y}, 9 {Z});
+
+A table used by CompareLetterSets for estimating word similarity.
+
+See also:  2783CompareLetterSets
+;
+;------------------------------------------------------------
+!TOPIC 2808 MoneySign,OpString
+!NOINDEX
+const
+  MoneySign : Char = '$';
+
+This character is used when displaying values in dollars-and-cents format.
+If desired, you could change this constant to #156, for example, allowing
+Form to display amounts in terms of British pounds rather than dollars.
+
+See also:  2743Form
+;
+;------------------------------------------------------------
+!TOPIC 2809 CommaForPeriod,OpString
+!NOINDEX
+type
+  CommaForPeriod : Boolean = False;
+
+If True, the Form function will return '.' for ',' and vice versa. This
+makes it a bit easier to write programs that can be used both in the U.S.
+and in countries that use commas for decimal points.
+
+See also:  2743Form
+;
+;------------------------------------------------------------
+!TOPIC 2810 DOS pathnames
+!NOINDEX
+!NOSEARCH
+OpString provides the following routines for manipulating DOS pathname
+strings:
+
+  2793AddBackSlash              2794CleanPathName           2787DefaultExtension
+  2788ForceExtension            2795FullPathName            2791JustExtension
+  2789JustFilename              2790JustName                2792JustPathname
+;
+;------------------------------------------------------------
+!TOPIC 2811 Dynamic allocation
+!NOINDEX
+!NOSEARCH
+OpString provides the following routines for managing strings
+dynamically allocated on the heap:
+
+  2786DisposeString             2785StringFromHeap          2784StringToHeap
+;
+;------------------------------------------------------------
+!TOPIC 2812 General purpose
+!NOINDEX
+!NOSEARCH
+OpString provides the following general purpose string manipulation
+routines:
+
+  2767AsciiCount                2768AsciiPosition          2761Center
+  2760CenterCh                  2751CharStr                2763DeTab
+  2762EnTab                     2766ExtractWord            2769ExtractAscii
+  2798Filter                    2755LeftPad                2754LeftPadCh
+  2749LoCase                    2746LoCaseMac              2796MoveFast
+  2753Pad                       2752PadCh                  2800SetDefaultUpcase
+  2799SetInternationalUpcase    2750StLocase               2748StUpcase
+  2797Substitute                2758Trim                   2756TrimLead
+  2759TrimSpaces                2757TrimTrail              2747Upcase
+  2745UpCaseMac                 2764WordCount              2765WordPosition
+  2770WordWrap
+;
+;------------------------------------------------------------
+!TOPIC 2813 Numeric conversion
+!NOINDEX
+!NOSEARCH
+OpString provides the following routines for converting numbers to and
+from strings:
+
+  2731BinaryB                   2733BinaryL                 2732BinaryW
+  2743Form                      2727HexB                    2729HexL
+  2730HexPtr                    2728HexW                    2741Long2Str
+  2744LongIntForm               2734OctalB                  2736OctalL
+  2735OctalW                    2742Real2Str                2737Str2Int
+  2739Str2Long                  2740Str2Real                2738Str2Word
+;
+;------------------------------------------------------------
+!TOPIC 2814 Searching/comparison
+!NOINDEX
+!NOSEARCH
+OpString provides the following routines for comparing strings and
+searching for them:
+
+  2778BMMakeTable               2779BMSearch                2780BMSearchUC
+  2783CompareLetterSets         2771CompString              2773CompStruct
+  2772CompUCString              2782MakeLetterSet           2774Search
+  2775SearchUC                  2781Soundex                 2776Replace
+  2777ReplaceUC

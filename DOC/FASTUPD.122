@@ -1,0 +1,173 @@
+This file summarizes changes made between Object Professional versions 1.21
+and 1.22.  It is of interest primarily to Fast Update Plan subscribers.
+
+Bugs fixed
+---------------------------------------------------------------------------
+
+DIALOG?
+  - Wouldn't compile without UseMouse defined
+  - The first button in DIALOG1 was hidden when it shouldn't have
+    been
+
+FORMTEST
+  - Repositioned the box field on LaserJet printers--it was in the
+    wrong location
+
+MAKESCRN/MAKEMENU
+  - Tab and BackTab processing in the ColorSelector was backwards
+  - Corrected assymetric mouse movements when dragging objects
+  - A validation routine was comparing rows to columns and vice versa
+
+OPCMD
+  - CommandProcessor.Load was setting up the wrong default GetKey and 
+    KeyPressed hooks
+
+OPCRT
+  - ReadAttribute and FastRead would sometimes GPF in protected mode
+  - Ctrl-Break was not being handled in some instances in protected
+    mode programs
+
+OPDATE
+  - GetCountryInfo was overwriting memory in protected mode
+
+OPDIR
+  - PathList.paOptionsXXX was using the wrong "bad" flag mask to mask
+    out options that the user is not allowed to set
+
+OPDOS
+  - GetDiskClass was failing to detect CDROMs in protected mode
+  - Occassional GPF on call to ParentEnv in protected mode
+  - IsDirectory function would sometimes change directories
+
+OPEDITOR
+  - TextEditor was overwriting memory after certain block deletions
+
+OPENTRY/OPDIALOG
+  - efHouseCursorAtEnd option was not reserving enough space for
+    the housing position with SimpleEditFields/Controls
+  - Extra code linked in if UseDrag defined but not UseMouse
+
+OPFEDIT
+  - CalcEditor would sometimes overwrite memory
+  - CalcEditor would allow double decimal points
+
+OPFIELD
+  - SimpleRealFields would sometimes overwrite memory
+  - SimpleDrawString would overwrite memory with the
+    efHouseCursorAtEnd option turned on
+  - efClearFirstChar option not handled properly on time fields
+
+OPFORM
+  - Text fields of 255 characters not handled properly
+
+OPFRAME
+  - ScreenRect.Store would sometimes GPF in protected mode
+
+OPHELP
+  - Hotspots were ignored in ScrollingHelpWindows
+  - Topic stack was popped when a ScrollingHelpWindow was a
+    WindowControl in a dialog box
+  - PagedHelpWindow would overwrite the window's frame when a topic
+    contained more than 20 pages of text
+
+OPINT
+  - AllocateStack was allocating discardable memory when fixed memory
+    was needed
+
+OPMACED
+  - Wasn't working in a window with a width of more than 80 columns
+
+OPMEMO
+  - Was trashing the display if status information was displayed through
+    ActivateWrite
+  - Lines were being split instead of wrapped under certain conditions
+    when a character was inserted on or near the right margin
+
+OPMENU
+  - Pressing the select character of a protected field would cause a
+    system hang
+
+OPMOUSE
+  - RestoreMouseState could abort with a runtime error 216 if FALSE
+    was passed as the Deallocate parameter
+
+OPPICK
+  - Wrong color was used to draw pick dividers on monochrome systems
+  - Certain combinations of protected items would cause the PickList
+    to scroll incorrectly on ccPgDn commands
+
+OPPRINT
+  - Printer.Position was calculating incorrect X and Y offests with
+    X/Y ratios not equal to 1
+  - Corrected problem with a NIL pointer being dereferenced in PrintMode.Done
+
+OPROOT
+  - The LargeBitSet object would crash with a size of 0
+
+OPSTRING
+  - Protected mode programs were not using international character
+    sets
+
+OPSWAP
+  - Swapping TSRs that used EMS would not pop up in Windows DOS boxes
+
+OPWINDOW
+  - VirtScreen.Done attempted to free more memory than it had allocated
+
+PTIME
+  - Was making an unnecessary and undesired call to GrabKeyboard
+
+
+New Features
+----------------------------------------------------------------------
+
+ALARM
+  - Now honors UseDrag if defined in OPDEFINE.INC
+
+DPMI
+  - Added a new function, ValidPointer, which determines whether or
+    not a pointer contains a valid address (protected mode only)
+
+IDE Help text
+  - Object Professional now ships with a Borland Pascal 7.0 IDE
+    help file called OPRO.TPH.  See the READ.1ST file for 
+    installation instructions.
+
+OPCTRL
+  - According to the CUA specification, the spacebar should select
+    the currently focused PushButton.  PushButton.Edit now recognizes
+    both the ENTER key and the spacebar as selection keys.
+
+OPDEVICE
+  - Added registration routine, PanasonicKXP2124Register, for
+    the Panasonic KX-P2124 printer
+  - Added a generic bold font capability for LJII and compatible
+    printers
+
+OPFORM
+  - Add an option, fDontStorePrinter, to inhibit the storing of a
+    PrintedForm's Printer object in a stream.
+
+OPMENU
+  - Span headers are now treated like window borders when drawn
+
+OPMOUSE
+  - SaveMouseState had an upper limit of 1024 bytes to store the
+    state of the mouse.  The Microsoft 9.01 mouse driver exceeds
+    this limit.  Accordingly, the upper limit was changed to
+    2048 bytes.
+
+OPPICK
+  - Multiple MoreHeaders can now safely overlap one another
+  - pkDrawItem is now a virtual method
+
+OPROOT
+  - Code was added to work around a bug in Cyrix processors
+
+OPSTRING
+  - Code was added to work around a bug in Borland's Str routine
+
+MAKESCRN/MAKEMENU
+  - The code generated by these programs will now destroy an object
+    if the initialization code fails
+

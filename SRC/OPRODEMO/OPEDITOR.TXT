@@ -1,0 +1,921 @@
+;
+;------------------------------------------------------------
+!TOPIC 1022 OpEditor
+OpEditor contains the 1023TextEditor object, a full-featured text
+editor derived from the MemoFile object.
+;
+;------------------------------------------------------------
+!TOPIC 1023 TextEditor
+!NOINDEX
+!NOWRAP
+1022OpEditor.TextEditor = object(1815MemoFile)
+  ...
+  teSearchSt : string[MaxSearchLen];     {String to search for}
+  teReplaceSt : string[MaxSearchLen];    {String to replace it with}
+  teOptionSt : string[MaxSearchOptions]; {Search options}
+  teLastSearch : teSearchType;           {Type of last search operation}
+  teReplacements : Word;                 {Number of replacements made}
+  teBlockIndent : Byte;                  {Indent level for blocks}
+  teLPT : Byte;                          {line printer (1-3)}
+  teDefExt : ExtStr;                     {Default extension}
+  teBlkBegin : MarkerRec;                {Start of block}
+  teBlkEnd : MarkerRec;                  {End of block}
+  ...
+end;
+TextEditorPtr = ^TextEditor;
+!WRAP
+
+Derived from the MemoFile, the TextEditor provides a host of new editing
+commands, and the result is a plug-and-play editor comparable in power to
+the Turbo Pascal editor. Most of the new commands fall into one of four
+categories: file commands (for reading and writing text files), block
+commands (copy, move, delete, read, write, etc.), text marker commands (for
+setting place markers and returning to them), and search-and-replace
+commands (for locating text and making one-to-one string substitutions
+either locally or globally).
+
+The data fields shown above should not be modified directly. They are
+documented here primarily to assist in the writing of status routines and
+menu-driven interfaces (see DESKPOP for examples).
+
+teSearchSt is the last search string. teReplaceSt is the last replacement
+string. teOptionSt contains the search options last used. teLastSearch
+indicates the type of the last search operation. teReplacements indicates
+the number of replacements that were made in the last search-and-replace
+operation. A user-written status routine may want to report this
+information when it detects that the teSearchEnd flag is set. teBlockIndent
+is the indentation level used for the ccBlkIndent and ccBlkUnindent
+commands. teLPT is the line printer to use for the ccBlkPrint command
+(defaults to 1, meaning LPT1). teDefExt is the default file extension.
+teBlkBegin and teBlkEnd mark the start and end of the current block; the
+block is undefined if teBlkBegin.Line = 0 or teBlkEnd.Line = 0.
+
+  1067Commands                  1049Declarations            1068Methods
+;
+;------------------------------------------------------------
+!TOPIC 1024 Init,TextEditor
+!NOINDEX
+constructor 1023TextEditor.Init(X1, Y1, X2, Y2 : Byte; BufferSize : Word);
+
+Create a window for editing files.
+
+See also:  1026InitBuf  1025InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1025 InitCustom,TextEditor
+!NOINDEX
+constructor 1023TextEditor.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                  var Colors : ColorSet;
+                                  Options : LongInt;
+                                  BufferSize : Word);
+
+Create a custom window for editing files.
+
+See also:  1027InitBufCustom
+;
+;------------------------------------------------------------
+!TOPIC 1026 InitBuf
+!NOINDEX
+constructor 1023TextEditor.InitBuf(X1, Y1, X2, Y2 : Byte;
+                               BufferSize : Word; BufPtr : Pointer);
+
+Create a window for editing files, buffer already allocated.
+
+See also:  1024Init  1027InitBufCustom
+;
+;------------------------------------------------------------
+!TOPIC 1027 InitBufCustom
+!NOINDEX
+constructor 1023TextEditor.InitBufCustom(X1, Y1, X2, Y2 : Byte;
+                                     var Colors : ColorSet;
+                                     Options : LongInt;
+                                     BufferSize : Word;
+                                     BufPtr : Pointer);
+
+Create a custom window for editing files, buffer already allocated.
+
+See also:  1025InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1028 ProcessSelf,TextEditor
+!NOINDEX
+procedure 1023TextEditor.ProcessSelf; virtual;
+
+Process editing commands.
+
+See also:  3048CommandWindow.Process  1808Memo.SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 1029 teOptionsOn
+!NOINDEX
+procedure 1023TextEditor.teOptionsOn(OptionFlags : LongInt);
+
+Turn options on.
+
+See also:  1031teOptionsAreOn  1030teOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1030 teOptionsOff
+!NOINDEX
+procedure 1023TextEditor.teOptionsOff(OptionFlags : LongInt);
+
+Turn options off.
+
+See also:  1031teOptionsAreOn  1029teOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1031 teOptionsAreOn
+!NOINDEX
+function 1023TextEditor.teOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return true if all specified options are on.
+
+See also:  1030teOptionsOff  1029teOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1032 SetEditProc,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetEditProc(EF : EditorEditFunc);
+
+Set edit function.
+
+See also:  1033SetGetFileProc  1034SetYesNoProc
+;
+;------------------------------------------------------------
+!TOPIC 1033 SetGetFileProc,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetGetFileProc(GFF : EditorGetFileFunc);
+
+Set get file function.
+
+See also:  1032SetEditProc
+;
+;------------------------------------------------------------
+!TOPIC 1034 SetYesNoProc
+!NOINDEX
+procedure 1023TextEditor.SetYesNoProc(YNF : EditorYesNoFunc);
+
+Set yes-no function.
+
+See also:  1032SetEditProc
+;
+;------------------------------------------------------------
+!TOPIC 1035 SetBlockAttr,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetBlockAttr(Color, Mono : Byte);
+
+Set attributes for marked blocks.
+;
+;------------------------------------------------------------
+!TOPIC 1036 SetMarkerAttr,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetMarkerAttr(Color, Mono : Byte);
+
+Set attributes for text markers.
+;
+;------------------------------------------------------------
+!TOPIC 1037 SetHighlightAttr,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetHighlightAttr(Color, Mono : Byte);
+
+Set attributes for highlighted (found) text.
+;
+;------------------------------------------------------------
+!TOPIC 1038 SetBlockIndent
+!NOINDEX
+procedure 1023TextEditor.SetBlockIndent(Indent : Byte);
+
+Set block indentation level.
+;
+;------------------------------------------------------------
+!TOPIC 1039 SetDefaultExtension,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetDefaultExtension(DefExt : ExtStr);
+
+Default extension to use when prompting for filenames.
+
+See also:  1033SetGetFileProc
+;
+;------------------------------------------------------------
+!TOPIC 1040 SetPrinter,TextEditor
+!NOINDEX
+procedure 1023TextEditor.SetPrinter(LptNum : Byte);
+
+Set printer (1-3).
+;
+;------------------------------------------------------------
+!TOPIC 1041 GotoLineCol
+!NOINDEX
+procedure 1023TextEditor.GotoLineCol(LineNum : Integer; Col : Byte);
+
+Move cursor to LineNum, Col. Must not be called until editor window has
+been displayed once.
+
+See also:  1042GotoOffset
+;
+;------------------------------------------------------------
+!TOPIC 1042 GotoOffset,TextEditor
+!NOINDEX
+procedure 1023TextEditor.GotoOffset(Offset : Word);
+
+Move cursor to specified offset in the text buffer. Must not be called
+until editor window has been displayed once.
+
+See also:  1041GotoLineCol
+;
+;------------------------------------------------------------
+!TOPIC 1043 InsertTextAtCursor
+!NOINDEX
+procedure 1023TextEditor.InsertTextAtCursor(var Data; Bytes : Word);
+
+Insert specified number of Bytes of Data into the text buffer at the
+cursor.
+
+See also:
+  1041GotoLineCol  1044InsertStringAtCursor  1045InsertBlockAtCursor
+;
+;------------------------------------------------------------
+!TOPIC 1044 InsertStringAtCursor
+!NOINDEX
+procedure 1023TextEditor.InsertStringAtCursor(S : String);
+
+Insert string S into the text buffer at the cursor.
+
+See also:
+  1041GotoLineCol  1043InsertTextAtCursor  1046InsertBlockedStringAtCursor
+;
+;------------------------------------------------------------
+!TOPIC 1045 InsertBlockAtCursor
+!NOINDEX
+procedure 1023TextEditor.InsertBlockAtCursor(var Data; Bytes : Word);
+
+Insert specified number of Bytes of Data into the text buffer at the
+cursor, and mark the inserted text as a block.
+
+See also:  1043InsertTextAtCursor  1046InsertBlockedStringAtCursor
+;
+;------------------------------------------------------------
+!TOPIC 1046 InsertBlockedStringAtCursor
+!NOINDEX
+procedure 1023TextEditor.InsertBlockedStringAtCursor(S : String);
+
+Insert string S into the text buffer at the cursor, and mark the inserted
+text as a block.
+
+See also:  1045InsertBlockAtCursor  1044InsertStringAtCursor
+;
+;------------------------------------------------------------
+!TOPIC 1047 Load,TextEditor
+!NOINDEX
+constructor 1023TextEditor.Load(var S : IdStream);
+
+Load a text editor from a stream.
+
+See also:  1822MemoFile.Load  1048Store
+;
+;------------------------------------------------------------
+!TOPIC 1048 Store,TextEditor
+!NOINDEX
+procedure 1023TextEditor.Store(var S : IdStream);
+
+Store a text editor in a stream.
+
+See also:  1047Load  1823MemoFile.Store
+;
+;------------------------------------------------------------
+!TOPIC 1049 Declarations,TextEditor
+!NOINDEX
+!NOSEARCH
+OpEditor provides the following types, constants and variables for working
+with TextEditor objects:
+
+    1050BadEditorOptions                  1054Configuration data
+    1051DefBlockIndent                    1052DefEditorExt
+    1053DefEditorOptions                  1059Editor options
+    1066EditorCommands                    1061EditorEditFunc
+    1062EditorGetFileFunc                 1063EditorYesNoFunc
+    1064MarkerRec                         1055MaxBlockIndent
+    1056MaxMarker                         1057MaxSearchLen
+    1058Search options                    1065teSearchType
+    1060Yes-No codes
+;
+;------------------------------------------------------------
+!TOPIC 1050 BadEditorOptions
+!NOINDEX
+const
+  BadEditorOptions : LongInt = teModified+teReformatting+teSearching+
+                               teSearchStart+teSearchEnd+teHighlightOn+
+                               teHighlightBack+teInProcess;
+
+Options that exist for internal use, and may not be altered by calling
+teOptionsOn or teOptionsOff.
+
+See also:  1053DefEditorOptions  1059Editor options  1029TextEditor.teOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1051 DefBlockIndent
+!NOINDEX
+const
+  DefBlockIndent : Byte = 2;
+
+Default indentation level for marked blocks.
+;
+;------------------------------------------------------------
+!TOPIC 1052 DefEditorExt
+!NOINDEX
+const
+  DefEditorExt : ExtStr = '';
+
+Default file extension to be used when prompting for filenames.
+;
+;------------------------------------------------------------
+!TOPIC 1053 DefEditorOptions
+!NOINDEX
+const
+  DefEditorOptions : LongInt = teInsert+teIndent+teWordWrap+teMapCtrls+
+                               teMousePage+teMakeBackups+teSmartTabs+
+                               teDeallocate;
+
+The default options for a TextEditor.
+
+See also:  1050BadEditorOptions  1059Editor options  1029TextEditor.teOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1054 Configuration data,OpEditor
+!NOINDEX
+!NOSEARCH
+const
+  EditorKeyMax = 400;
+  EditorKeyID : string[18] = 'OpEditor key array';
+  EditorKeySet : array[0..EditorKeyMax] of Byte = (...);
+  EditorCfgEnd : Byte = 0;
+
+EditorKeyId is an ID string used to mark the beginning of the configuration
+data area for OpEditor; EditorCfgEnd marks the end of the configuration
+data area. In between them is EditorKeySet, the command table used by
+EditorCommands. EditorKeyMax is the last valid index into the table.
+
+See also:  1067Commands  1066EditorCommands
+;
+;------------------------------------------------------------
+!TOPIC 1055 MaxBlockIndent
+!NOINDEX
+const
+  MaxBlockIndent = 10;
+
+Maximum indentation level for marked blocks.
+;
+;------------------------------------------------------------
+!TOPIC 1056 MaxMarker
+!NOINDEX
+const
+  MaxMarker = 9;
+
+Maximum allowable position marker (first is 0).
+;
+;------------------------------------------------------------
+!TOPIC 1057 MaxSearchLen,OpEditor
+!NOINDEX
+const
+  MaxSearchLen = 30;
+
+Maximum length of a search string.
+
+See also:  1058Search options
+;
+;------------------------------------------------------------
+!TOPIC 1058 Search options,OpEditor
+!NOINDEX
+!NOSEARCH
+const
+  MaxSearchOptions = 5;
+  teBackward  = 'B';
+  teNoCase    = 'U';
+  teGlobal    = 'G';
+  teNoConfirm = 'N';
+  teBlockOnly = 'L';
+  teWordOnly  = 'W';
+
+Search option characters. 'B' means search backward. 'U' means ignore case.
+'G' means search globally, starting at the beginning (if searching forward)
+or end (if searching backward) of the file. 'N' means make replacements
+without asking for confirmation. 'L' means search only within the currently
+marked and displayed block.  'W' means match only whole words.
+
+See also:  1057MaxSearchLen  1060Yes-No codes
+;
+;------------------------------------------------------------
+!TOPIC 1059 Editor options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+teInsert         = $00000001;
+teIndent         = $00000002;
+teReadOnly       = $00000004;
+teWordWrap       = $00000008;
+teDeleteJoins    = $00000010;
+teModified       = $00000020;
+teIndentIsPara   = $00000040;
+teMousePage      = $00000080;
+teAllowTrunc     = $00000100;
+teMapCtrls       = $00000200;
+teMakeBackups    = $00000400;
+teStreamReload   = $00000800;
+teReformatting   = $00001000;
+teNewFile        = $00002000;
+teDeallocate     = $00004000;
+teWrapAtLeft     = $00008000;
+teNoCtrlZ        = $00010000;
+teNoRepeatGlobal = $00020000;
+teInProcess      = $00800000;
+teSmartTabs      = $01000000;
+teSearching      = $02000000;
+teSearchStart    = $04000000;
+teSearchEnd      = $08000000;
+teHighlightOn    = $10000000;
+teHighlightBack  = $20000000;
+teMarkersOn      = $40000000;
+teBlockOn        = $80000000;
+!WRAP
+
+teInsert..teNoCtrlZ and teInProcess are all identical to the corresponding
+meXxx options for a Memo/MemoFile.
+
+teNoRepeatGlobal indicates that the global search option ('G') should be
+ignored when the repeat last find command (^L) is issued.
+
+teSmartTabs indicates that smart tabs are to be used rather than fixed
+tabs.
+
+teSearching is a status flag that indicates that a search operation is
+currently in progress. teSearchStart is a flag set at the start of a search
+operation.
+
+teSearchEnd is a flag set at the end of a search operation. These flags
+make it possible for a user-written status routine to display a message
+indicating that a search is in progress, or to display a message at the end
+of a search-and-replace operation indicating the number of replacements
+that were made (the count is stored in the teReplacements field of the
+TextEditor).
+
+teHighlightOn and teHighlightBack are internal flags used when highlighting
+a string found in a search operation.
+
+teMarkersOn indicates that all text markers in use should be displayed.
+teBlockOn indicates that the currently marked block should be visible.
+
+See also:  1050BadEditorOptions  1053DefEditorOptions  1029TextEditor.teOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1060 Yes-No codes
+!NOINDEX
+!NOSEARCH
+const
+  teNo        = 0;
+  teYes       = 1;
+  teQuit      = 2;
+  teAll       = 3;
+
+Return codes for a user-written yes-no function.
+
+See also:  1061EditorEditFunc  1063EditorYesNoFunc
+;
+;------------------------------------------------------------
+!TOPIC 1061 EditorEditFunc
+!NOINDEX
+type
+  EditorEditFunc = function (MsgCode : Word; Prompt : string;
+                             ForceUp, TrimBlanks : Boolean;
+                             MaxLen : Byte; var S : string) : Boolean;
+
+A user-written procedure that prompts the user for a string.
+
+See also:  1067Commands  1063EditorYesNoFunc
+;
+;------------------------------------------------------------
+!TOPIC 1062 EditorGetFileFunc
+!NOINDEX
+type
+  EditorGetFileFunc = function (MsgCode : Word; Prompt : string;
+                                ForceUp, TrimBlanks, Writing,
+                                MustExist : Boolean;
+                                MaxLen : Byte; DefExt : ExtStr;
+                                var S : string) : Boolean;
+
+A user-written procedure that prompts the user for a filename.
+
+See also:  1067Commands  1061EditorEditFunc
+;
+;------------------------------------------------------------
+!TOPIC 1063 EditorYesNoFunc
+!NOINDEX
+type
+  EditorYesNoFunc = function (MsgCode : Word; Prompt : string;
+                              Default : Byte; QuitAndAll : Boolean)
+                                                            : Byte;
+
+A user-written procedure that prompts the user for an answer to a yes-no
+question.
+
+See also:  1067Commands  1060Yes-No codes
+;
+;------------------------------------------------------------
+!TOPIC 1064 MarkerRec,OpEditor
+!NOINDEX
+type
+  MarkerRec =
+    record
+      Line, Col : Integer;
+    end;
+  MarkerArray = array[0..MaxMarker] of MarkerRec;
+
+A MarkerRec is an internal data structure used to represent individual text
+and block markers. A MarkerArray is used to hold the entire group of text
+markers.
+;
+;------------------------------------------------------------
+!TOPIC 1065 teSearchType
+!NOINDEX
+type
+  teSearchType = (tescNone, tescSearch, tescReplace);
+
+A data type used internally to indicate the type of a search operation.
+
+See also:  1061EditorEditFunc
+;
+;------------------------------------------------------------
+!TOPIC 1066 EditorCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  EditorCommands : DragProcessor;
+  {$ELSE}
+  EditorCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a TextEditor.
+
+See also:  1067Commands
+;
+;------------------------------------------------------------
+!TOPIC 1067 Commands,OpEditor
+!NOINDEX
+!NOSEARCH
+OpEditor offers an extensive set of text editing commands, arranged by
+category in the list below. Several of the commands in the list are enabled
+only if one or more user-written procedures are in place. In each of these
+cases, the entry for the command ends with the name(s) of the TextEditor
+method(s) that provide the relevant programming hook(s). The names are also
+cross-reference links to topics.
+
+Note too that all of the file-related commands are disabled if the
+TextEditor is being used as an advanced memo editor.
+
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+!LINE
+Cursor left one character. Wraps to previous line if the teWrapAtLeft option
+is in effect.
+
+ccRight       <Right>, <CtrlD>
+!LINE
+Cursor right one character.
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+!LINE
+Cursor left one word. Wraps to end of previous line.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+!LINE
+Cursor right one word. Wraps to beginning of following line.
+
+ccHome        <Home>, <CtrlQ><S>
+!LINE
+Cursor to beginning of line.
+
+ccEnd         <End>, <CtrlQ><D>
+!LINE
+Cursor to end of line.
+
+ccUp          <Up>, <CtrlE>
+!LINE
+Cursor up one line.
+
+ccDown        <Down>, <CtrlX>
+!LINE
+Cursor down one line.
+
+ccScrollUp    <CtrlW>
+!LINE
+Scroll display up one line.
+
+ccScrollDown  <CtrlZ>
+!LINE
+Scroll display down one line.
+
+ccPageUp      <PgUp>, <CtrlR>
+!LINE
+Scroll display up one page.
+
+ccPageDn      <PgDn>, <CtrlC>
+!LINE
+Scroll display down one page.
+
+ccScreenTop   <CtrlHome>, <CtrlQ><E>
+!LINE
+Move cursor to top of edit window.
+
+ccScreenBot   <CtrlEnd>, <CtrlQ><X>
+!LINE
+Move cursor to bottom of edit window.
+
+ccTopOfFile   <CtrlPgUp>, <CtrlQ><R>
+!LINE
+Move cursor to beginning of file.
+
+ccEndOfFile   <CtrlPgDn>, <CtrlQ><C>
+!LINE
+Move cursor to end of file.
+
+ccJmpLine     <CtrlJ><L>
+!LINE
+Prompts the user for a line number, then moves the cursor to the specified
+line. 1032SetEditProc
+
+Insertion and Deletion
+
+ccDel         <Del>, <CtrlG>
+!LINE
+Delete character at cursor.
+
+ccBack        <Bksp>, <CtrlH>, <CtrlBksp>
+!LINE
+Delete character to left of cursor. If the cursor is at the beginning of a
+line, it will be joined with the previous line.
+
+ccDelLine     <CtrlY>
+!LINE
+Delete current line.
+
+ccDelEol      <CtrlQ><Y>
+!LINE
+Delete from cursor to end of line.
+
+ccDelWord     <CtrlT>
+!LINE
+Delete word to right of cursor. If the cursor is at end of line, the
+following line is joined with the current line.
+
+ccSelect      <Enter>, <CtrlM>
+!LINE
+Start a new line.
+
+ccInsertLine  <CtrlN>
+!LINE
+Insert a new line at the position of the cursor.
+
+ccTab         <Tab>, <CtrlI>
+!LINE
+Move the cursor to the next tab stop. If insert mode is on, any text to the
+right of the cursor is shifted to the right. When fixed tabs are in effect,
+tab stops occur at 8-column intervals (by default). When smart tabs are in
+effect, tab stops are determined by the locations of the words on the
+previous line.
+
+ccCtrlChar    <CtrlP>
+!LINE
+Insert control character.
+
+File Commands
+
+ccSaveFile    <F2>, <CtrlK><S>
+!LINE
+Save the current file and continue editing.
+
+ccNewFile     <F3>
+!LINE
+Load a new file. 1033SetGetFileProc, 1034SetYesNoProc
+
+ccAbandonFile <CtrlK><Q>
+!LINE
+Quit editing; ignore any changes made to the text.
+
+ccSaveSwitch  <CtrlK><D>
+!LINE
+Save the current file and load a new one. 1033SetGetFileProc
+
+ccSaveNamed   <CtrlK><N>
+!LINE
+Save the current file under a new name. 1033SetGetFileProc
+
+ccSaveExit    <CtrlK><X>
+!LINE
+Save the current file and exit.
+
+Block Commands
+
+ccBlkBegin    <F7>, <CtrlK><B>
+!LINE
+Mark the beginning of a block.
+
+ccBlkEnd      <F8>, <CtrlK><K>
+!LINE
+Mark the end of a block.
+
+ccBlkWord     <CtrlK><T>
+!LINE
+Mark the current word as a block.
+
+ccJmpBegin    <CtrlQ><B>
+!LINE
+Jump to the beginning of the currently marked block.
+
+ccJmpEnd      <CtrlQ><K>
+!LINE
+Jump to the end of the block.
+
+ccBlkToggle   <CtrlK><H>
+!LINE
+Toggle the display of blocks.
+
+ccBlkCopy     <CtrlK><C>
+!LINE
+Copy the currently displayed block to the position of the cursor. The block
+markers are placed around the new copy of the block.
+
+ccBlkMove     <CtrlK><V>
+!LINE
+Move the currently displayed block to the position of the cursor.
+
+ccBlkDelete   <CtrlK><Y>
+!LINE
+Delete the currently displayed block.
+
+ccBlkIndent   <CtrlK><I>
+!LINE
+Indent the currently displayed block by a fixed number of spaces (defaults
+to 2). Does nothing if the cursor is not within the block.
+
+ccBlkUnindent <CtrlK><U>
+!LINE
+Unindent the block.
+
+ccBlkTCase    <CtrlO><O>
+!LINE
+Toggle the case of all characters in the currently displayed block, or of
+the character at the cursor if not within a visible block.
+
+ccBlkUCase    <CtrlO><U>
+!LINE
+Like ccBlkTCase, but convert characters to upper case.
+
+ccBlkLCase    <CtrlO><V>
+!LINE
+Like ccBlkTCase, but convert characters to lower case.
+
+ccBlkRead     <CtrlK><R>
+!LINE
+Reads a file into the text buffer at the current position of the cursor and
+marks it as a block. If the entire contents of the file will not fit into
+the buffer, a warning will be generated and no data will be read in.
+1033SetGetFileProc
+
+ccBlkWrite    <CtrlK><W>
+!LINE
+Writes the currently marked and displayed block to a file. 1033SetGetFileProc
+
+ccBlkAppend   <CtrlK><A>
+!LINE
+Appends the currently marked and displayed block to a file. 1033SetGetFileProc
+
+ccBlkPrint    <CtrlK><P>
+!LINE
+Writes the currently marked and displayed block to the printer: LPT1 by
+default, or the one set by calling SetPrinter.
+
+Search and Replace
+
+ccSearch      <CtrlQ><F>
+!LINE
+Allows the user to search for any string of up to 30 characters. After
+entering a search string, the user is prompted for search options, which
+include 'B' (search Backwards), 'G' (search Globally), 'L' (search Locally,
+within marked block), and 'U' (ignore case). 1032SetEditProc
+
+ccReplace     <CtrlQ><A>
+!LINE
+Works like ccSearch, except that the user is asked for a replacement string
+of up to 30 characters. In addition to the search options available for
+ccSearch, 'N' may be used to indicate that replacements are to be made
+without asking for confirmation. If 'N' is not selected, each replacement
+must be confirmed: yes (make the replacement), no (don't make it), all
+(make this replacement and continue making replacements without further
+confirmation), and quit (stop the whole operation). 1032SetEditProc,
+1034SetYesNoProc
+
+ccReSearch    <CtrlL>
+!LINE
+Repeat the last search or replace operation.
+
+Text Markers
+
+ccSetMark0..9 <CtrlK><0>..<CtrlK><3>
+!LINE
+Sets one of the ten text markers at the position of the cursor. The default
+command table does not assign any keys to ccSetMark4..ccSetMark9.
+
+ccJmpMark0..9 <CtrlQ><0>..<CtrlQ><3>
+!LINE
+Moves the cursor to a text marker set with one of the ccSetMarkX commands.
+
+ccMarkToggle  <CtrlK><M>
+!LINE
+Toggle the display of text markers.
+
+ccPrevPos     <CtrlQ><P>
+!LINE
+Jump to the last cursor position before the cursor was moved to the current
+line.
+
+Text Formatting
+
+ccReformatP   <CtrlB>
+!LINE
+Reformat the current paragraph. Does nothing if word wrap is off.
+
+ccReformatG   <CtrlK><G>
+!LINE
+Reformat the entire text buffer. Use with caution!
+
+ccCenterLine  <CtrlO><C>
+!LINE
+Center the current line between column 1 and the right margin.
+
+Mode Toggles and Option Settings
+
+ccIns         <Ins>, <CtrlV>
+!LINE
+Toggle insert mode on or off. A fat cursor indicates insert mode; a thin
+cursor indicates overtype mode.
+
+ccIndent      <CtrlO><I>
+!LINE
+Toggle auto-indent mode on or off. In auto-indent mode, pressing <Enter>
+will cause the new line to have the same indentation as the previous line.
+
+ccWordWrap    <CtrlO><W>
+!LINE
+Toggle word wrap on or off.
+
+ccTabToggle   <CtrlO><F>
+!LINE
+Toggle the tab mode between smart tabs and fixed tabs.
+
+ccTabSize     <CtrlO><T>
+!LINE
+Prompts the user for the number of columns between tab stops (1-10).
+1032SetEditProc
+
+ccRtMargin    <CtrlO><R>
+!LINE
+Prompts the user for a new right margin. 1032SetEditProc
+
+ccSetIndent   <CtrlO><B>
+!LINE
+Prompts the user for the number of spaces to indent/unindent marked blocks.
+The default value is 2. 1032SetEditProc
+
+Other
+
+ccRestore     <CtrlQ><L>
+!LINE
+Restore original contents of the current line.
+
+ccHelp        <F1>, <ClickBoth>
+!LINE
+Request help.
+
+ccMouseSel    <ClickLeft>
+!LINE
+Moves the cursor to the position indicated by the mouse.
+;
+;------------------------------------------------------------
+!TOPIC 1068 Methods,TextEditor
+!NOINDEX
+!NOSEARCH
+TextEditor provides the following methods:
+
+    1041GotoLineCol            1042GotoOffset
+    1024Init                   1026InitBuf
+    1027InitBufCustom          1025InitCustom
+    1045InsertBlockAtCursor    1046InsertBlockedStringAtCursor
+    1044InsertStringAtCursor   1043InsertTextAtCursor
+    1047Load                   1028ProcessSelf
+    1035SetBlockAttr           1038SetBlockIndent
+    1039SetDefaultExtension    1032SetEditProc
+    1033SetGetFileProc         1037SetHighlightAttr
+    1036SetMarkerAttr          1040SetPrinter
+    1034SetYesNoProc           1048Store
+    1031teOptionsAreOn         1030teOptionsOff
+    1029teOptionsOn

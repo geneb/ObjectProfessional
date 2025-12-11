@@ -1,0 +1,756 @@
+;
+;------------------------------------------------------------
+!TOPIC 1797 OpMemo
+OpMemo provides two objects, Memo and MemoFile, plus related data types
+and procedures for editing large blocks of text.
+
+Here are the relevant parts of OpMemo's object hierarchy:
+
+  [2306Root]
+    [2919AbstractWindow]
+      [2923RawWindow]
+        [3015StackWindow]
+          [3045CommandWindow]
+            1798Memo
+              1815MemoFile
+
+The objects whose names are surrounded by brackets are described elsewhere.
+
+  1827Commands                  1826Declarations            1839Other routines
+;
+;------------------------------------------------------------
+!TOPIC 1798 Memo
+!NOINDEX
+1797OpMemo.Memo = object(3045CommandWindow)
+  ...
+  meBufSize : Word;        {size of the text buffer}
+  meMaxLines : Integer;    {maximum number of lines that may be entered}
+  meTabDelta : Byte;       {distance between tab stops}
+  meMargin : Byte;         {right margin for word wrap}
+  meTotalBytes : Word;     {actual number bytes currently in buffer}
+  meTotalLines : Integer;  {actual number of lines currently in buffer}
+  meCurLine : Integer;     {line number of current line}
+  meCurCol : Byte;         {position of cursor within current line}
+  ...
+!LINE
+end;
+!LINE
+MemoPtr = ^Memo;
+
+A memo editor. The data fields shown above should not be modified directly.
+They are documented here primarily to assist in the writing of status
+routines. Note that Memo maintains a "safety margin" of 2 bytes, meaning
+that the user is never allowed to enter more than meBufSize-2 bytes of
+text. (This helps avoid buffer overflow problems in cases where a line must
+be split because it is too long.) When calculating used/unused space in the
+text buffer, you should therefore base your calculations on meTotalBytes
+and meBufSize-2.
+
+The Memo object gets its name from the term "memo field," commonly used by
+database programmers to describe a field used to store text entered by a
+user in a free-form fashion. Specifically, the Memo editor was designed to
+work with data stored in a text buffer of a fixed size (<= 65,521 bytes).
+Each line in the buffer is delimited by a carriage return/line feed
+combination (^M^J), and the last line in the buffer is followed immediately
+by a ^Z character. Although this format is identical to that of a Turbo
+Pascal text file, it works equally well for memos that are stored as
+portions of some other binary data.
+
+  1801Done                      1799Init                    1800InitCustom
+  1813Load                      1806meOptionsAreOn          1805meOptionsOff
+  1804meOptionsOn               1802ProcessSelf             1803ReinitBuffer
+  1807SetCtrlAttr               1809SetLineLimit            1812SetMaxLength
+  1811SetRightMargin            1808SetStatusProc           1810SetTabSize
+  1814Store
+;
+;------------------------------------------------------------
+!TOPIC 1799 Init,Memo
+!NOINDEX
+constructor 1798Memo.Init(X1, Y1, X2, Y2 : Byte;
+                      BufferSize : Word; BufPtr : Pointer);
+
+Create a memo window.
+
+See also:  1800InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1800 InitCustom,Memo
+!NOINDEX
+constructor 1798Memo.InitCustom(X1, Y1, X2, Y2 : Byte;
+                            var Colors : ColorSet;
+                            Options : LongInt; BufferSize : Word;
+                            BufPtr : Pointer);
+
+Create a memo window with custom window options.
+
+See also:  1799Init  1807SetCtrlAttr  2940RawWindow.SetTextAttr
+;
+;------------------------------------------------------------
+!TOPIC 1801 Done,Memo
+!NOINDEX
+destructor 1798Memo.Done; virtual;
+
+Deallocate text buffer if appropriate.
+;
+;------------------------------------------------------------
+!TOPIC 1802 ProcessSelf,Memo
+!NOINDEX
+procedure 1798Memo.ProcessSelf; virtual;
+
+Process editing commands.
+
+See also:  3048CommandWindow.Process  1808SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 1803 ReinitBuffer
+!NOINDEX
+procedure 1798Memo.ReinitBuffer;
+
+Reinitialize internal variables when contents of buffer have changed.
+
+See also:  1820MemoFile.ReadFile
+;
+;------------------------------------------------------------
+!TOPIC 1804 meOptionsOn
+!NOINDEX
+procedure 1798Memo.meOptionsOn(OptionFlags : LongInt);
+
+Turn options on.
+
+See also:  1833Memo options  1806meOptionsAreOn  1805meOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1805 meOptionsOff
+!NOINDEX
+procedure 1798Memo.meOptionsOff(OptionFlags : LongInt);
+
+Turn options off.
+
+See also:  1833Memo options  1806meOptionsAreOn  1804meOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1806 meOptionsAreOn
+!NOINDEX
+function 1798Memo.meOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return true if all specified options are on.
+
+See also:  1833Memo options  1805meOptionsOff  1804meOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1807 SetCtrlAttr,Memo
+!NOINDEX
+procedure 1798Memo.SetCtrlAttr(Color, Mono : Byte);
+
+Set attributes for control characters.
+
+See also:  1800InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1808 SetStatusProc,Memo
+!NOINDEX
+procedure 1798Memo.SetStatusProc(MSP : MemoStatusProc);
+
+Set status procedure.
+
+See also:  1824MemoStatus  1837MemoStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 1809 SetLineLimit
+!NOINDEX
+procedure 1798Memo.SetLineLimit(N : Integer);
+
+Set limit on number of lines.
+;
+;------------------------------------------------------------
+!TOPIC 1810 SetTabSize
+!NOINDEX
+procedure 1798Memo.SetTabSize(TabSize : Byte);
+
+Set size for fixed tabs.
+;
+;------------------------------------------------------------
+!TOPIC 1811 SetRightMargin
+!NOINDEX
+procedure 1798Memo.SetRightMargin(RM : Byte);
+
+Set right margin.
+;
+;------------------------------------------------------------
+!TOPIC 1812 SetMaxLength
+!NOINDEX
+procedure 1798Memo.SetMaxLength(Len : Byte);
+
+Set maximum line length.
+;
+;------------------------------------------------------------
+!TOPIC 1813 Load,Memo
+!NOINDEX
+constructor 1798Memo.Load(var S : IdStream);
+
+Load a memo from a stream. The stream registration procedure for a Memo
+object is MemoStream.
+
+See also:  3068CommandWindow.Load  1814Store
+;
+;------------------------------------------------------------
+!TOPIC 1814 Store,Memo
+!NOINDEX
+procedure 1798Memo.Store(var S : IdStream);
+
+Store a memo in a stream. The stream registration procedure for a Memo
+object is MemoStream.
+
+See also:  1813Load  3069CommandWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 1815 MemoFile
+!NOINDEX
+1797OpMemo.MemoFile = object(1798Memo)
+!LINE
+MemoFilePtr = ^MemoFile;
+
+MemoFile is a direct descendant of Memo. The whole purpose of MemoFile is
+to provide a tiny layer of additional functionality that allows a Memo to
+be used for editing text files.
+
+  1816Init                      1818InitAndAlloc            1817InitCustom
+  1819InitCustomAndAlloc        1822Load                    1820ReadFile
+  1821SaveFile                  1823Store
+;
+;------------------------------------------------------------
+!TOPIC 1816 Init,MemoFile
+!NOINDEX
+constructor 1815MemoFile.Init(X1, Y1, X2, Y2 : Byte;
+                          BufferSize : Word; BufPtr : Pointer);
+
+Create a memo window for editing files.
+
+See also:  1817InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1817 InitCustom,MemoFile
+!NOINDEX
+constructor 1815MemoFile.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                var Colors : ColorSet;
+                                Options : LongInt;
+                                BufferSize : Word;
+                                BufPtr : Pointer);
+
+Create a memo window for editing files.
+
+See also:  1800Memo.InitCustom  1819InitCustomAndAlloc  1820ReadFile
+;
+;------------------------------------------------------------
+!TOPIC 1818 InitAndAlloc
+!NOINDEX
+constructor 1815MemoFile.InitAndAlloc(X1, Y1, X2, Y2 : Byte;
+                                  BufferSize : Word);
+
+Create a memo window for editing files and allocate a buffer.
+
+See also:  1819InitCustomAndAlloc
+;
+;------------------------------------------------------------
+!TOPIC 1819 InitCustomAndAlloc
+!NOINDEX
+constructor 1815MemoFile.InitCustomAndAlloc(X1, Y1, X2, Y2 : Byte;
+                                        var Colors : ColorSet;
+                                        Options : LongInt;
+                                        BufferSize : Word);
+
+Create a memo window for editing files and allocate a buffer.
+
+See also:  1818InitAndAlloc  1817InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1820 ReadFile
+!NOINDEX
+procedure 1815MemoFile.ReadFile(FName : string;
+                            var FSize : LongInt); virtual;
+
+Read a file into the buffer, returning a status code.
+
+See also:  1821SaveFile
+;
+;------------------------------------------------------------
+!TOPIC 1821 SaveFile
+!NOINDEX
+procedure 1815MemoFile.SaveFile; virtual;
+
+Save the text buffer in the same file it was read from.
+
+See also:  1820ReadFile
+;
+;------------------------------------------------------------
+!TOPIC 1822 Load,MemoFile
+!NOINDEX
+constructor 1815MemoFile.Load(var S : IdStream);
+
+Load a memofile from a stream.
+
+See also:  1813Memo.Load  1823Store
+;
+;------------------------------------------------------------
+!TOPIC 1823 Store,MemoFile
+!NOINDEX
+procedure 1815MemoFile.Store(var S : IdStream);
+
+Store a memofile in a stream.
+
+See also:  1822Load  1814Memo.Store
+
+;
+;------------------------------------------------------------
+!TOPIC 1824 MemoStatus
+!NOINDEX
+procedure 1797OpMemo.MemoStatus(MP : MemoPtr);
+
+Display status line.
+
+See also:  1808Memo.SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 1825 MemoError
+!NOINDEX
+procedure 1797OpMemo.MemoError(UnitCode : Byte; var ErrorCode : Word;
+                           ErrorMsg : string);
+
+Display error message and wait for key press.
+;
+;------------------------------------------------------------
+!TOPIC 1826 Declarations,OpMemo
+!NOINDEX
+!NOSEARCH
+OpMemo provides the following types, constants and variables for working
+with Memo objects:
+
+    1828BadMemoOptions                    1834Configuration data
+    1832DefMaxLength                      1830DefMemoOptions
+    1831DefTabDelta                       1829DisallowedInReadOnlyMode
+    1833Memo options                      1836MemoBuf
+    1838MemoCommands                      1837MemoStatusProc
+    1835meWordDelims
+;
+;------------------------------------------------------------
+!TOPIC 1827 Commands,OpMemo
+!NOINDEX
+!NOSEARCH
+OpMemo offers a fairly complete set of basic text editing commands,
+arranged by category in the list below. In each case the first line gives
+the name of the command, followed by the key(s) to which it is normally
+assigned. The second and following lines give a brief description of the
+command. The default key assignments are stored in the global typed
+constant MemoKeySet.
+
+Cursor Movement
+
+ccLeft         <Left>, <CtrlS>
+!LINE
+Cursor left one character. If the cursor is at the beginning of a line, and
+the meWrapAtLeft option is in effect, it is moved to the end of the
+previous line. If the option is not in effect, the cursor does not move.
+
+ccRight        <Right>, <CtrlD>
+!LINE
+Cursor right one character.
+
+ccWordLeft     <CtrlLeft>, <CtrlA>
+!LINE
+Cursor left one word. If the cursor is at the beginning of a line, it is
+moved to the end of the previous line.
+
+ccWordRight    <CtrlRight>, <CtrlF>
+!LINE
+Cursor right one word. If the cursor is at the end of a line, it is moved
+to the beginning of the following line.
+
+ccHome         <Home>, <CtrlQ><S>
+!LINE
+Cursor to beginning of line.
+
+ccEnd          <End>, <CtrlQ><D>
+!LINE
+Cursor to end of line.
+
+ccUp           <Up>, <CtrlE>
+!LINE
+Cursor up one line.
+
+ccDown         <Down>, <CtrlX>
+!LINE
+Cursor down one line.
+
+ccScrollUp     <CtrlW>
+!LINE
+Scroll display up one line.
+
+ccScrollDown   <CtrlZ>
+!LINE
+Scroll display down one line.
+
+ccPageUp       <PgUp>, <CtrlR>
+!LINE
+Scroll display up one page.
+
+ccPageDn       <PgDn>, <CtrlC>
+!LINE
+Scroll display down one page.
+
+ccScreenTop    <CtrlHome>, <CtrlQ><E>
+!LINE
+Move cursor to top of edit window.
+
+ccScreenBot    <CtrlEnd>, <CtrlQ><X>
+!LINE
+Move cursor to bottom of edit window.
+
+ccTopOfFile    <CtrlPgUp>, <CtrlQ><R>
+!LINE
+Move cursor to beginning of file.
+
+ccEndOfFile    <CtrlPgDn>, <CtrlQ><C>
+!LINE
+Move cursor to end of file.
+
+Insertion and Deletion
+
+ccDel          <Del>, <CtrlG>
+!LINE
+Delete character at cursor.
+
+ccBack         <Bksp>, <CtrlH>, <CtrlBksp>
+!LINE
+Delete character to left of cursor. If the cursor is at the beginning of a
+line, the line will be joined with the previous line.
+
+ccDelLine      <CtrlY>
+!LINE
+Delete current line.
+
+ccDelEol       <CtrlQ><Y>
+!LINE
+Delete from cursor to end of line.
+
+ccDelWord      <CtrlT>
+!LINE
+Delete word to right of cursor. If the cursor is at end of a line, the
+following line is joined with the current line.
+
+ccSelect       <Enter>, <CtrlM>
+!LINE
+Start a new line.
+
+ccInsertLine   <CtrlN>
+!LINE
+Insert a new line at the position of the cursor.
+
+ccTab          <Tab>, <CtrlI>
+!LINE
+Move the cursor to the next tab stop. If insert mode is on, any text to the
+right of the cursor is moved to the right of the tab stop.
+
+ccCtrlChar     <CtrlP>
+!LINE
+Insert control character. For example, to insert a ^G, you would enter
+<CtrlP><CtrlG>. This command is not available if the video attribute for
+control characters is the same as that for ordinary text and the teMapCtrls
+option is on.
+
+Mode Toggles
+
+ccIns          <Ins>, <CtrlV>
+!LINE
+Toggle insert mode on and off. A fat cursor indicates insert mode; a thin
+cursor indicates overtype mode.
+
+ccIndent       <CtrlO><I>
+!LINE
+Toggle auto-indent mode on or off. In auto-indent mode, pressing <Enter>
+while in insert mode will cause the new line inserted to have the same
+indentation level as the previous line. Auto-indent mode also affects the
+way that text is formatted when word wrap occurs--the new line will have
+the same indentation level as the previous line--and hence the behavior of
+the reformatting commands (<CtrlB> and <CtrlK><G>).
+
+ccWordWrap     <CtrlO><W>
+!LINE
+Toggle word wrap on and off. When word wrap is on, any attempt to insert or
+append text beyond the right margin will cause a new line to be inserted
+following the current line and all words that are at least partially beyond
+the right margin to be moved to the new line.
+
+Text Formatting
+
+ccReformatP    <CtrlB>
+!LINE
+Reformat the current paragraph. Note that this command does nothing if word
+wrap is off.
+
+ccReformatG    <CtrlK><G>
+!LINE
+Reformat the entire text buffer (Global reformat). Note that this command
+does nothing if word wrap is off. Use this command with caution!
+
+Other
+
+ccRestore      <CtrlQ><L>
+!LINE
+Restore original contents of the current line.
+
+ccHelp         <F1>, <ClickBoth>
+!LINE
+Help. If a user-written help routine has been established by calling
+MemoCommands.SetHelpProc, pressing <F1> will call that routine; otherwise
+this command does nothing. If there is a help procedure, the Memo will pass
+it the following three parameters: ucMemo, @Self, and the value designated
+as the window's help index (see CommandWindow.SetHelpIndex), which defaults
+to 0.
+
+ccQuit         <Esc>, <CtrlBreak>, <ClickRight>
+!LINE
+Quit editing.
+
+ccMouseSel     <ClickLeft>
+!LINE
+Moves the cursor to the position indicated by the mouse. This command can
+also be used to scroll the edit window by clicking on a scroll bar.
+
+In addition to the commands shown above and the standard exit commands
+(ccError and the user exit commands--ccUser0, etc.), Process also
+recognizes two other special commands, ccNewFile and ccSaveFile, that are
+not assigned to any keys in the default command table. This simply provides
+a hook for programs that use the MemoFile object for editing text files.
+The commands, which do nothing, are considered to be exit commands, and it
+is up to the programmer to implement them if desired.
+;
+;------------------------------------------------------------
+!TOPIC 1828 BadMemoOptions
+!NOINDEX
+const
+BadMemoOptions : LongInt = meModified+meReformatting+meInProcess;
+
+Options that exist for internal use, and may not be altered by calling
+meOptionsOn or meOptionsOff.
+
+See also:  1833Memo options
+;
+;------------------------------------------------------------
+!TOPIC 1829 DisallowedInReadOnlyMode
+!NOINDEX
+const
+  DisallowedInReadOnlyMode : set of Byte =
+   [ccChar, ccCtrlChar, ccSelect, ccInsertLine, ccBack, ccDel,
+    ccRestore, ccDelEol, ccDelLine, ccDelWord, ccIns, ccTab,
+    ccIndent, ccWordWrap, ccReformatP, ccReformatG];
+
+The commands in this set are disallowed by the memo editor when running in
+read-only mode (using the meReadOnly option) because they would modify the
+text being displayed.
+;
+;------------------------------------------------------------
+!TOPIC 1830 DefMemoOptions
+!NOINDEX
+const
+  DefMemoOptions : LongInt = meInsert+meIndent+meWordWrap+meMapCtrls+
+                             meMousePage+meMakeBackups;
+
+The default options for a Memo or MemoFile.
+
+See also:  1833Memo options
+;
+;------------------------------------------------------------
+!TOPIC 1831 DefTabDelta
+!NOINDEX
+const
+  DefTabDelta : Byte = 8;
+
+The default distance between tab stops.
+;
+;------------------------------------------------------------
+!TOPIC 1832 DefMaxLength
+!NOINDEX
+const
+  DefMaxLength : Byte = 254;
+
+The default maximum length for a line of text.
+;
+;------------------------------------------------------------
+!TOPIC 1833 Memo options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+meInsert         = $00000001;
+meIndent         = $00000002;
+meReadOnly       = $00000004;
+meWordWrap       = $00000008;
+meDeleteJoins    = $00000010;
+meModified       = $00000020;
+meIndentIsPara   = $00000040;
+meMousePage      = $00000080;
+meAllowTrunc     = $00000100;
+meMapCtrls       = $00000200;
+meMakeBackups    = $00000400;
+meStreamReload   = $00000800;
+meReformatting   = $00001000;
+meNewFile        = $00002000;
+meDeallocate     = $00004000;
+meWrapAtLeft     = $00008000;
+meNoCtrlZ        = $00010000;
+meInProcess      = $00800000;
+!WRAP
+
+These are the options that affect the behavior of a Memo or MemoFile.
+
+meInsert selects insert mode, in which new text is inserted at the position
+of the cursor rather than overwriting existing text.
+
+meIndent selects auto-indent mode, in which pressing <Enter> will cause a
+new line to be inserted that has the same indentation level as the previous
+line.
+
+meReadOnly selects read-only mode, in which the text in the text buffer may
+be examined but not modified.
+
+meWordWrap enables word wrap; when word wrap is on, any attempt to insert
+or append text beyond the right margin will cause a new line to be inserted
+following the current line and all words that are at least partially beyond
+the right margin to be moved to the new line. If
+
+meDeleteJoins is in effect, pressing <Del> at the end of a line causes the
+following line to be joined with the current line at the position of the
+cursor.
+
+meModified is an internal flag that is set whenever the text buffer is
+modified. Note that if the user undoes his changes to a given line before
+leaving that line, the modified flag will be restored to the state it was
+in before the changes were made.
+
+meIndentIsPara affects the behavior of the reformatting commands. If this
+option is off, blank lines are assumed to mark the end of one paragraph and
+the start of another. If it is on, blank spaces at the beginning of a line
+can also signal the start of a new paragraph.
+
+meMousePage determines what happens when the user clicks on the up and down
+arrows of a scroll bar. If the option is off, the edit window will be
+scrolled up or down by a single line; if it is on, the edit window will be
+scrolled up or down one full page.
+
+meAllowTrunc affects the behavior of MemoFile.ReadFile. If this option is
+on, and ReadFile is asked to load a file that is too large to fit within
+the text buffer, it will read as much of the file as it can and generate a
+warning (epWarning+ecFileTruncated). If it is off, it will not attempt to
+read the file, and it will generate a fatal error (epFatal+ecFileTooLarge).
+
+meMapCtrls determines how control characters other than ^M, ^J, and ^Z
+(always suppressed) are displayed when they appear in the text buffer. If
+it is on, control characters are displayed as uppercase alphabetics (^A ->
+'A') in an alternate color; if it is off, they are displayed normally.
+
+meMakeBackups affects the behavior of MemoFile.SaveFile. If it is on, and
+the file being saved already exists, the existing file will be renamed
+(given an extension of BAK) before the new version of the file is saved. If
+it is off, the existing file will be overwritten.
+
+meStreamReload affects the behavior of MemoFile.Load and MemoFile.Store. If
+it is on, Store saves the name of the file currently being edited in the
+stream. The next time that Load is called, it will attempt to reload the
+file whose name was saved.
+
+meReformatting is an internal flag that is set while a paragraph or file is
+being reformatted. It is used to signal that screen updates and error
+messages should be temporarily suppressed.
+
+meNewFile is a flag set by MemoFile.ReadFile when a new file has been
+loaded into the text buffer. Its purpose is to allow status routines that
+display the name of the current file to determine when the file has
+changed; after the status line has been updated, the flag should be
+cleared.
+
+meDeallocate is a flag intended primarily for internal use. It is set by
+any MemoFile constructor that allocates a text buffer, and signals that the
+destructor (Done) should deallocate the buffer. You may set this flag
+yourself in cases where you have allocated your own buffer for a Memo or
+MemoFile and want Done to deallocate it for you.
+
+meWrapAtLeft determines what happens when <Left> (ccLeft) is pressed when
+the cursor is at column 1. If this option is on, the cursor will "wrap" to
+the end of the previous line; otherwise it will remain where it is.
+
+meNoCtrlZ affects the behavior of MemoFile.SaveFile. If it is off, as it is
+by default, the ^Z that marks the end of the text buffer will be written to
+disk; if it is on, the ^Z will not be written.
+
+meInProcess is an internal flag.
+
+See also:  1806Memo.meOptionsAreOn  1805Memo.meOptionsOff  1804Memo.meOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1834 Configuration data,OpMemo
+!NOINDEX
+!NOSEARCH
+const
+  MemoKeyMax = 250;
+  MemoKeyID  : string[16] = 'opmemo key array';
+  MemoKeySet : array[0..MemoKeyMax] of Byte = (...);
+  MemoCfgEnd : Byte = 0;
+
+MemoKeyId is an ID string used to mark the beginning of the configuration
+data area for OPMEMO; MemoCfgEnd marks the end of the configuration data
+area. In between them is MemoKeySet, the command table used by
+MemoCommands. MemoKeyMax is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 1835 meWordDelims
+!NOINDEX
+const
+  meWordDelims : CharSet = [^I, ' '..'"', '.', ',', ':', ';', '?', '!',
+                            '*','(', ')', '[', ']', '{', '}', '<', '>',
+                            '+', '-', '/', '\', '''', '$', '=', '^', '#'];
+
+This set defines the group of characters that are to be treated as word
+delimiters by the various word-oriented commands (ccWordLeft, ccWordRight,
+ccDelWord). At the very least, this set should contain ' '.
+;
+;------------------------------------------------------------
+!TOPIC 1836 MemoBuf
+!NOINDEX
+type
+  MemoBufPtr = ^MemoBuf;
+  MemoBuf = array[1..65521] of Char;
+
+A buffer used to store text being edited. Note that 65521 is the maximum
+size of a text buffer; the actual size varies.
+;
+;------------------------------------------------------------
+!TOPIC 1837 MemoStatusProc
+!NOINDEX
+type
+  MemoStatusProc = procedure (MP : MemoPtr);
+
+A user-written routine that displays status information (current line,
+column, etc.). MP is a pointer to the Memo/MemoFile (or 1023TextEditor)
+that is making the call.
+
+See also:  1808Memo.SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 1838 MemoCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  MemoCommands : DragProcessor;
+  {$ELSE}
+  MemoCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a Memo or MemoFile.
+;
+;------------------------------------------------------------
+!TOPIC 1839 Other routines,OpMemo
+!NOINDEX
+!NOSEARCH
+OpMemo provides a standard error handler and a standard status line
+routine for Memo objects:
+
+  1825MemoError                 1824MemoStatus

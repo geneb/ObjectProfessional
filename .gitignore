@@ -1,0 +1,19 @@
+ignorecase = true
+# don't want to include any of the build artifacts or
+# IDE config (.cfg) files.
+
+src/.tpu
+src/.cfg
+src/oprodemo/.tpu
+src/oprodemo/.exe
+src/oprodemo/.obj
+#
+src/.tpp
+src/oprodemo/.tpp
+#
+src/.obj
+src/oproobj/.obj
+src/oproobj/.cfg
+src/.cfg
+src/.exe
+src/.com

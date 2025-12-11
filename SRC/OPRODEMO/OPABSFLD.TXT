@@ -1,0 +1,377 @@
+;
+;------------------------------------------------------------
+!TOPIC 16 OpAbsFld
+OpAbsFld contains the object AbstractField, which has several methods
+for creating and manipulating field picture masks.
+
+    0017AbstractField                     0025Picture masks
+    0026Character sets                    0027User-defined masks
+    0028International conventions
+;
+;------------------------------------------------------------
+!TOPIC 17 AbstractField
+!NOINDEX
+0016OpAbsFld.AbstractField = object(2446DoubleListNode)
+!LINE
+AbstractFieldPtr = ^AbstractField;
+
+An abstract object from which all Object Professional data entry and print
+fields are derived. Has methods for manipulating field picture masks.
+
+See also:
+  0022CalcWidthAndPlaces  0020MergePicture  0021StripPicture
+  0018InitPictureFlags
+;
+;------------------------------------------------------------
+!TOPIC 18 InitPictureFlags
+!NOINDEX
+procedure 0017AbstractField.InitPictureFlags(var PFlags : 0019PictureFlags);
+
+Initialize a picture flags table.
+;
+;------------------------------------------------------------
+!TOPIC 19 PictureFlags
+!NOINDEX
+type
+  PictureFlags : array[1..255] of Boolean;
+
+Array used to determine at what picture positions a user may enter data.
+
+See also:  0018InitPictureFlags
+;
+;------------------------------------------------------------
+!TOPIC 20 MergePicture
+!NOINDEX
+procedure 0017AbstractField.MergePicture(St : string; var S : string);
+
+Merge St with the field's picture mask and return the result in S.
+
+See also:  0021StripPicture
+;
+;------------------------------------------------------------
+!TOPIC 21 StripPicture
+!NOINDEX
+procedure 0017AbstractField.StripPicture(var S1, S2 : string);
+
+Strip all literal picture mask characters out of S1 and return the result
+in S2.
+
+See also:  0020MergePicture
+;
+;------------------------------------------------------------
+!TOPIC 22 CalcWidthAndPlaces
+!NOINDEX
+procedure 0017AbstractField.CalcWidthAndPlaces(var Width, Places : Word);
+
+Calculate the width and number of decimal places for a numeric field. Used
+internally for writing conversion routines.
+;
+;------------------------------------------------------------
+!TOPIC 23 ChangeDecimalChar
+!NOINDEX
+procedure 0016OpAbsFld.ChangeDecimalChar(DC : Char);
+
+Reset DecimalChar to DC. Also changes DigitOnlySet and ScientificSet so
+that they are in agreement with DecimalChar.
+
+See also:  0028International conventions  0024InternationalCurrency
+;
+;------------------------------------------------------------
+!TOPIC 24 InternationalCurrency
+!NOINDEX
+function 0016OpAbsFld.InternationalCurrency(FormChar : Char; MaxDigits : Byte;
+                                        FloatIfPossible : Boolean;
+                                        AddCommas : Boolean) : string;
+
+Uses DOS's country information to determine not only the proper values for
+DecimalChar, CommaChar, CurrencyLtStr, and CurrencyRtStr, but also how to
+produce a picture mask (the function result) that is appropriate for the
+current country's currency.
+
+FormChar is the formatting character to use (usually '9' or '#'). MaxDigits
+is the number of digits that may appear to the left of the decimal point.
+FloatIfPossible indicates whether '$' or 'c' should be used if the currency
+symbol goes on the left. AddCommas indicates whether discretionary commas
+should appear in the picture mask.
+
+See also:
+  0028International conventions  0516OpDate.InternationalDate
+  0517OpDate.InternationalTime
+;
+;------------------------------------------------------------
+!TOPIC 25 Picture masks
+!NOINDEX
+!NOSEARCH
+Picture masks control the formatting of data and limit the range of
+characters that may be entered at a given position in a string. The general
+format of a mask is:
+
+  Subfield ([Separator] [Subfield]) ... ([Separator] [Subfield])
+
+A picture mask may consist of one or more of three classes of mask
+characters: formatting characters, literal characters, and semi-literal
+characters.
+
+The following are the picture mask characters declared in OpAbsFld
+(OpDate declares others):
+
+!NOWRAP
+Regular Mask Characters
+AnyChar       = 'X';             {any character}
+ForceUp       = '!';             {any character, force upper case}
+ForceLo       = 'L';             {any character, force lower case}
+ForceMixed    = 'x';             {any character, force mixed case}
+AlphaOnly     = 'a';             {alphas only}
+UpperAlpha    = 'A';             {alphas only, force upper case}
+LowerAlpha    = 'l';             {alphas only, force lower case}
+NumberOnly    = '9';             {numbers and spaces only}
+DigitOnly     = '#';             {numbers, spaces, minus, period}
+Scientific    = 'E';             {numbers, spaces, minus, period, 'e'}
+HexOnly       = 'K';             {0-9 and A-F, force upper case}
+BooleanOnly   = 'B';             {T, t, F, f}
+YesNoOnly     = 'Y';             {Y, y, N, n}
+
+User-Defined Mask Characters
+User1         = '1';             {for user-defined character sets 1..8}
+User2         = '2';
+User3         = '3';
+User4         = '4';
+User5         = '5';
+User6         = '6';
+User7         = '7';
+User8         = '8';
+
+Substitutable Mask Characters
+Subst1        = #1;              {for user-defined substitutions}
+Subst2        = #2;
+Subst3        = #3;
+Subst4        = #4;
+Subst5        = #5;
+Subst6        = #6;
+Subst7        = #7;
+Subst8        = #8;
+
+Semi-Literal Mask Characters
+FloatDollar   = '$';             {floating dollar sign}
+CurrencyLt    = 'c';             {currency to left of the amount}
+CurrencyLtStr : string[5] = '$'; {corresponding string}
+CurrencyRt    = 'C';             {currency to right of the amount}
+CurrencyRtStr : string[5] = '';  {corresponding string}
+DecimalPt     = '.';             {insert decimal point}
+DecimalChar   : Char = '.';      {corresponding character}
+Comma         = ',';             {character used to separate numbers}
+CommaChar     : Char = ',';      {corresponding character}
+!WRAP
+
+Here are examples of some typical picture masks and some resulting
+strings:
+
+!NOWRAP
+Picture         Result           Remarks
+'XXXXXXXXXXXX'  'Hello world!'   any character accepted
+'!!!!!!!!!!!!'  'HELLO WORLD!'   any character, force upper case
+'LLLLLLLLLLLL'  'hello world!'   any character, force lower case
+'xxxxxxxxxxxx'  'Hello World!'   any character, force mixed case
+'aaaaaaaaaaaa'  'Hello world '   alphas only
+'AAAAAAAAAAAA'  'HELLO WORLD '   alphas only, force upper case
+'llllllllllll'  'hello world '   alphas only, force lower case
+'[9999]'        '[ 123]'         digits and ' ' only, brackets are literal
+'[####]'        '[-123]'         '-' is allowed
+'EEEEEEEEEEE'   '1.234567E+17'   scientific notation
+'KKKK'          '07FE'           hexadecimal numbers
+'B'             'T'              booleans (True-False)
+'Y'             'N'              yes-no
+'c999.99'       '$ 12.50         dollar sign is fixed
+'$999.99'       ' $12.50'        dollar sign floats
+'999.99CC'      '123,45 F'       French francs, fixed (DecimalChar = ',')
+'$###,###.##'   ' $1,234.56'     ',' is discetionary, '$' floats
+'$###,###.##'   '    $12.34'
+!WRAP
+
+See also:
+  0026Character sets            0028International conventions  0027User-defined masks
+  0518OpDate.Date pictures      0535OpDate.Time pictures
+;
+;------------------------------------------------------------
+!TOPIC 26 Character sets
+!NOINDEX
+!NOSEARCH
+Character sets define the limits that are imposed by picture mask
+characters. If, for example, the first character in a field's picture mask
+is '9', that means that only digits ('0'..'9') and spaces may be entered at
+the first position in the field. That meaning is a function of the fact
+that the corresponding character set, NumberOnlySet, is defined thus:
+
+const
+  NumberOnlySet : CharSet = ['0'..'9', ' '];
+
+The following are the character sets corresponding to all of the formatting
+characters defined in OpAbsFld. The comment on the right shows the mask
+character(s) associated with each character set.
+
+const
+  AnyCharSet    : CharSet = [#0..#255];            {'X', '!', 'L', 'x'}
+  AlphaOnlySet  : CharSet =                        {'a', 'A', 'l'}
+    ['A'..'Z', 'a'..'z', #128..#154,
+    #160..#167, ' ', '-', '.', ','];
+  NumberOnlySet : CharSet = ['0'..'9', ' '];           {'9'}
+  DigitOnlySet  : CharSet = ['0'..'9', ' ', '-', '.']; {'#'}
+  ScientificSet : CharSet =                            {'E'}
+    ['0'..'9', ' ', '-', '+', '.', 'e', 'E'];
+  HexOnlySet    : CharSet =                            {'K'}
+    ['0'..'9', ' ', 'A'..'F', 'a'..'f'];
+  BooleanSet    : CharSet = ['T','t','F','f'];         {'B'}
+  YesNoSet      : CharSet = ['Y','y','N','n'];         {'Y'}
+  UserSet1      : CharSet = [#0..#255];                {'1'}
+  UserSet2      : CharSet = [#0..#255];                {'2'}
+  UserSet3      : CharSet = [#0..#255];                {'3'}
+  UserSet4      : CharSet = [#0..#255];                {'4'}
+  UserSet5      : CharSet = [#0..#255];                {'5'}
+  UserSet6      : CharSet = [#0..#255];                {'6'}
+  UserSet7      : CharSet = [#0..#255];                {'7'}
+  UserSet8      : CharSet = [#0..#255];                {'8'}
+
+See also:  0025Picture masks  0028International conventions  0027User-defined masks
+;
+;------------------------------------------------------------
+!TOPIC 27 User-defined masks
+!NOINDEX
+!NOSEARCH
+A typical application of a user-defined picture mask character ('1'..'8')
+might be to limit entry in a character field to a narrow range of
+non-contiguous values. For example:
+
+!NOWRAP
+UserSet1 := ['D', 'R', 'I'];      {Democrat, Republican, Independent}
+ForceCaseUser['1'] := UpperCase;
+
+UserSet2 := ['m', 'f'];           {Male or Female, forced to lower case}
+ForceCaseUser['2'] := LowerCase;
+
+UserSet3 := ['M', 'm', 'F', 'f']; {Male or Female}
+ForceCaseUser['3'] := NoChange;
+
+UserSet4 := ['A'..'N', ' '];      {alphas A..N, blank}
+ForceCaseUser['4'] := UpperCase;
+!WRAP
+
+The declarations for the user-defined character sets UserSet1..UserSet8 are
+shown in the section on 0026Character sets. The following are the other
+declarations that pertain to user-defined mask characters.
+
+type
+  CaseChange = (NoChange, UpperCase, LowerCase, MixedCase);
+
+The different types of case change operations that can be associated with a
+picture mask character. NoChange means that the case of a character is left
+alone. UpperCase and LowerCase mean that the character will be converted to
+upper or lower case, respectively. MixedCase means that, during data entry,
+a character will be forced to upper case if the cursor is at the beginning
+of a subfield or if the previous character is a space.
+
+type
+  ForceCaseUser : array[User1..User8] of CaseChange = (
+    NoChange, NoChange, NoChange, NoChange,
+    NoChange, NoChange, NoChange, NoChange);
+
+The values in this array specify the case changing characteristics of the
+user-defined picture mask characters User1..User8 ('1'..'8').
+
+const
+  SubstChars : array[Subst1..Subst8] of Char = (
+    #1, #2, #3, #4, #5, #6, #7, #8);
+
+This array allows you to alter the characters substituted for the literal
+picture mask characters Subst1..Subst8 (#1..#8). For example, you could use
+the following technique to insert a literal '.' (normally interpreted as a
+decimal point) into a picture mask:
+
+  PictureMask := '!!!!!!!!'#1'!!!';
+  SubstChars[#1] := '.';
+
+  Result -> 'FILENAME.EXT'
+
+See also:  0026Character sets  0025Picture masks
+;
+;------------------------------------------------------------
+!TOPIC 28 International conventions
+!NOINDEX
+!NOSEARCH
+In adapting a program written with Object Professional for use in a
+country other than the United States, there are really only a few areas of
+concern.
+
+One issue arises with boolean and yes-no fields, since 'T'/'F' and 'Y'/'N'
+aren't appropriate in all countries. To deal with this particular problem,
+you need to do two things: change the contents of the character sets
+BooleanSet and YesNoSet (see 0026Character sets), and change the
+following typed constants as appropriate:
+
+const
+  TrueChar  : Char = 'T';
+  FalseChar : Char = 'F';
+  YesChar   : Char = 'Y';
+  NoChar    : Char = 'N';
+
+Different countries also have their own conventions on how dates and times
+and monetary values are represented. Picture masks make it simple to deal
+with these differences. If you want the day to be displayed before the
+month, you simply change the order of the subfields in the picture mask.
+Differences in "separators" are handled by means of the semi-literal mask
+characters:
+
+!NOWRAP
+Char   Meaning                 Corresponding constant
+'.'    decimal point           OpAbsFld.DecimalChar
+','    thousands separator     OpAbsFld.CommaChar
+'$'    floating currency       OpAbsFld.CurrencyLtStr
+'c'    fixed currency - left   OpAbsFld.CurrencyLtStr
+'C'    fixed currency - right  OpAbsFld.CurrencyRtStr
+':'    time separator          OpDate.ColonChar
+'/'    date separator          OpDate.SlashChar
+!WRAP
+
+Here are a few examples of how you would configure Object Professional to
+deal with a given country's currency:
+
+!NOWRAP
+USA
+CurrencyLtStr = '$';                  {default}
+CurrencyRtStr = '';                   {default}
+DecimalChar   = '.';                  {default}
+CommaChar     = ',';                  {default}
+PictureMask1  = '$999,999.99';        {floating currency symbol}
+Result        = '  $1,234.56'
+PictureMask2  = 'c999,999.99';        {fixed currency symbol}
+Result        = '$ 12,345.67'
+
+Germany
+CurrencyLtStr = 'DM';
+CurrencyRtStr = '';
+DecimalChar   = ',';
+CommaChar     = '.';
+PictureMask1  = '$$999,999.99';
+Result        = '  DM1.234,56'
+PictureMask2  = 'cc999,999.99';
+Result        = 'DM 12.345,67'
+
+France
+CurrencyLtStr = '';
+CurrencyRtStr = ' F';
+DecimalChar   = ',';
+CommaChar     = ' ';
+PictureMask2  = '999,999.99CC';
+Result        = ' 12 345,67 F'
+!WRAP
+
+How do you insure that CurrencyLtStr, CurrencyRtStr, DecimalChar, and
+CommaChar are initialized properly? In most cases, you simply supply values
+that you know are correct for your own country and by designing your
+picture masks accordingly. In cases where your program must adapt to the
+conventions of different countries, however, you should use the
+InternationalCurrency routine. (If you do not use InternationalCurrency and
+you need to change DecimalChar, use ChangeDecimalChar.)
+
+See also:
+  0025Picture masks             0026Character sets          0023ChangeDecimalChar
+  0024InternationalCurrency

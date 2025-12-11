@@ -1,0 +1,1436 @@
+;Help text for OPDIALOG unit
+;Copyright (c) 1990, TurboPower Software
+;All rights reserved
+;
+;!WIDTH 76
+;
+;-------------------------------------------------------------------
+!TOPIC 590 OpDialog
+OpDialog builds upon the objects found in OpField, 0667OpCtrl, and
+OpSelect in order to implement SAA-style dialog boxes. The following
+hierarchy shows the objects implemented in OpDialog and, within brackets,
+those that they are derived from:
+
+[CommandWindow]
+  [AbstractSelector]
+    0591DialogBox
+
+[AbstractField]
+  [SelectField]
+    [EntryField]
+      [0680Control]
+        0647WindowControl
+
+See also:  0656Commands
+;                         0
+;-------------------------------------------------------------------
+!TOPIC 591 DialogBox
+!NOINDEX
+DialogBox = object(AbstractSelector)
+!LINE
+DialogBoxPtr = ^DialogBox;
+
+Like the EntryScreen, the DialogBox extends the concepts introduced in the
+AbstractSelector. It not only handles cursor movement from one control to
+another but also knows how to "edit" the data associated with each control
+(if any).
+
+DialogBox provides methods in the following categories:
+
+    0649Adding controls                0657Declarations
+    0653General                        0655Modifying controls
+    0648Setting colors                 0650Setting options
+    0651Streams                        0654User hooks
+;
+;-------------------------------------------------------------------
+!TOPIC 592 Init,DialogBox
+!NOINDEX
+constructor 0591DialogBox.Init(X1, Y1, X2, Y2 : Byte);
+
+Initialize the dialog box.
+
+See also:  0702DefaultDialogColors  0593InitCustom
+;
+;-------------------------------------------------------------------
+!TOPIC 593 InitCustom,DialogBox
+!NOINDEX
+constructor 0591DialogBox.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                 var Colors : ColorSet;
+                                 Options : LongInt;
+                                 var dColors : DialogColorSet);
+
+Initialize the dialog box with custom window options.
+
+See also:  0653General
+;
+;-------------------------------------------------------------------
+!TOPIC 594 Done,DialogBox
+!NOINDEX
+destructor 0591DialogBox.Done; virtual;
+
+Disposes of the user record, if one was allocated dynamically by Load, then
+calls the parent's destructor to dispose of the control list, screen
+buffers, etc.
+
+See also:  0653General
+;
+;-------------------------------------------------------------------
+!TOPIC 595 ProcessSelf,DialogBox
+!NOINDEX
+procedure 0591DialogBox.ProcessSelf; virtual;
+
+Process dialog box commands.
+
+See also:  0653General
+;
+;-------------------------------------------------------------------
+!TOPIC 596 AddPushButton
+!NOINDEX
+procedure 0591DialogBox.AddPushButton(St : string; Row, Col : Word;
+                                  cWidth : Byte; HelpIndex : Word;
+                                  Cmd : Word; Default : Boolean);
+
+Add a pushbutton.
+
+See also:  0649Adding controls
+;
+;-------------------------------------------------------------------
+!TOPIC 597 AddRadioButtons
+!NOINDEX
+procedure 0591DialogBox.AddRadioButtons(Prompt : string;
+                                    pRow, pCol : Word; cRow, cCol: Word;
+                                    cWidth, cHeight : Byte; iWidth : Byte;
+                                    HelpIndex : Word; var rbVar);
+
+Add a radio button cluster.
+
+See also:  0649Adding controls  0598AddRadioButton  0599AddRadioButtonAt
+;
+;-------------------------------------------------------------------
+!TOPIC 598 AddRadioButton
+!NOINDEX
+procedure 0591DialogBox.AddRadioButton(S : string; SelValue : Byte);
+
+Add a radio button to a cluster.
+
+See also:  0597AddRadioButtons  0599AddRadioButtonAt
+;
+;-------------------------------------------------------------------
+!TOPIC 599 AddRadioButtonAt
+!NOINDEX
+procedure 0591DialogBox.AddRadioButtonAt(S : string; Row, Col : Byte;
+                                     SelValue : Byte);
+
+Add a radio button to a cluster at a specific Row,Col (relative to top left
+corner of cluster).
+
+See also:  0598AddRadioButton  0597AddRadioButtons
+;
+;-------------------------------------------------------------------
+!TOPIC 600 AddCheckBoxes
+!NOINDEX
+procedure 0591DialogBox.AddCheckBoxes(Prompt : string;  pRow, pCol : Word;
+                                  cRow, cCol, cWidth, cHeight : Byte;
+                                  iWidth : Byte; HelpIndex : Word);
+
+Add a check box cluster.
+
+See also:  0601AddCheckBox  0602AddCheckBoxAt  0649Adding controls
+;
+;-------------------------------------------------------------------
+!TOPIC 601 AddCheckBox
+!NOINDEX
+procedure 0591DialogBox.AddCheckBox(S : string; var cbVar : Boolean);
+
+Add a check box to a cluster.
+
+See also:  0600AddCheckBoxes  0602AddCheckBoxAt
+;
+;-------------------------------------------------------------------
+!TOPIC 602 AddCheckBoxAt
+!NOINDEX
+procedure 0591DialogBox.AddCheckBoxAt(S : string; Row, Col : Byte;
+                                  var cbVar : Boolean);
+
+Add a check box to a cluster at a specific Row,Col (relative to top left
+corner of cluster).
+
+See also:  0600AddCheckBoxes 0601AddCheckBox
+;
+;-------------------------------------------------------------------
+!TOPIC 603 AddWindowControl
+!NOINDEX
+procedure 0591DialogBox.AddWindowControl(Prompt : string;
+                                     pRow, pCol : Word; cRow, cCol: Word;
+                                     HelpIndex : Word;  Cmd : Word;
+                                     var CW : CommandWindow);
+
+Add a child window to be treated as a control.
+
+See also:  0649Adding controls
+;
+;-------------------------------------------------------------------
+!TOPIC 604 AddEditControl
+!NOINDEX
+procedure 0591DialogBox.AddEditControl(Prompt : string; pRow, pCol : Word;
+                                   Picture : string; cRow, cCol : Word;
+                                   cWidth : Byte;    HelpIndex : Word;
+                                   var EditSt : string);
+
+Add an editing control.
+
+See also:  0605AddSimpleEditControl  0606AddUserEditControl
+;
+;-------------------------------------------------------------------
+!TOPIC 605 AddSimpleEditControl
+!NOINDEX
+procedure 0591DialogBox.AddSimpleEditControl(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         cRow, cCol : Word;
+                                         cWidth, MaxLen : Byte;
+                                         HelpIndex : Word;
+                                         var EditSt : string);
+
+Add an editing control (simple string editor).
+
+See also:  0604AddEditControl  0606AddUserEditControl
+;
+;-------------------------------------------------------------------
+!TOPIC 606 AddUserEditControl
+!NOINDEX
+procedure 0591DialogBox.AddUserEditControl(Prompt : string;
+                                       pRow, pCol : Word;
+                                       Picture : string;
+                                       cRow, cCol : Word;
+                                       cWidth : Byte;
+                                       HelpIndex : Word;
+                                       RangeLo, RangeHi : RangeType;
+                                       DataSize : Word;
+                                       DecimalPlaces : Byte;
+                                       Validate: ValidationFunc;
+                                       Convert : ConversionProc;
+                                       FDraw   : DrawProc;
+                                       Editor  : EditProc;
+                                       var EditVar);
+
+Add an editing control of a user-defined type.
+
+See also:  0604AddEditControl  0605AddSimpleEditControl
+;
+;-------------------------------------------------------------------
+!TOPIC 607 SetPreFocusProc
+!NOINDEX
+procedure 0591DialogBox.SetPreFocusProc(PFP : dgUserProc);
+
+Specify routine to call just before a control receives the focus.
+
+See also:  0608SetPostFocusProc
+;
+;-------------------------------------------------------------------
+!TOPIC 608 SetPostFocusProc
+!NOINDEX
+procedure 0591DialogBox.SetPostFocusProc(PFP : dgUserProc);
+
+Specify routine to call just after a control gives up the focus.
+
+See also:  0607SetPreFocusProc
+;
+;-------------------------------------------------------------------
+!TOPIC 609 dgOptionsOn
+!NOINDEX
+procedure 0591DialogBox.dgOptionsOn(OptionFlags : Byte);
+
+Activate multiple DialogBox options.
+
+See also:  0611dgOptionsAreOn  0610dgOptionsOff  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 610 dgOptionsOff
+!NOINDEX
+procedure 0591DialogBox.dgOptionsOff(OptionFlags : Byte);
+
+Deactivate multiple DialogBox options.
+
+See also:  0611dgOptionsAreOn  0609dgOptionsOn  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 611 dgOptionsAreOn
+!NOINDEX
+function 0591DialogBox.dgOptionsAreOn(OptionFlags : Byte) : Boolean;
+
+Return True if all specified DialogBox options are on.
+
+See also:  0610dgOptionsOff  0609dgOptionsOn  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 612 dgControlOptionsOn
+!NOINDEX
+procedure 0591DialogBox.dgControlOptionsOn(OptionFlags : LongInt);
+
+Activate multiple control options.
+
+See also:
+  0614dgControlOptionsAreOn          0613dgControlOptionsOff
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 613 dgControlOptionsOff
+!NOINDEX
+procedure 0591DialogBox.dgControlOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple control options.
+
+See also:
+  0614dgControlOptionsAreOn          0612dgControlOptionsOn
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 614 dgControlOptionsAreOn
+!NOINDEX
+function 0591DialogBox.dgControlOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified control options are on.
+
+See also:
+  0613dgControlOptionsOff            0612dgControlOptionsOn
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 615 dgFieldOptionsOn
+!NOINDEX
+procedure 0591DialogBox.dgFieldOptionsOn(OptionFlags : LongInt);
+
+Activate multiple field options.
+
+See also:
+  0617dgFieldOptionsAreOn            0616dgFieldOptionsOff
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 616 dgFieldOptionsOff
+!NOINDEX
+procedure 0591DialogBox.dgFieldOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple field options.
+
+See also:
+  0617dgFieldOptionsAreOn             0615dgFieldOptionsOn
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 617 dgFieldOptionsAreOn
+!NOINDEX
+function 0591DialogBox.dgFieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified field options are on.
+
+See also:
+  0616dgFieldOptionsOff              0615dgFieldOptionsOn
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 618 dgSecFieldOptionsOn
+!NOINDEX
+procedure 0591DialogBox.dgSecFieldOptionsOn(OptionFlags : LongInt);
+
+Activate multiple secondary field options.
+
+See also:
+  0620dgSecFieldOptionsAreOn         0619dgSecFieldOptionsOff
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 619 dgSecFieldOptionsOff
+!NOINDEX
+procedure 0591DialogBox.dgSecFieldOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple secondary field options.
+
+See also:
+  0620dgSecFieldOptionsAreOn         0618dgSecFieldOptionsOn
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 620 dgSecFieldOptionsAreOn
+!NOINDEX
+function 0591DialogBox.dgSecFieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified secondary field options are on.
+
+See also:
+  0619dgSecFieldOptionsOff           0618dgSecFieldOptionsOn
+  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 621 SetHighlightPromptAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetHighlightPromptAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters in prompts.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 622 SetButtonAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetButtonAttr(Color, Mono : Byte);
+
+Set attributes for unselected buttons.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 623 SetDefaultButtonAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetDefaultButtonAttr(Color, Mono : Byte);
+
+Set attributes for default button when unselected.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 624 SetHighlightButtonAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetHighlightButtonAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters in buttons.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 625 SetSelectedButtonAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetSelectedButtonAttr(Color, Mono : Byte);
+
+Set attributes for selected buttons.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 626 SetProtectedButtonAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetProtectedButtonAttr(Color, Mono : Byte);
+
+Set attributes for protected buttons.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 627 SetButtonShadowAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetButtonShadowAttr(Color, Mono : Byte);
+
+Set attributes for button shadows.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 628 SetClusterAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetClusterAttr(Color, Mono : Byte);
+
+Set attributes for unselected cluster items.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 629 SetProtectedClusterAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetProtectedClusterAttr(Color, Mono : Byte);
+
+Set attributes for protected cluster items.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 630 SetHighlightClusterAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetHighlightClusterAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters in cluster items.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 631 SetSelectedClusterAttr,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetSelectedClusterAttr(Color, Mono : Byte);
+
+Set attributes for selected cluster items.
+
+See also:  0648Setting colors
+;
+;-------------------------------------------------------------------
+!TOPIC 632 SetEnterToTab
+!NOINDEX
+procedure 0591DialogBox.SetEnterToTab(On : Boolean);
+
+This method allows you to control the handling of the <Enter> key. By
+default this option is off, and the <Enter> key behaves according to
+CUA convention (i.e., it selects the default pushbutton). With this
+option turned on, pressing <Enter> when on a field moves the cursor to
+the next field; if the current control is a button, that button is
+activated.
+
+See also:  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 633 SetForceMode,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetForceMode(Force, Overtype : Boolean);
+
+If Force is True, all edit controls added after the call to SetForceMode
+will be edited in either insert (Overtype = False) or overtype (Overtype =
+True) mode. If SetForceMode is called a second time with a Force parameter
+of False, edit controls added subsequently will be edited normally (the
+insert/overtype mode setting will be retained from one field to the next).
+
+See also:  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 634 SetPadChar
+!NOINDEX
+procedure 0591DialogBox.SetPadChar(Ch : Char);
+
+Set character used to pad the end of an edit control being edited. The
+default pad character is OpField.DefPadChar (= ' ').
+
+See also:  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 635 SetBeepOnError,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetBeepOnError(On : Boolean);
+
+Activates (On = True) or deactivates (On = False) the efBeepOnError option
+for all controls in a dialog box.
+
+See also:  0650Setting options
+;
+;-------------------------------------------------------------------
+!TOPIC 636 Load,DialogBox
+!NOINDEX
+constructor 0591DialogBox.Load(var S : IdStream);
+
+Load a dialog box from a stream. The registration routine for a DialogBox
+is DialogBoxStream.
+
+See also:  0637Store  0651Streams
+;
+;-------------------------------------------------------------------
+!TOPIC 637 Store,DialogBox
+!NOINDEX
+procedure 0591DialogBox.Store(var S : IdStream);
+
+Store a dialog box in a stream. The registration routine for a DialogBox is
+DialogBoxStream.
+
+See also:  0636Load  0651Streams
+;
+;-------------------------------------------------------------------
+!TOPIC 638 SetUserRecord,DialogBox
+!NOINDEX
+procedure 0591DialogBox.SetUserRecord(var UserRec; UserRecSize : Word);
+
+Set the address and size of the user record. Needed only in cases where a
+DialogBox is to be stored in a stream.
+
+See also:  0651Streams
+;
+;-------------------------------------------------------------------
+!TOPIC 639 GetUserRecord,DialogBox
+!NOINDEX
+function 0591DialogBox.GetUserRecord : Pointer;
+
+Return a pointer to the user record. Needed only in cases where a DialogBox
+has been loaded from a stream and the Load constructor has had to allocate
+the record used to store data being edited.
+
+See also:  0651Streams
+;
+;-------------------------------------------------------------------
+!TOPIC 640 GetUserRecordSize,DialogBox
+!NOINDEX
+function 0591DialogBox.GetUserRecordSize : Word;
+
+Return the size of the user record. Needed only in cases where a DialogBox
+has been loaded from a stream and the Load constructor has had to allocate
+the record used to store data being edited.
+
+See also:  0651Streams
+;
+;-------------------------------------------------------------------
+!TOPIC 641 FindControl
+!NOINDEX
+function 0591DialogBox.FindControl(ID : Word) : ControlPtr;
+
+Find the control with the specified ID. Analogous to AbstractSelector's
+FindField method.
+
+See also:  0655Modifying controls
+;
+;-------------------------------------------------------------------
+!TOPIC 642 GetCurrentItemID
+!NOINDEX
+function 0591DialogBox.GetCurrentItemID : Word;
+
+Get the ID for the current cluster item. If the current control is not
+a cluster, the result will be 0.
+;
+;-------------------------------------------------------------------
+!TOPIC 643 ChangeValidation,DialogBox
+!NOINDEX
+procedure 0591DialogBox.ChangeValidation(ID : Word; VF : ValidationFunc);
+
+Change the validation routine for the specified control.
+
+See also:  0655Modifying controls
+;
+;-------------------------------------------------------------------
+!TOPIC 644 ChangeConversion,DialogBox
+!NOINDEX
+procedure 0591DialogBox.ChangeConversion(ID : Word; CP : ConversionProc);
+
+Change the conversion routine for the specified control.
+
+See also:  0655Modifying controls
+;
+;-------------------------------------------------------------------
+!TOPIC 645 EvaluateCommand,DialogBox
+!NOINDEX
+function 0591DialogBox.EvaluateCommand(var Cmd : Word) : Word;
+
+Given a command, return the ID for the control the cursor will move to
+next. Cmd may be modified on return. This routine is intended to be called
+only from within a post-focus routine.
+
+See also:  0608SetPostFocusProc  0654User hooks
+;
+;-------------------------------------------------------------------
+!TOPIC 646 VisitAllControls
+!NOINDEX
+procedure 0591DialogBox.VisitAllControls(FProc : dgControlProc; var D);
+
+Call the specified procedure for all controls in the dialog box.
+
+See also:  0666dgControlProc  0655Modifying controls
+;
+;-------------------------------------------------------------------
+!TOPIC 647 WindowControl
+!NOINDEX
+WindowControl = object(0680Control)
+!LINE
+WindowControlPtr = ^WindowControl
+
+A "control" corresponding to a child window.
+
+See also:  0603AddWindowControl  0590OpDialog
+;
+;-------------------------------------------------------------------
+!TOPIC 648 Setting colors,DialogBox
+!NOINDEX
+!NOSEARCH
+0591DialogBox provides the following methods for setting colors:
+
+    0622SetButtonAttr                 0627SetButtonShadowAttr
+    0628SetClusterAttr                0623SetDefaultButtonAttr
+    0624SetHighlightButtonAttr        0630SetHighlightClusterAttr
+    0621SetHighlightPromptAttr        0626SetProtectedButtonAttr
+    0629SetProtectedClusterAttr       0625SetSelectedButtonAttr
+    0631SetSelectedClusterAttr
+;
+;-------------------------------------------------------------------
+!TOPIC 649 Adding controls
+!NOINDEX
+!NOSEARCH
+0591DialogBox provides the following methods for adding controls:
+
+    0601AddCheckBox                    0602AddCheckBoxAt
+    0600AddCheckBoxes                  0604AddEditControl
+    0596AddPushButton                  0598AddRadioButton
+    0599AddRadioButtonAt               0597AddRadioButtons
+    0605AddSimpleEditControl           0606AddUserEditControl
+    0603AddWindowControl
+;
+;-------------------------------------------------------------------
+!TOPIC 650 Setting options,DialogBox
+!NOINDEX
+!NOSEARCH
+0591DialogBox provides the following methods for setting options:
+
+    0614dgControlOptionsAreOn          0613dgControlOptionsOff
+    0612dgControlOptionsOn             0617dgFieldOptionsAreOn
+    0616dgFieldOptionsOff              0615dgFieldOptionsOn
+    0611dgOptionsAreOn                 0610dgOptionsOff
+    0609dgOptionsOn                    0620dgSecFieldOptionsAreOn
+    0619dgSecFieldOptionsOff           0618dgSecFieldOptionsOn
+    0635SetBeepOnError                 0632SetEnterToTab
+    0633SetForceMode                   0634SetPadChar
+    0704SetPasswordChar
+;
+;------------------------------------------------------------
+!TOPIC 651 Streams,OpDialog
+!NOINDEX
+!NOSEARCH
+The following methods and routines are used for working with DialogBoxes
+stored in streams:
+
+    0652Field registration             0639GetUserRecord
+    0640GetUserRecordSize              0636Load
+    0638SetUserRecord                  0637Store
+;
+;------------------------------------------------------------
+!TOPIC 652 Field registration,OpDialog
+!NOINDEX
+!NOSEARCH
+In preparation for loading or storing a DialogBox, you must be certain that
+you register all the appropriate object types. DialogBoxStream will
+register most of the necessary types for you, but it does not register all
+the various control types. You must do that yourself. To determine which
+registration routines you need to call, you can use the following table:
+
+!NOWRAP
+AddControl routine       Stream registration
+AddPushButton            PushButtonStream
+AddRadioButtons          RadioButtonsStream
+AddCheckBoxes            CheckBoxesStream
+AddWindowControl         WindowControlStream
+AddEditControl           EditControlStream
+AddSimpleEditControl     SimpleEditControlStream
+AddUserEditControl       *
+!WRAP
+
+* When you use AddUserEditControl, you will need to register the addresses
+  of the conversion, validation, draw, and edit routines that you have
+  used.
+;
+;-------------------------------------------------------------------
+!TOPIC 653 General,DialogBox
+!NOINDEX
+!NOSEARCH
+The following general purpose methods are provided for working with
+DialogBoxes:
+
+    0594Done                           0592Init
+    0593InitCustom                     0595ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 654 User hooks,DialogBox
+!NOINDEX
+!NOSEARCH
+The following methods are provided for hooking user-written routines into
+the processing of a 0591DialogBox and to aid in the writing of them:
+
+    0607SetPreFocusProc                0608SetPostFocusProc
+    0645EvaluateCommand
+;
+;------------------------------------------------------------
+!TOPIC 655 Modifying controls
+!NOINDEX
+!NOSEARCH
+The following methods are provided for modifying existing controls in a
+0591DialogBox:
+
+    0644ChangeConversion               0643ChangeValidation
+    0641FindControl                    0642GetCurrentItemID
+    0646VisitAllControls               0705ProtectClusterItem
+    0706UnprotectClusterItem
+;
+;------------------------------------------------------------
+!TOPIC 656 Commands,DialogBox
+!NOINDEX
+!NOSEARCH
+The commands available while within a DialogBox are arranged by category in
+the list below. In each case the first line gives the name of the command,
+followed by the key(s) to which it is normally assigned. The second and
+following lines give a brief description of the command.
+
+Because many of the commands behave differently depending on the current
+control, the descriptions are generally preceded by one or more
+abbreviations, indicating the control being described. These are the
+abbreviations used:
+
+!NOWRAP
+CC  Cluster control (radio buttons, check boxes)
+EC  Edit control
+WC  Window control
+!WRAP
+
+"WC: ?" indicates that the command serves a function only in window
+controls, and that that function may vary depending on the type of the
+window.
+
+Cursor Movement
+
+!NOWRAP
+ccLeft        <Left>, <CtrlS>
+EC: Cursor left one character.
+CC: Cursor to previous cluster item (horizontal cluster only).
+
+ccRight       <Right>, <CtrlD>
+EC: Cursor right one character.
+CC: Cursor to next cluster item (horizontal cluster only).
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+EC: Cursor left one word.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+EC: Cursor right one word.
+
+ccHome        <Home>, <CtrlQ><S>
+EC: Cursor to beginning of control.
+
+ccEnd         <End>, <CtrlQ><D>
+EC: Cursor to end of control.
+
+ccUp          <Up>, <CtrlE>
+CC: Cursor to previous cluster item (vertical cluster only).
+
+ccDown        <Down>, <CtrlX>
+CC: Cursor to next cluster item (vertical cluster only).
+
+ccTab         <Tab>, <CtrlI>
+Cursor to next control.
+
+ccBackTab     <ShiftTab>
+Cursor to previous control.
+
+ccPageUp      <PgUp>
+WC: ?.
+
+ccPageDn      <PgDn>
+WC: ?.
+
+Insertion and Deletion
+
+ccDel         <Del>, <CtrlG>
+EC: Delete character at cursor.
+
+ccBack        <Bksp>, <CtrlH>, <CtrlBksp>
+EC: Delete character to left of cursor.
+
+ccDelLine     <CtrlY>
+EC: Clear entire control.
+
+ccDelEol      <CtrlEnd>, <CtrlQ><Y>
+EC: Delete from cursor to end of subfield.
+
+ccDelBol      <CtrlHome>
+EC: Delete from beginning of subfield to cursor.
+
+ccDelWord     <CtrlT>
+EC: Delete word to right of cursor.
+
+ccCtrlChar    <CtrlP>
+!WRAP
+EC: Insert control character. For example, to insert a ^G, you would enter
+<CtrlP><CtrlG>. This command is not available if the video attribute for
+control characters is the same as that for ordinary text and the efMapCtrls
+option is on.
+
+!NOWRAP
+ccIns         <Ins>, <CtrlV>
+!WRAP
+EC: Toggle insert mode on and off. A fat cursor indicates insert mode; a thin
+cursor indicates overtype mode.
+
+!NOWRAP
+Other
+
+ccSelect      <Enter>, <CtrlM>
+!WRAP
+Accept contents of dialog box. If the current control has a special command
+code associated with it, that command will be executed by DialogBox.Process
+and returned by GetLastCommand. (For example, a pushbutton might have a
+command of ccQuit or ccHelp associated with it.) Otherwise, the command
+associated with the default pushbutton will be executed/returned.
+
+!NOWRAP
+ccMouseSel    <ClickLeft>
+!WRAP
+CC: If mouse is within the cluster, moves cursor to position of mouse, else
+to the control pointed to by the mouse cursor.
+!LINE
+!NOWRAP
+Else: Move cursor to control pointed to by mouse cursor.
+
+ccRestore     <CtrlR>, <CtrlQ><L>
+EC: Restore original contents of the control.
+
+ccToggle      <+>, <Space>
+CC: Toggles the value of a check box.
+
+ccHelp        <F1>, <ClickBoth>
+!WRAP
+Help. If a user-written help routine has been established by calling
+DialogCommands.SetHelpProc, pressing <F1> will call that routine; otherwise
+this command does nothing. If there is a GetHelpProc, the control editor
+will pass it the following three parameters: ucDialog, nil, and the value
+designated as the current control's help index.
+
+!NOWRAP
+ccQuit        <Esc>, <CtrlBreak>, <ClickRight>
+Exit from the dialog box.
+!WRAP
+;
+;------------------------------------------------------------
+!TOPIC 657 Declarations,OpDialog
+!NOINDEX
+!NOSEARCH
+OpDialog declares the following types, constants, and variables:
+
+    0664BadDgFieldOptions              0662BadDialogOptions
+    0658Configuration data             0663DefDgFieldOptions
+    0661DefDialogOptions               0666dgControlProc
+    0665dgUserProc                     0659DialogCommands
+    0660Options
+;
+;------------------------------------------------------------
+!TOPIC 658 Configuration data,OpDialog
+!NOINDEX
+const
+  DialogKeyMax = 220;
+  DialogKeyID  : string[13] = 'opdialog keys';
+  DialogKeySet : array[0..DialogKeyMax] of Byte = (...);
+
+DialogKeyMax is the last available slot in DialogKeySet. DialogKeyID is an
+ID string that allows installation programs to locate the configuration
+data. DialogKeySet contains the default key assignments for the quick
+reference chart. DialogCfgEnd marks the end of the configuration data.
+;
+;------------------------------------------------------------
+!TOPIC 659 DialogCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  DialogCommands : DragProcessor;
+  {$ELSE}
+  DialogCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a DialogBox.
+;
+;------------------------------------------------------------
+!TOPIC 660 Options,DialogBox
+!NOINDEX
+The following options are available for DialogBoxes:
+
+!NOWRAP
+dgSamePosition      = $08;
+dgEnterToTab        = $20;
+dgDeallocUserRec    = $40;
+dgFastUpdates       = $80;
+!WRAP
+
+dgSamePosition is to be used in situations where you need to return to a
+control that you just left (or started to leave) with the cursor at the
+same position it was at previously. dgEnterToTab, dgDeallocUserRec, and
+dgFastUpdates are internal flags.
+
+See also:  0662BadDialogOptions  0661DefDialogOptions  0650Setting options
+;
+;------------------------------------------------------------
+!TOPIC 661 DefDialogOptions
+!NOINDEX
+const
+  DefDialogOptions : Byte = 0;
+
+The default options for a DialogBox.
+
+See also:  0660Options
+;
+;------------------------------------------------------------
+!TOPIC 662 BadDialogOptions
+!NOINDEX
+const
+  BadDialogOptions : Byte = dgEnterToTab+dgFastUpdates+dgDeallocUserRec;
+
+DialogBox options that exist for internal use, and may not be altered by
+calling dgOptionsOn or dgOptionsOff.
+
+See also:  0660Options
+;
+;------------------------------------------------------------
+!TOPIC 663 DefDgFieldOptions
+!NOINDEX
+const
+  DefDgFieldOptions : LongInt = efInsertPushes+efAutoAdvanceChar+
+                                efTrimBlanks+efMapCtrls+efAllowEscape+
+                                efDefaultAccepted+efShowReadChar;
+
+Default primary field options for controls.
+;
+;------------------------------------------------------------
+!TOPIC 664 BadDgFieldOptions
+!NOINDEX
+const
+  BadDgFieldOptions : LongInt = efMultChoice+efAutoAdvanceCursor;
+
+Primary field options that may not be altered by calling dgFieldOptionsOn
+or dgFieldOptionsOff.
+;
+;------------------------------------------------------------
+!TOPIC 665 dgUserProc
+!NOINDEX
+type
+  dgUserProc = procedure(DBP : DialogBoxPtr);
+
+A user-written procedure called when the cursor is about to be moved to a
+new control (a pre-focus routine) or the cursor is about to leave the
+current control (a post-focus routine).
+
+See also:  0607SetPreFocusProc  0608SetPostFocusProc
+;
+;------------------------------------------------------------
+!TOPIC 666 dgControlProc
+!NOINDEX
+type
+  dgControlProc = procedure(CP : ControlPtr; var D; DBP : DialogBoxPtr);
+
+A user-written procedure called by VisitAllControls to perform a particular
+action on all Controls associated with a DialogBox.
+
+See also:  0646VisitAllControls
+;
+;-------------------------------------------------------------------
+!TOPIC 667 OpCtrl
+The OpCtrl unit implements the Control object and most of its
+descendants. The following hierarchy shows the objects implemented in
+OpCtrl and, within brackets, those that they are derived from:
+
+[AbstractField]
+  [SelectField]
+    [EntryField]
+      0680Control
+        0685PushButton
+        0690Cluster
+          0695RadioButtons
+          0696CheckBoxes
+
+[DoubleListNode]
+  0686ClusterItem
+
+0668DialogColorSet
+
+See also:  0697Declarations
+;
+;-------------------------------------------------------------------
+!TOPIC 668 DialogColorSet
+!NOINDEX
+DialogColorSet = object
+
+Objects of this type are used to specify the video attributes that are to
+be used for DialogBoxes and their component parts.
+
+The following methods are used to change the video attributes of an
+existing DialogColorSet:
+
+    0670SetButtonAttr                   0675SetButtonShadowAttr
+    0676SetClusterAttr                  0671SetDefaultButtonAttr
+    0672SetHighlightButtonAttr          0678SetHighlightClusterAttr
+    0669SetHighlightPromptAttr          0673SetSelectedButtonAttr
+    0679SetSelectedClusterAttr          0674SetProtectedButtonAttr
+    0677SetProtectedClusterAttr
+
+See also:  0702DefaultDialogColors
+;
+;-------------------------------------------------------------------
+!TOPIC 669 SetHighlightPromptAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetHighlightPromptAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters in prompts.
+;
+;-------------------------------------------------------------------
+!TOPIC 670 SetButtonAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetButtonAttr(Color, Mono : Byte);
+
+Set attributes for unselected buttons.
+;
+;-------------------------------------------------------------------
+!TOPIC 671 SetDefaultButtonAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetDefaultButtonAttr(Color, Mono : Byte);
+
+Set attributes for default button when unselected.
+;
+;-------------------------------------------------------------------
+!TOPIC 672 SetHighlightButtonAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetHighlightButtonAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters in buttons.
+;
+;-------------------------------------------------------------------
+!TOPIC 673 SetSelectedButtonAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetSelectedButtonAttr(Color, Mono : Byte);
+
+Set attributes for selected buttons.
+;
+;-------------------------------------------------------------------
+!TOPIC 674 SetProtectedButtonAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetProtectedButtonAttr(Color, Mono : Byte);
+
+Set attributes for protected buttons.
+;
+;-------------------------------------------------------------------
+!TOPIC 675 SetButtonShadowAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetButtonShadowAttr(Color, Mono : Byte);
+
+Set attributes for button shadows/boxes.
+;
+;-------------------------------------------------------------------
+!TOPIC 676 SetClusterAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetClusterAttr(Color, Mono : Byte);
+
+Set attributes for unselected cluster items.
+;
+;-------------------------------------------------------------------
+!TOPIC 677 SetProtectedClusterAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetProtectedClusterAttr(Color, Mono : Byte);
+
+Set attributes for protected cluster items.
+;
+;-------------------------------------------------------------------
+!TOPIC 678 SetHighlightClusterAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetHighlightClusterAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters in cluster items.
+;
+;-------------------------------------------------------------------
+!TOPIC 679 SetSelectedClusterAttr,DialogColorSet
+!NOINDEX
+procedure 0668DialogColorSet.SetSelectedClusterAttr(Color, Mono : Byte);
+
+Set attributes for selected cluster items.
+;
+;-------------------------------------------------------------------
+!TOPIC 680 Control
+!NOINDEX
+Control = object(EntryField)
+!LINE
+ControlPtr = ^Control
+
+This object defines the data fields and methods that are shared in common
+by all controls (pushbuttons, check box and radio button clusters, etc.).
+
+Control provides the following methods:
+
+     0683dcOptionsAreOn                0681dcOptionsOn
+     0682dcOptionsOff                  0697Declarations
+     0684SetDefCommand
+
+See also:  0667OpCtrl
+;
+;-------------------------------------------------------------------
+!TOPIC 681 dcOptionsOn
+!NOINDEX
+procedure 0680Control.dcOptionsOn(OptionFlags : LongInt);
+
+Activate the specified control options.
+
+See also:  0683dcOptionsAreOn  0682dcOptionsOff
+;
+;-------------------------------------------------------------------
+!TOPIC 682 dcOptionsOff
+!NOINDEX
+procedure 0680Control.dcOptionsOff(OptionFlags : LongInt);
+
+Deactivate the specified control options.
+
+See also:  0683dcOptionsAreOn  0681dcOptionsOn
+;
+;-------------------------------------------------------------------
+!TOPIC 683 dcOptionsAreOn
+!NOINDEX
+function 0680Control.dcOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified control options are on.
+
+See also:  0682dcOptionsOff  0681dcOptionsOn
+;
+;-------------------------------------------------------------------
+!TOPIC 684 SetDefCommand
+!NOINDEX
+procedure 0680Control.SetDefCommand(Cmd : Word);
+
+Set default command for this control. Normally used only for 0685PushButton
+controls.
+;
+;-------------------------------------------------------------------
+!TOPIC 685 PushButton
+!NOINDEX
+PushButton = object(0680Control)
+!LINE
+PushButtonPtr = ^PushButton;
+
+A pushbutton control.
+
+See also:  0684SetDefCommand
+;
+;-------------------------------------------------------------------
+!TOPIC 686 ClusterItem
+!NOINDEX
+ClusterItem = object(DoubleListNode)
+!LINE
+ClusterItemPtr = ^ClusterItem;
+
+A single item (radio button or check box) within a Cluster.
+
+ClusterItem provides the following methods:
+
+    0688Deselect                       0689IsSelected
+    0687Select
+;
+;-------------------------------------------------------------------
+!TOPIC 687 Select,ClusterItem
+!NOINDEX
+procedure 0686ClusterItem.Select;
+
+Select this item.
+
+See also:  0688Deselect  0689IsSelected
+;
+;-------------------------------------------------------------------
+!TOPIC 688 Deselect
+!NOINDEX
+procedure 0686ClusterItem.Deselect;
+
+Deselect this item.
+
+See also:  0689IsSelected  0687Select
+;
+;-------------------------------------------------------------------
+!TOPIC 689 IsSelected
+!NOINDEX
+function 0686ClusterItem.IsSelected : Boolean;
+
+Return True if item is selected.
+
+See also:  0688Deselect  0687Select
+;
+;-------------------------------------------------------------------
+!TOPIC 690 Cluster
+!NOINDEX
+Cluster = object(0680Control)
+!LINE
+ClusterPtr = ^Cluster;
+
+A control containing multiple items (radio buttons or check boxes).
+
+Cluster provides the following methods:
+
+  0691FindItem                       0692GetCurrentItem
+  0693SetCurrentItem                 0694SelectItem
+;
+;-------------------------------------------------------------------
+!TOPIC 691 FindItem,Cluster
+!NOINDEX
+function 0690Cluster.FindItem(Id : Byte) : ClusterItemPtr;
+
+Return a pointer to the specified cluster item.
+
+See also:  0692GetCurrentItem
+;
+;-------------------------------------------------------------------
+!TOPIC 692 GetCurrentItem
+!NOINDEX
+function 0690Cluster.GetCurrentItem : Byte;
+
+Return ID for current cluster item.
+
+See also:  0693SetCurrentItem  0694SelectItem
+;
+;-------------------------------------------------------------------
+!TOPIC 693 SetCurrentItem
+!NOINDEX
+procedure 0690Cluster.SetCurrentItem(Id : Byte);
+
+Set current cluster item.
+
+See also:  0694SelectItem
+;
+;-------------------------------------------------------------------
+!TOPIC 694 SelectItem,Cluster
+!NOINDEX
+procedure 0690Cluster.SelectItem(Id : Byte);
+
+Select specified cluster item.
+
+See also:  0693SetCurrentItem
+;
+;-------------------------------------------------------------------
+!TOPIC 695 RadioButtons
+!NOINDEX
+RadioButtons = object(0690Cluster)
+!LINE
+RadioButtonsPtr = ^RadioButtons;
+
+This cluster-based object defines the appearance of a radio button and
+processes cursor movement commands within the cluster.
+;
+;-------------------------------------------------------------------
+!TOPIC 696 CheckBoxes
+!NOINDEX
+CheckBoxes = object(0690Cluster)
+!LINE
+CheckBoxesPtr = ^CheckBoxes;
+
+This cluster-based object defines the appearance of a check box and
+processes cursor movement commands within the cluster.
+;
+;-------------------------------------------------------------------
+!TOPIC 697 Declarations,OpCtrl
+!NOINDEX
+OpCtrl declares the following types, constants, and variables:
+
+    0700BadControlOptions              0701Control markers
+    0702DefaultDialogColors            0699DefControlOptions
+    0698Options                        0703Pushbutton boxes
+;
+;-------------------------------------------------------------------
+!TOPIC 698 Options,OpCtrl
+!NOINDEX
+!NOSEARCH
+The following options are available for Controls:
+
+!NOWRAP
+dcSelectLocally   = $00000001;
+dcButtonShadow    = $00000002;
+dcButtonBox       = $00000004;
+dcItemChangeExit  = $00000008;
+dcForceExit       = $04000000;
+dcButtonDown      = $08000000;
+dcSelectByChar    = $10000000;
+dcIsDefault       = $20000000;
+dcIsButton        = $40000000;
+dcIsCluster       = $80000000;
+!WRAP
+
+These are the option settings that may be applied to Control-based objects.
+dcSelectLocally, meaningful only for Clusters, indicates that the shortcut
+keys for the items in the Cluster should be recognized only when the
+Cluster has the focus. dcButtonShadow, meaningful only for pushbuttons,
+indicates that the button should have a shadow when it is displayed on a
+color system. dcButtonBox is also meaningful only for pushbuttons; it
+indicates that the button should be surrounded by a box (DefButtonBox,
+DefButtonBoxSel, or DefButtonBoxDown). Note that dcButtonBox and
+dcButtonShadow are mutually exclusive, and that neither option may be
+turned on or off after the pushbutton has been instantiated.
+dcItemChangeExit indicates that you want your post-focus routine to be
+called (with GetLastCommand = ccItemChange) when in a radio button or
+check box cluster and either 1) the current item changes or 2) a check box
+is selected/deselected.
+
+The remaining options are internal flags. dcForceExit is used internally
+in connection with the processing of the dcItemChangeExit option.
+dcButtonDown indicates that the left mouse button is currently being held
+down, and is meaningful only if the OpDrag unit is use. This option is
+used to create a 3D effect for pushbuttons. dcSelectByChar indicates that
+the control has shortcut keys associated with it other than that specified
+in its prompt. It is set automatically for pushbuttons and clusters.
+dcIsDefault flags the default button in a dialog box. dcIsButton flags the
+control as a pushbutton. And dcIsCluster flags the control as a cluster.
+
+See also:  0700BadControlOptions  0699DefControlOptions
+;
+;-------------------------------------------------------------------
+!TOPIC 699 DefControlOptions
+!NOINDEX
+const
+  DefControlOptions : LongInt = dcButtonShadow;
+
+The default options pertaining to Controls.
+
+See also:  0700BadControlOptions  0698Options
+;
+;-------------------------------------------------------------------
+!TOPIC 700 BadControlOptions
+!NOINDEX
+const
+  BadControlOptions : LongInt = dcButtonDown+dcSelectByChar+
+                                dcIsDefault+dcIsButton+dcIsCluster+
+                                dcForceExit;
+
+Control options that exist for internal use, and may not be altered by
+calling dcOptionsOn or dcOptionsOff.
+
+See also:  0699DefControlOptions  0698Options
+;
+;-------------------------------------------------------------------
+!TOPIC 701 Control markers
+!NOINDEX
+!NOSEARCH
+const
+  CurControlMarker1 : Char = '¯';
+  CurControlMarker2 : Char = '®';
+  DefButtonMarker1  : Char = #26;
+  DefButtonMarker2  : Char = #27;
+
+These constants specify the characters that are used on monochrome systems
+to mark the current control (CurControlMarker1 and CurControlMarker2) and
+the default pushbutton (DefButtonMarker1 and DefButtonMarker2). Note that
+copies of these values are not stored with individual objects.
+;
+;-------------------------------------------------------------------
+!TOPIC 702 DefaultDialogColors
+!NOINDEX
+const
+  DefaultDialogColors : 0668DialogColorSet = (
+    HiPromptColor   : $0F; HiPromptMono    : $0F;
+    ButtonColor     : $70; ButtonMono      : $70;
+    DefButtonColor  : $78; DefButtonMono   : $70;
+    HiButtonColor   : $7F; HiButtonMono    : $70;
+    SelButtonColor  : $7F; SelButtonMono   : $70;
+    ProButtonColor  : $70; ProButtonMono   : $07;
+    BtnShadowColor  : $08; BtnShadowMono   : $07;
+    ClusterColor    : $70; ClusterMono     : $70;
+    ProClusterColor : $07; ProClusterMono  : $07;
+    HiClusterColor  : $7F; HiClusterMono   : $70;
+    SelClusterColor : $7F; SelClusterMono  : $70);
+
+The default DialogColorSet, used by 0592DialogBox.Init.
+;
+;-------------------------------------------------------------------
+!TOPIC 703 Pushbutton boxes
+!NOINDEX
+!NOSEARCH
+const
+  DefButtonBox     : FrameArray = 'ÉÈ»¼ÍÍºº';
+  DefButtonBoxSel  : FrameArray = 'ÉÈ»¼ÍÍºº';
+  DefButtonBoxDown : FrameArray = 'ÚÀ¿ÙÄÄ³³';
+
+Box types used when the dcButtonBox option is selected. DefButtonBox is
+used when the pushbutton is unselected. DefButtonBoxSel is used when the
+pushbutton is selected. DefButtonBoxDown is used when the pushbutton is
+being "pushed down" by the mouse cursor (happens only if OpDrag is in
+use).
+;
+;-------------------------------------------------------------------
+!TOPIC 704 SetPasswordChar
+!NOINDEX
+procedure 0591DialogBox.SetPasswordChar(Ch : Char);
+
+Set character used in password mode.
+;
+;-------------------------------------------------------------------
+!TOPIC 705 ProtectClusterItem
+!NOINDEX
+procedure 0591DialogBox.ProtectClusterItem(ClusterID : Word; ItemID : Byte);
+
+Protect the item with ItemID in the cluster whose ID is ClusterID.
+;
+;-------------------------------------------------------------------
+!TOPIC 706 UnprotectClusterItem
+!NOINDEX
+procedure 0591DialogBox.UnprotectClusterItem(ClusterID : Word; ItemID : Byte);
+
+Unprotect the item with ItemID in the cluster whose ID is ClusterID.

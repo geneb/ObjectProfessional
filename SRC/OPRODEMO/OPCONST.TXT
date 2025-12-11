@@ -1,0 +1,379 @@
+;
+;------------------------------------------------------------
+!TOPIC 281 OpConst
+OpConst is used as a convenient repository for a variety
+of constants used by other units of Object Professional:
+error codes, unit codes, error message strings, object type
+codes, and object version codes.
+
+!NOWRAP
+0284Error class prefixes      0283Error classes
+0285Error codes               0286Error messages
+0282Unit codes
+!WRAP
+;
+;------------------------------------------------------------
+!TOPIC 282 Unit codes
+!NOINDEX
+!NOSEARCH
+const
+  ucNone            = 00; {no unit}
+  ucEdit            = 01; {OpEdit}
+  ucPick            = 02; {OpPick}
+  ucDir             = 03; {OpDir}
+  ucMenu            = 04; {OpMenu}
+  ucSelect          = 05; {OpSelect}
+  ucEntry           = 06; {OpEntry}
+  ucMemo            = 07; {OpMemo}
+  ucEditor          = 08; {OpEditor}
+  ucBrowse          = 09; {OpBrowse}
+  ucLArray          = 10; {OpLArray}
+  ucMacEd           = 11; {OpMacEd}
+  ucHelp            = 12; {OpHelp}
+  ucSEdit           = 13; {OpSEdit}
+  ucCalc            = 25; {OpCalc}
+  ucQkRef           = 26; {OpQkRef}
+  ucCal             = 27; {OpCal}
+  ucDialog          = 28; {OpDialog}
+  ucReservedForTP   = 99;
+
+Unique code numbers for each unit in Object Professional that supports a
+standard error or help handler. Such a code is passed as a parameter to the
+handler, allowing a program to detect where the error or help request
+occurred. TurboPower reserves the codes 0..99 for its own use. The range
+100..255 is available for your programs.
+
+See also:  2540ErrorProc  0265OpCmd.GetHelpProc
+;
+;------------------------------------------------------------
+!TOPIC 283 Error classes
+!NOINDEX
+!NOSEARCH
+const
+  etFatal     = 0;  {fatal errors}
+  etNonFatal  = 1;  {non-fatal I/O errors}
+  etWarning   = 2;  {warnings, user input errors, etc.}
+  etMessage   = 3;  {simple messages}
+  etNoError   = 4;  {no error}
+
+Error type codes used to classify errors.
+
+See also:  0284Error class prefixes  0285Error codes
+;
+;------------------------------------------------------------
+!TOPIC 284 Error class prefixes
+!NOINDEX
+!NOSEARCH
+const
+  epFatal     = etFatal    * 10000;
+  epNonFatal  = etNonFatal * 10000;
+  epWarning   = etWarning  * 10000;
+  epMessage   = etMessage  * 10000;
+
+Error prefixes added to error numbers before reporting them.
+
+See also:  0283Error classes  0285Error codes
+;
+;------------------------------------------------------------
+!TOPIC 285 Error codes,Object Professional
+!NOSEARCH
+The following is a complete list of Object Professional error codes,
+organized into groups:
+
+!NOWRAP
+DOS errors
+
+ecFileNotFound    = 00002; {file not found}
+ecPathNotFound    = 00003; {path not found}
+ecTooManyFiles    = 00004; {too many open files}
+ecAccessDenied    = 00005; {file access denied}
+ecInvalidHandle   = 00006; {invalid file handle}
+ecOutOfMemory     = 00008; {insufficient memory}
+ecInvalidDrive    = 00015; {invalid drive}
+ecNoMoreFiles     = 00018; {no more files}
+
+Turbo Pascal I/O errors
+
+ecDiskRead        = 00100; {attempt to read beyond end of file}
+ecDiskFull        = 00101; {disk is full}
+ecNotAssigned     = 00102; {file not Assign-ed}
+ecNotOpen         = 00103; {file not open}
+ecNotOpenInput    = 00104; {file not open for input}
+ecNotOpenOutput   = 00105; {file not open for output}
+ecInvalidFormat   = 00106; {invalid format for packed window}
+
+DOS critical errors
+
+ecWriteProtected  = 00150; {disk is write-protected}
+ecUnknownUnit     = 00151; {unknown disk unit}
+ecDriveNotReady   = 00152; {drive is not ready}
+ecUnknownCommand  = 00153; {unknown command}
+ecCrcError        = 00154; {data error}
+ecBadStructLen    = 00155; {bad request structure length}
+ecSeekError       = 00156; {seek error}
+ecUnknownMedia    = 00157; {unknown media type}
+ecSectorNotFound  = 00158; {disk sector not found}
+ecOutOfPaper      = 00159; {printer is out of paper}
+ecDeviceWrite     = 00160; {device write error}
+ecDeviceRead      = 00161; {device read error}
+ecHardwareFailure = 00162; {general failure}
+
+Turbo-compatible runtime errors
+ecAbstractCall    = 00211; {call to an abstract method}
+
+Reported by OpBrowse and OpEditor
+
+ecFileIsEmpty     = 01000; {file is empty}
+
+Reported by OpRoot.IdStream
+
+ecIdUnknown       = 01101; {unknown object id read from stream}
+ecLoadFailed      = 01102; {load constructor failed within Get or GetPtr}
+ecInvalidData     = 01103; {attempt to read/write bad data}
+
+Reported by OpRoot.OpLibrary
+
+ecNameBlank       = 01200; {can't add entry if name is blank}
+ecPackFailed      = 01201; {error packing library}
+ecBadSignature    = 01202; {bad signature in directory}
+
+Reported by OpRoot.StaticQueue
+
+ecQueueFull       = 02000; {queue is full. new element rejected}
+ecQueueEmpty      = 02001; {queue is empty. no element returned}
+
+Reported by OpRoot.StringArray
+
+ecArrayTooBig     = 02002; {string array read from text file exceeds 64K}
+
+Reported by OpRoot.OpLibrary
+
+ecDirectoryFull   = 02020; {directory full--can't add entry}
+
+Reported by OpCmd
+
+ecPartialMatch    = 02050; {cannot add command due to partial match}
+ecKeyTableFull    = 02051; {cannot add command due to full key table}
+
+Reported by OpLArray
+
+ecInsufficientEms = 02100; {insufficient EMS memory to allocate}
+ecEmsAllocation   = 02101; {error allocating EMS page}
+ecNoEms           = 02102; {EMS operation failed because no EMS available}
+ecEmsPageMapping  = 02103; {error mapping EMS page}
+ecCantFreeEms     = 02104; {cannot deallocate EMS handle}
+
+Reported by OpDir
+
+ecDirTooBig       = 02200; {too many files to fit into directory buffer}
+
+Reported by OpField, OpSelect, OpEntry
+
+ecFieldRequired   = 07000; {field is required}
+ecBadFormat       = 07001; {bad format (number/date/time, etc.)}
+ecOutOfRange      = 07002; {value entered is out of range}
+ecBlanksInField   = 07003; {field contains blanks}
+ecPartialEntry    = 07004; {field contains a partial entry}
+ecBadCharacter    = 07005; {field contains an illegal character}
+
+Reported by OpMemo, OpEditor, OpBrowse
+
+ecStringNotFound  = 07100; {search string not found}
+ecNotToScreen     = 07101; {cannot write output to screen}
+ecInvalidNumber   = 07102; {invalid number entered}
+
+Reported by OpMemo, OpEditor
+
+ecBufferFull      = 07110; {edit buffer is full}
+ecLineTooLong     = 07111; {line too long, CRLF inserted}
+ecTooManyLines    = 07112; {max line limit would be exceeded}
+ecOverLineLimit   = 07113; {max line limit already exceeded}
+ecFileTruncated   = 07114; {file truncated}
+ecFileTooLarge    = 07115; {file too large to fit in buffer}
+ecNoBlock         = 07116; {block not marked or hidden}
+ecNoMarker        = 07117; {marker not set}
+
+Reported by OpCalc
+
+ecDivideByZero    = 07200; {divide overflow}
+ecUndefinedNum    = 07201; {error returned by 80x87 coprocessor}
+
+Reported by OpDir
+
+ecNoPickSelection = 07300; {no pick selection made}
+
+Reported by OpRoot.OpLibrary
+
+ecDuplicateName   = 07400; {name already in use}
+ecEntryNotFound   = 07401; {library entry not found}
+
+Reported by OpRoot.StringSet
+
+ecDupString       = 08000; {string is already in string set}
+
+Reported by OpRoot.IdStream
+
+ecIdNotRegistered = 08010; {user object not registered with stream}
+ecIdRegisteredDup = 08011; {attempt to register duplicate object id}
+ecPtrNotRegistered = 8012; {user pointer not registered with stream}
+
+Reported by OpLArray
+
+ecElSizeIsZero    = 08050; {element size is zero}
+ecIncorrectSize   = 08051; {incorrect dimensions for disk file}
+ecRowOutOfRange   = 08052; {specified row is out of range}
+ecColOutOfRange   = 08053; {specified column is out of range}
+ecNotLArrayFile   = 08054; {specified file is not a OpLarray file}
+ecElementTooBig   = 08055; {element size is too big}
+ecBadDimensions   = 08056; {an invalid dimension was specified}
+ecLessThanOnePage = 08057; {less than one page in RAM}
+ecFlushError      = 08058; {error flushing large array file}
+
+Reported by OpWindow and others
+
+ecWinCoordsBad    = 08100; {bad coordinates specified for a window}
+ecWinNotActive    = 08101; {window must be active for this operation}
+ecWinNotCurrent   = 08102; {window must be current for this operation}
+ecWinIsActive     = 08103; {window must be inactive for this operation}
+ecWinInaccessible = 08104; {stacked window not accessible}
+ecWinIsZoomed     = 08105; {zoomed window cannot be zoomed again}
+ecWinBadIndex     = 08106; {invalid header or hot spot index}
+ecWinNotSizeable  = 08107; {window must be sizeable for this operation}
+ecNoProcessor     = 08108; {no command processor is available}
+ecWinIsChild      = 08109; {operation is not valid on a child window}
+
+Reported by OpPick
+
+ecNoPickItems     = 08200; {attempt to pick from empty list}
+ecBadPickOrient   = 08201; {invalid pick orientation}
+ecBadPickHandler  = 08202; {invalid pick command handler}
+
+Reported by OpHelp
+
+ecHelpInvalid     = 08220; {invalid help file format}
+ecNoHelpForTopic  = 08221; {no help for specified topic}
+ecNoBoundHelp     = 08222; {pointer for bound-in help not registered}
+
+Reported by OpSelect, OpEntry
+
+ecTooManyFields   = 08300; {too many fields in a selector/entry screen}
+ecBadCoordinates  = 08301; {bad coordinates for a field}
+ecNotScrollable   = 08302; {virtual screen not allocated}
+ecNoFields        = 08303; {selector/entry screen has no fields}
+ecFieldNotFound   = 08305; {tried to position cursor on non-existent field}
+ecWinFieldError   = 08306; {can't add window field to ScrollingEntryScreen}
+ecBadChildError   = 08307; {child window already has parent or is active}
+
+Reported by OpPrint
+
+ecInvalidPrinter  = 08400; {specified Printer type is invalid}
+ecPosOutOfRange   = 08401; {printer position out of range}
+ecNoPositionPrim  = 08402; {no printer position routine specified}
+ecFontStkOverflow = 08403; {stack overflow in font stack}
+ecFontStackError  = 08404; {stack underflow in font stack}
+ecByteStkOverflow = 08405; {stack overflow in a byte stack}
+ecNoPrnDriver     = 08406; {no BasePrinterPtr specified for Printer}
+
+Reported by OpForm
+
+ecNoFieldsOnPage  = 08420; {page to be printed has no active fields}
+ecNoBlockDefined  = 08421; {attempt to add field when no block defined}
+ecNoSuchField     = 08422; {field ID represents non-existent field}
+ecDiagNotAllowed  = 08423; {diagonal lines not allowed}
+
+Reported by various units
+
+ecNilPointer      = 08500; {nil pointer where there shouldn't be one}
+ecBadParam        = 08501; {bad parameter to a procedure}
+
+Messages
+
+mcLineNumber      = 09000; {prompt for line number}
+mcOptionString    = 09001; {prompt for search options}
+mcBlockWrite      = 09002; {prompt for file to write marked block to}
+mcBlockRead       = 09003; {prompt for file to read in as marked block}
+mcNewFile         = 09004; {prompt for new file name}
+mcRightMargin     = 09005; {prompt for a right margin}
+mcIndentLevel     = 09006; {prompt for an indent level}
+mcTabSize         = 09007; {prompt for a tab size}
+mcFileModified    = 09008; {"file modified--save it?" prompt}
+mcSaveAs          = 09009; {new name for a file}
+mcSearchFor       = 09010; {prompt for a search string}
+mcReplaceWith     = 09011; {prompt for a replacement string}
+mcReplaceYesNo    = 09012; {prompt to confirm a replacement}
+!WRAP
+
+See also:
+    0284Error class prefixes        0283Error classes
+    0286Error messages              2540ErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 286 Error messages
+!NOINDEX
+!NOSEARCH
+const
+  emUnknownError : string[5] = 'Error';
+  ...
+  emDiagNotAllowed : string[26] = 'Diagonal lines not allowed';
+
+Error message strings passed to user-written error procedures of type
+ErrorProc. Not all error numbers have an associated message string, but the
+most common ones do. See OPROOT.IN1 for a complete list of all the strings.
+
+See also:  0283Error classes  0285Error codes  2540ErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 287 Object type codes
+!NOINDEX
+!NOSEARCH
+const
+  otPointerStack  = 01;
+  ...
+  otWindowControl = 211;
+  ...
+  otReservedForTP = 999;
+
+Unique code numbers for all objects that support stream I/O. You typically
+won't need to refer to these codes directly since the provided stream
+registration routines do so. At this time, the last code we've used is 211.
+Values up to 999 are reserved for TurboPower. You may assign higher codes to
+your own objects.
+
+See also:  2323CodeVerRegistered  0288Object version codes  0289Pointer codes
+;
+;------------------------------------------------------------
+!TOPIC 288 Object version codes
+!NOINDEX
+!NOSEARCH
+const
+  vePointerStack  = 00;
+  ..
+  veWindowControl = 00;
+
+Version number codes for all objects that support stream I/O. These numbers
+will be incremented only when an object is modified in such a way as to
+require a new Load method for it. In that case, the more recent version of the
+object will get a new version code, and the older version of the object will
+get a special Load method (Load00, for example) to allow it to be read into
+the new implementation.
+
+See also:  2323CodeVerRegistered  0287Object type codes  2320RegisterOldVersion
+;
+;------------------------------------------------------------
+!TOPIC 289 Pointer codes
+!NOINDEX
+!NOSEARCH
+const
+  ptNil                  = 0000; {nil pointer}
+  ptEmptyOpenCloseProc   = 0001; {default non-exploding windows}
+  ...
+  ptReservedForTP        = 0999;
+  ptEntryUserRec         = $FFFF; {used by OpEntry}
+  ptFormUserRec          = $FFFF; {used by OpForm}
+
+Pointer codes for use in stream I/O. Just as object types are assigned unique
+codes in a stream, so are pointers to static code or data.
+
+See also:  0287Object type codes  2329RegisterPointer
+;
+;------------------------------------------------------------

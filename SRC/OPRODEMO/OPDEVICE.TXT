@@ -1,0 +1,390 @@
+;
+;------------------------------------------------------------
+!TOPIC 554 OpDevice
+OpDevice adds knowledge of specific printers to 2127OpPrint's general framework
+for printing. OpDevice doesn't declare any objects. Its primary export is a
+category of routines called hardware registration procedures. A hardware
+registration procedure configures an instance of a Printer object for a
+specific printer. OpDevice also contains various primitive routines for
+printhead positioning, line drawing activation and the like, but you won't
+need to refer to them directly.
+
+  0586Hardware registration routines  0587Device primitives  0588Printer numbers
+  0589Symbol sets
+;
+;------------------------------------------------------------
+!TOPIC 555 Deregister
+!NOINDEX
+procedure 0554OpDevice.Deregister(P : PrinterPtr);
+
+Deregisters a Printer of any previous registration.
+;
+;------------------------------------------------------------
+!TOPIC 556 LJRegister
+!NOINDEX
+procedure 0554OpDevice.LJRegister(P : PrinterPtr);
+
+Register this printer as an HP Laserjet compatible.
+
+See also:
+  0555Deregister                0560LJFontFRegister         0561LJFontGRegister
+  0558LJIIRegister              0557LJPlusRegister
+;
+;------------------------------------------------------------
+!TOPIC 557 LJPlusRegister
+!NOINDEX
+procedure 0554OpDevice.LJPlusRegister(P : PrinterPtr);
+
+Registers the printer as an HP Laserjet Plus.
+
+See also:
+  0555Deregister                0560LJFontFRegister         0561LJFontGRegister
+  0558LJIIRegister              0556LJRegister
+;
+;------------------------------------------------------------
+!TOPIC 558 LJIIRegister
+!NOINDEX
+procedure 0554OpDevice.LJIIRegister(P : PrinterPtr);
+
+Registers the printer as an HP Laserjet II.
+
+See also:
+  0555Deregister                0560LJFontFRegister         0561LJFontGRegister
+  0557LJPlusRegister            0556LJRegister
+;
+;------------------------------------------------------------
+!TOPIC 559 LJIIIsiRegister
+!NOINDEX
+procedure 0554OpDevice.LJIIIsiRegister(P : PrinterPtr);
+
+Registers the printer as an HP Laserjet IIIsi.
+
+See also:
+  0555Deregister                0560LJFontFRegister         0561LJFontGRegister
+  0556LJRegister
+;
+;------------------------------------------------------------
+!TOPIC 560 LJFontFRegister
+!NOINDEX
+procedure 0554OpDevice.LJFontFRegister(P : PrinterPtr);
+
+Registers cartridge font F for LJ.
+
+See also:  0555Deregister  0561LJFontGRegister
+;
+;------------------------------------------------------------
+!TOPIC 561 LJFontGRegister
+!NOINDEX
+procedure 0554OpDevice.LJFontGRegister(P : PrinterPtr);
+
+Registers font cartridge G for LJ.
+
+See also:  0555Deregister  0560LJFontFRegister
+;
+;------------------------------------------------------------
+!TOPIC 562 LJDeci2Row
+!NOINDEX
+function 0554OpDevice.LJDeci2Row(Decipoints : Dimension;
+                             P : PrinterPtr) : Dimension;
+
+Convert decipoint to Row number.
+
+See also:  0564LJRow2Deci
+;
+;------------------------------------------------------------
+!TOPIC 563 LJDeci2Col
+!NOINDEX
+function 0554OpDevice.LJDeci2Col(Decipoints : Dimension;
+                             P : PrinterPtr) : Dimension;
+
+Convert decipoint to Col number.
+
+See also:  0565LJCol2Deci
+;
+;------------------------------------------------------------
+!TOPIC 564 LJRow2Deci
+!NOINDEX
+function 0554OpDevice.LJRow2Deci(Row : Dimension; P : PrinterPtr) : Dimension;
+
+Convert a Row number to a Decipoint.
+
+See also:  0562LJDeci2Row
+;
+;------------------------------------------------------------
+!TOPIC 565 LJCol2Deci
+!NOINDEX
+function 0554OpDevice.LJCol2Deci(Col : Dimension; P : PrinterPtr) : Dimension;
+
+Convert a Row number to a Decipoint.
+
+See also:  0563LJDeci2Col
+;
+;------------------------------------------------------------
+!TOPIC 566 DiabloRegister
+!NOINDEX
+procedure 0554OpDevice.DiabloRegister(P : PrinterPtr);
+
+Register this printer as a Diablo compatible.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 567 EpsonFXRegister
+!NOINDEX
+procedure 0554OpDevice.EpsonFXRegister(P : PrinterPtr);
+
+Registers P as an Epson FX compatible printer.
+
+See also:
+  0555Deregister                0568EpsonMXRegister         0569EpsonLQRegister
+  0571GenericEpsonRegister
+;
+;------------------------------------------------------------
+!TOPIC 568 EpsonMXRegister
+!NOINDEX
+procedure 0554OpDevice.EpsonMXRegister(P : PrinterPtr);
+
+Registers P as an Epson MX compatible printer.
+
+See also:
+  0555Deregister                0567EpsonFXRegister         0569EpsonLQRegister
+  0571GenericEpsonRegister
+;
+;------------------------------------------------------------
+!TOPIC 569 EpsonLQRegister
+!NOINDEX
+procedure 0554OpDevice.EpsonLQRegister(P : PrinterPtr);
+
+Registers P as an Epson LQ printer.
+
+See also:
+  0555Deregister                0567EpsonFXRegister         0568EpsonMXRegister
+  0571GenericEpsonRegister
+;
+;------------------------------------------------------------
+!TOPIC 570 ProPrinterIIRegister
+!NOINDEX
+procedure 0554OpDevice.ProPrinterIIRegister(P : PrinterPtr);
+
+Registers P as an IBM Proprinter II printer.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 571 GenericEpsonRegister
+!NOINDEX
+procedure 0554OpDevice.GenericEpsonRegister(P : PrinterPtr);
+
+Registers P as a Generic Epson compatible printer.
+
+See also:
+  0555Deregister                0567EpsonFXRegister         0569EpsonLQRegister
+  0568EpsonMXRegister
+;
+;------------------------------------------------------------
+!TOPIC 572 HPDeskJetRegister
+!NOINDEX
+procedure 0554OpDevice.HPDeskJetRegister(P : PrinterPtr);
+
+Registers P as an HP DeskJet.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 573 KXP1093Register
+!NOINDEX
+procedure 0554OpDevice.KXP1093Register(P : PrinterPtr);
+
+Registers P as a Panasonic KX-P1093 printer.
+
+See also:  0555Deregister  0584PanasonicKXP2124Register
+;
+;------------------------------------------------------------
+!TOPIC 574 ToshibaP321Register
+!NOINDEX
+procedure 0554OpDevice.ToshibaP321Register(P : PrinterPtr);
+
+Registers P as Toshiba P321SL or P341SL.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 575 StarMicronicsRegister
+!NOINDEX
+procedure 0554OpDevice.StarMicronicsRegister(P : PrinterPtr);
+
+Registers P as a Star Micronics printer.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 576 Nec3510Register
+!NOINDEX
+procedure 0554OpDevice.Nec3510Register(P : PrinterPtr);
+
+Registers P as a Nec 3510/3530 printer.
+
+See also:  0555Deregister  0577Nec8800Register
+;
+;------------------------------------------------------------
+!TOPIC 577 Nec8800Register
+!NOINDEX
+procedure 0554OpDevice.Nec8800Register(P : PrinterPtr);
+
+Registers P as a Nec 7710/7730/8830/8810 printer.
+
+See also:  0555Deregister  0576Nec3510Register
+;
+;------------------------------------------------------------
+!TOPIC 578 ProwriterRegister
+!NOINDEX
+procedure 0554OpDevice.ProwriterRegister(P : PrinterPtr);
+
+Registers P as a C. Itoh 8510 Prowriter printer.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 579 FacitRegister
+!NOINDEX
+procedure 0554OpDevice.FacitRegister(P : PrinterPtr);
+
+Registers P as a Facit 4512 printer.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 580 DataProductsRegister
+!NOINDEX
+procedure 0554OpDevice.DataProductsRegister(P : PrinterPtr);
+
+Registers P as a DataProducts DP printer.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 581 QuickWriter5204Register
+!NOINDEX
+procedure 0554OpDevice.QuickWriter5204Register(P : PrinterPtr);
+
+Registers P as a QuickWriter 5204 printer.
+
+See also:  0555Deregister
+;
+;------------------------------------------------------------
+!TOPIC 582 BrotherM1709EpsonModeRegister
+!NOINDEX
+procedure 0554OpDevice.BrotherM1709EpsonModeRegister(P : PrinterPtr);
+
+Registers P as a Brother M1709 printer in Epson mode.
+
+See also:  0555Deregister  0583BrotherM1709IBMmodeRegister
+;
+;------------------------------------------------------------
+!TOPIC 583 BrotherM1709IBMmodeRegister
+!NOINDEX
+procedure 0554OpDevice.BrotherM1709IBMmodeRegister(P : PrinterPtr);
+
+Registers P as a Brother M1709 printer in IBM mode.
+
+See also:  0555Deregister  0582BrotherM1709EpsonModeRegister
+;
+;------------------------------------------------------------
+!TOPIC 584 PanasonicKXP2124Register
+!NOINDEX
+procedure 0554OpDevice.PanasonicKXP2124Register(P : PrinterPtr);
+
+Registers P as a Panasonic KX-P2124 printer.
+
+See also:  0555Deregister  0573KXP1093Register
+;
+;------------------------------------------------------------
+!TOPIC 585 LJDeviceStream
+!NOINDEX
+procedure 0554OpDevice.LJDeviceStream(SPtr : IdStreamPtr);
+
+Registers the LJ specific procedure and function pointers.
+;
+;------------------------------------------------------------
+!TOPIC 586 Hardware registration routines
+!NOINDEX
+!NOSEARCH
+Here are all of the hardware registration procedures provided by
+OpDevice. A hardware registration procedure customizes a printer instance
+to include specific option flags, PrintModes, character translation tables,
+a default font, and procedure pointers for printhead positioning, and so
+on. Hardware registration procedures do not affect the underlying
+2212BasePrinter, the X or Y ratios, or the user-written printer error
+handler.
+
+    0580DataProductsRegister              0555Deregister
+    0566DiabloRegister                    0567EpsonFXRegister
+    0569EpsonLQRegister                   0568EpsonMXRegister
+    0579FacitRegister                     0571GenericEpsonRegister
+    0572HPDeskJetRegister                 0573KXP1093Register
+    0560LJFontFRegister                   0561LJFontGRegister
+    0558LJIIRegister                      0559LJIIIsiRegister
+    0557LJPlusRegister                    0556LJRegister
+    0576Nec3510Register                   0577Nec8800Register
+    0570ProPrinterIIRegister              0578ProwriterRegister
+    0575StarMicronicsRegister             0574ToshibaP321Register
+    0581QuickWriter5204Register           0582BrotherM1709EpsonModeRegister
+    0584PanasonicKXP2124Register          0583BrotherM1709IBMmodeRegister
+;
+;------------------------------------------------------------
+!TOPIC 587 Device primitives
+!NOINDEX
+!NOSEARCH
+Various primitives for working with LaserJet coordinate systems and stream
+control.
+
+  0565LJCol2Deci                0563LJDeci2Col              0562LJDeci2Row
+  0585LJDeviceStream            0564LJRow2Deci
+;
+;-------------------------------------------------------------
+!TOPIC 588 Printer numbers
+!NOINDEX
+!NOSEARCH
+const
+  pLaserjet              = 1;
+  pDeskJet               = 2;
+  pEpsonMX               = 4;
+  pEpsonFX               = 5;
+  pEpsonLQ               = 6;
+  pGenericEpson          = 7;
+  pDiablo                = 10;
+  pProprinterII          = 11;
+  pKXP1093               = 12;
+  pToshiba321            = 13;
+  pStarMicronics         = 14;
+  pNec3510               = 15;
+  pNec8800               = 16;
+  pProwriter             = 17;
+  pFacit                 = 18;
+  pDataProducts          = 19;
+  pQuickWriter5204       = 20;
+  pBrotherM1709EpsonMode = 21;
+  pBrotherM1709IBMmode   = 22;
+  pPanasonicJXP2124      = 23;
+
+The hardware registration numbers for all supported printers. The registration
+number is stored in a data field of the 2128Printer object and can be retrieved
+with the 2154GetRegisteredType method.
+;
+;-------------------------------------------------------------
+!TOPIC 589 Symbol sets
+!NOINDEX
+!NOSEARCH
+const
+const
+  {LJ Symbol Sets}
+  ljssUSAscii      = '0U';   {normal US Ascii}
+  ljssIBMUS        = '10U';  {special Ascii + IBM extended (avail. on LJII)}
+  ljssUSLegal      = '1U';   {US Legal}
+  ljssRoman        = '0E';   {Roman extensions}
+
+  SymbolSet        : String[4] = ljssUSAscii;
+
+SymbolSet is the symbol set used to select fonts on LaserJet and compatible
+printers.  The ljssXXX constants are a few of the more common symbol sets,
+but SymbolSet may assume any valid symbol set value.

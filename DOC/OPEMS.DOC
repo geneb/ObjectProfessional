@@ -1,0 +1,524 @@
+                 OPEMS Extensions to support EMS 4.0
+               Copyright (c) 1991 TurboPower Software
+
+The following new constants, types, and routines are part of OPEMS as
+of version 1.03.
+
+Constants
+  MaxHandles   = 255;
+
+The maximum number of handles for HandlePagesType.
+
+  MaxMappablePages = 64;
+
+The maximum number of mappable segments for MappableSegType.
+
+  EmsResult : Byte = 0;
+
+The error code returned by the last EMS function. Zero always
+indicates no error.
+
+Types
+  PageInfoType =
+    record
+      Handle : Word;
+      Pages  : Word;
+    end;
+
+Type used by HandlePagesType type.
+
+  HandlePagesType =
+    record
+      NumHandles : Word;
+      PageInfo   : Array[1..MaxHandles] of PageInfoType;
+    end;
+
+Type used by GetPagesForAll.
+
+  MappableSegType =
+    record
+      NumPages : Word;
+      Segments : Array[1..MaxMappablePages] of Word;
+    end;
+
+Type used by EMS 4.0 partial mapping routines.
+
+  PageMapType =
+    record
+      Logical  : Integer;
+      Physical : Word;
+    end;
+
+Type used in PageMapList.
+
+  PageMapList = Array[1..MaxMappablePages] of PageMapType;
+
+Type used by MapPagesByNumber and MapPagesByAddress.
+
+  HandleNameType = Array[1..8] of Char;
+
+The native format of an EMS handle name.
+
+  HandleNameStr  = String[8];
+
+Turbo Pascal string format of an EMS handle name.
+
+  HandleNameRec  =
+    record
+      Handle : Word;
+      Name   : HandleNameType;
+    end;
+
+Type used by HandleNameList.
+
+  HandleNameList =
+    record
+      NumNames : Byte;
+      NameList : Array[1..MaxHandles] of HandleNameRec;
+    end;
+
+Type used by GetAllHandleNames. NumNames is the number of names in
+NameList, and NameList is the list of handles and their associated
+names.
+
+  MemoryType = (Conventional, Expanded);
+
+An enumerated type defining the two memory types used by EmsPtrRecord.
+
+  EmsPtrRecord =
+    record
+      Offset : Word;
+      Page   : Word;
+    end;
+
+Used by EmsPtrType when memory is of type Expanded.
+
+  EmsPtrType =
+    record
+      case MemoryType of
+        Conventional : (ConventionalPtr : Pointer);
+                        {a normal real pointer}
+        Expanded     : (ExpandedPtr : EmsPtrRecord);
+                        {a pointer to EMS memory}
+    end;
+
+A variant record to represent either a pointer to real or EMS.
+
+  MoveRecord =
+    record
+      Len               : LongInt;    {number of bytes to move}
+      SourceType        : MemoryType; {source memory type}
+      SourceHandle      : Word;       {source's EMS handle}
+      SourcePtr         : EmsPtrType; {pointer to source memory}
+      DestinationType   : MemoryType; {destination memory type}
+      DestinationHandle : Word;       {destination's EMS handle}
+      DestinationPtr    : EmsPtrType; {pointer to destination memory}
+    end;
+
+A record structure used internally by MoveMemoryRegion.
+
+  MappablePageType =
+    record
+      Segment      : Word;
+      PhysicalPage : Word;
+    end;
+
+A type used in MappablePageList to describe a physical page.
+
+  MappablePageList =
+    record
+      NumPages : Word;
+      Pages    : Array[1..MaxMappablePages] of MappablePageType;
+    end;
+
+A list of all mappable pages. NumPages is the number of mappable
+pages, and Pages is the list of all the pages' segment and physical
+page number.
+
+  HardwareConfigType =
+    record
+      RawPageSize : Word; {size of raw EMS pages in paragraphs}
+      AltRegSets  : Word; {number of alternate register sets}
+      ContextSize : Word; {size of context save area in bytes}
+      DMARegSets  : Word; {number of register sets assignable to DMA}
+      DMAOpType   : Word; {0 = DMA can be used with alternate reg sets
+                           1 = Only one DMA reg set available}
+    end;
+
+A record of information about the EMS configuration.
+
+The following lists all the possible error codes from the EMS
+functions:
+
+  $00   Success
+  $8A   Requested logical page is outside the range of pages owned by
+        handle
+  $8B   Illegal physical page number in mapping request
+  $8C   Page mapping hardware-state save area is full
+  $8D   Context saved failed because save area already contains
+        context for handle
+  $8E   Restore context failed because save area does not contain
+        context for handle
+  $8F   No such subfunction
+  $90   Attribute type not defined
+  $91   Feature not supported
+  $92   Source and destination have same handle and overlap; part of
+        source overwritten
+  $93   Length for source or destination is longer than actual
+        allocated length
+  $94   Memory overlaps
+  $95   Specified offset is outside logical page
+  $96   Region length exceeds 1 megabyte
+  $97   Source and destination have same handle and overlap; exchange
+        not performed
+  $98   Source and destination types are undefined
+  $9A   EmsErrSpecified alternate register set is not supported
+  $9B   All alternate register sets allocated
+  $9C   Register sets not supported, and alternate register set is not
+        zero
+  $9D   Specified alternate register set not defined or allocated
+  $9E   Dedicated DMA channels not supported
+  $9F   Specified dedicated DMA channel not supported
+  $A0   No handle found for specified name
+  $A1   Handle with same name already exists
+  $A3   Invalid pointer passed, or contents of source array corrupted
+  $A4   Access to function denied by operating system
+
+
+The following routines have been added to OPEMS:
+
+Declaration
+  function AttributeSupported : Boolean;
+Purpose
+  Returns True if the EMS driver supports the Get/SetHandleAttr
+  functions.
+Description
+  You should use this function before calling Get/SetHandleAttr. A
+  significant number of EMS 4.0 implementations do not support these
+  functions. Requires EMS version 4.
+See Also
+  GetHandleAttr  SetHandleAttr
+
+Declaration
+  function EmsErrorMessage(ErrorCode : Byte) : String;
+Purpose
+  Return an error message for ErrorCode.
+Description
+  The constant EmsResult is set by all OPEMS functions (except
+  EmsInstalled, EmsSigFound, and EmsErrorMessage). EmsErrorMessage can
+  be used to return an error message from the error code in EmsResult.
+
+  The longest string returned by this function is 79 characters long.
+  Be warned that calling EmsErrorMessage causes the linker to pull in
+  lots of code and literal strings.
+
+Declaration
+  function ExchangeMemoryRegion(SrcType : MemoryType;
+                                SrcHandle : Word;
+                                SrcPtr : EmsPtrType;
+                                DestType : MemoryType;
+                                DestHandle : Word;
+                                DestPtr : EmsPtrType;
+                                Size : LongInt) : Boolean;
+Purpose
+  Exchange two memory regions.
+Description
+  Returns True as function result if successful. Parameters have the
+  same meaning as in MoveMemoryRegion. One difference is that the
+  memory regions may not overlap in this routine. Requires EMS 4.0.
+See Also
+  MoveMemoryRegion
+
+Declaration
+  function GetAddrMappablePages(var List : MappablePageList)
+    : Boolean;
+Purpose
+  Return the addresses of all mappable pages.
+Description
+  Returns True as function result if successful. Will fail if EMS
+  supports more mappable pages than the constant MaxMappablePages.
+  Requires EMS 4.0.
+
+Declaration
+  function GetAllHandleNames(var List : HandleNameList) : Boolean;
+Purpose
+  Get the names of all active handles.
+Description
+  Returns True as function result if successful. Within the data type
+  HandleNameList, the handle names are stored in the EMS internal
+  format, which is an array of 8 bytes, all 8 bytes significant. The
+  EMS driver always initializes a handle's name to 8 bytes of the null
+  character (#0). Requires EMS 4.0.
+See Also
+  GetHandleName  SearchForHandleName SetHandleName
+
+Declaration
+  function GetHandleAttr(Handle : Word; var Volatile : Boolean)
+    : Boolean;
+Purpose
+  Returns the attribute of the specified handle in Volatile.
+Description
+  If Volatile is True, then the handle refers to a volatile EMS
+  handle, if False, then it is non-volatile (its contents will be
+  maintained across a warm boot). Function returns True if successful
+  in returning attribute. Requires EMS 4.0.
+
+  Note: This function is not supported by a large number of EMS 4.0
+  implementations. Use the AttributeSupported function to determine if
+  the EMS handle attributes are supported. Requires EMS version 4.
+See Also
+  AttributeSupported  SetHandleAttr
+
+Declaration
+  function GetHandleName(Handle : Word; var Name : HandleNameStr)
+    : Boolean;
+Purpose
+  Returns the Name of Handle.
+Description
+  The name for a handle is set with a call to SetHandleName. This
+  function returns True if the name was successfully returned. A
+  Handle's name is initialized to the empty string when it is
+  allocated or deallocated. Requires EMS 4.0.
+
+  The EMS driver internally stores a handle's name as a sequence of 8
+  bytes (no length byte). This routine converts that to a pascal
+  string. If you want access to the raw bytes of a handle name in the
+  internal format, use GetAllHandleNames.
+See Also
+  GetAllHandleNames  SearchForHandleName  SetHandleName
+
+Declaration
+  function GetHardwareConfig(var Config : HardwareConfigType)
+    : Boolean;
+Purpose
+  Return information about the EMS hardware configuration.
+Description
+  See HardwareConfigType definition for description of returned
+  information. Returns True as function result if successful. Requires
+  EMS 4.0.
+
+Declaration
+  function GetNumberOfMappablePages : Word;
+Purpose
+  Return the number of mappable pages.
+Description
+  Returns zero if error. Requires EMS 4.0.
+
+Declaration
+  function GetNumberOfRawPages(var Total, Free : Word) : Boolean;
+Purpose
+  Return the number of raw Pages.
+Description
+  Returns both the total and the number of raw pages free. Returns
+  True as function result if successful. Raw pages may have a size
+  other than 16k. Requires EMS 4.0.
+
+Declaration
+  function GetPagesForAll(var HandlePages : HandlePagesType)
+    : Boolean;
+Purpose
+  Return the number of pages allocated for each active handle.
+Description
+  Function result is True if successful in returning the information.
+  Implemented in EMS version 3.0 or greater.
+See Also
+  EmsPagesOwned
+
+Declaration
+  function GetSizeOfPageMap : Byte;
+Purpose
+  Return the size in bytes of the buffer needed to store the page map.
+Description
+  Returns zero if there is an error. Implemented in EMS version 3.2 or
+  greater.
+See Also
+  RestorePageMap  SavePageMap
+
+Declaration
+  function GetSizeOfPartialPageMap(NumPages : Word) : Byte;
+Purpose
+  Return the size of the buffer needed to save partial page map info
+  for NumPages pages.
+Description
+  Returns 0 if an error occurs. Requires EMS version 4.
+See Also
+  RestorePartialPageMap  SavePartialPageMap
+
+Declaration
+  function MapPagesByAddress(NumPages : Word; Handle : Word;
+                             var MappingInfo : PageMapList) : Boolean;
+Purpose
+  Maps multiple pages by Address.
+Description
+  NumPages pages are mapped for Handle using the information contained
+  within MappingInfo. Returns True if successful. If a Logical page
+  number is -1 then the physical page is unmapped. The Physical field
+  of the PageMapType is used to hold the segment of the page. Requires
+  EMS version 4.
+See Also
+  MapPagesByNumber
+
+Declaration
+  function MapPagesByNumber(NumPages : Word; Handle : Word;
+                            var MappingInfo : PageMapList) : Boolean;
+Purpose
+  Maps multiple pages by number.
+Description
+  NumPages pages are mapped for Handle using the information contained
+  within MappingInfo. Returns True if successful. If a Logical page
+  number is -1 then the physical page is unmapped. The physical field
+  of the PageMapType is used to hold the physical page's number.
+  Requires EMS version 4.
+See Also
+  MapPagesByAddress
+
+Declaration
+  function MoveMemoryRegion(SrcType : MemoryType;
+                            SrcHandle : Word;
+                            SrcPtr : EmsPtrType;
+                            DestType : MemoryType;
+                            DestHandle : Word;
+                            DestPtr : EmsPtrType;
+                            Size : LongInt) : Boolean;
+Purpose
+  Move a memory region.
+Description
+  Returns True as function result if successful. Maximum size of
+  region to move is one megabyte. If the length exceeds a single page,
+  consecutive pages supply or receive the data. Overlapping addresses
+  are handled correctly. Requires EMS version 4.0.
+
+  SrcType is the type of the source memory (Conventional or Expanded).
+  SrcHandle is the handle of the source memory. If the SrcType is
+  Conventional, then SrcHandle should be zero. SrcPtr is a pointer (of
+  type EmsPtrType) to the source memory (see next paragraph).
+  DestType, DestHandle, and DestPtr have similar meanings for the
+  destination memory. Size is the size of the memory to move in bytes.
+
+  The type EmsPtrType is used to pass the address of the regions. The
+  MemoryType defines how the EmsPtrType is interpreted. If MemoryType
+  is Conventional, then the EmsPtrType is interpreted as a regular
+  pointer. EmsPtrType is a variant record.
+
+  The following program fragment illustrates usage of the
+  MoveMemoryRegion function:
+
+    const
+      OurSrcType  : MemoryType = Conventional;
+      OurDestType : MemoryType = Expanded;
+    var
+      OurSrcPtr  : EmsPtrType;
+      OurDestPtr : EmsPtrType;
+      P : Pointer;
+      EmsPage : Word;
+      EmsOfst : Word;
+      EmsHandle : Word;
+      OK : Boolean;
+    begin
+      ...
+      {assume P points to the source memory}
+      {assume EmsPage, EmsHandle, EmsOfst are properly initialized}
+      ...
+      OurSrcPtr.ConventionalPtr := P;
+      with OurDestPtr.ExpandedPtr do begin
+        Offset := EmsOfst;
+        Page   := EmsPage;
+      end;
+      OK := MoveMemoryRegion(OurSrcType, 0, OurSrcPtr, EmsHandle,
+                             OurDestType, EmsHandle, OurDestPtr);
+See Also
+  ExchangeMemoryRegion
+
+Declaration
+  function ReallocatePages(Handle : Word; NewPages : Word) : Boolean;
+Purpose
+  Reallocates the number of pages for the specified handle.
+Description
+  NewPages may be zero (the handle is still active and may be resized
+  later). Returns True if successful. Requires EMS version 4.
+See Also
+  AllocateEmsPages
+
+Declaration
+  function RestorePageMap(var Buffer) : Boolean;
+Purpose
+  Restore the page map from a buffer.
+Description
+  Returns True if successful. Buffer must contain information obtained
+  by calling SavePageMap. Implemented in EMS version 3.2 or greater.
+See Also
+  SavePageMap  GetSizeOfPageMap
+
+Declaration
+  function RestorePartialPageMap(var Buffer) : Boolean;
+Purpose
+  Restore a partial page map from buffer.
+Description
+  Returns True if successful. Buffer must have been previously used in
+  a call to SavePartialPageMap. Requires EMS version 4.
+See Also
+  SavePartialPageMap  GetSizeOfPartialPageMap
+
+Declaration
+  function SavePageMap(var Buffer) : Boolean;
+Purpose
+  Save the page map to a buffer.  Returns True if successful.
+Description
+  Buffer must be at least as big as the value returned by
+  GetSizeOfPageMap. Implemented in EMS versions 3.2 or greater.
+See Also
+  RestorePageMap  GetSizeOfPageMap
+
+Declaration
+  function SavePartialPageMap(var MapList : MappableSegType;
+                              var Buffer) : Boolean;
+Purpose
+  Save partial page map into buffer.
+Description
+  Returns True if successful. Buffer must be at least as big as the
+  value returned by GetSizeOfPartialPageMap (given the same number of
+  pages as specified in MapList). Requires EMS version 4.0.
+See Also
+  RestorePartialPageMap  GetSizeOfPartialPageMap
+
+Declaration
+  function SearchForHandleName(Name : HandleNameStr;
+                               var Handle : Word) : Boolean;
+Puspose
+  Search for the specified name and return handle of match if found.
+Description
+  Returns True as function results if successful. If no match is
+  found, function result is False. Requires EMS 4.0.
+
+  This function automatically pads the handle passed in Name to 8
+  characters. The character used to pad the string is the null
+  character (#0).
+See Also
+  GetAllHandleNames  GetHandleName  SetHandleName
+
+Declaration
+  function SetHandleAttr(Handle : Word; Volatile : Boolean) : Boolean;
+Purpose
+  Set a handle's attribute.
+Description
+  Returns True if successful, False if invalid Handle or function not
+  supported. If Volatile is False, and this function succeeds, then
+  the contents of the EMS pages allocated to Handle will be maintained
+  across a warm boot. Requires EMS 4.0.
+
+  Note: This function is not supported by a large number of EMS 4.0
+  implementations. Use the AttributeSupported function to determine if
+  the EMS handle attributes are supported. Requires EMS version 4.
+See Also
+  AttributeSupported  GetHandleAttr
+
+Declaration
+  function SetHandleName(Handle : Word; Name : HandleNameStr)
+    : Boolean;
+Purpose
+  Set the name of the specified Handle.
+Decription
+  Returns True if successful.  Requires EMS version 4.
+See Also
+  GetAllHandleNames  GetHandleName  SearchForHandleName
+

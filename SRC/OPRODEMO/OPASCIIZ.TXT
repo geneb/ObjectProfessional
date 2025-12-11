@@ -1,0 +1,327 @@
+;
+;------------------------------------------------------------
+!TOPIC 29 OpAsciiz
+The OPASCIIZ unit defines a new string type for Turbo Pascal. Unlike
+normal Turbo strings, which are limited to 255 bytes in length, the Asciiz
+string type can be of any length up to 65520 characters.
+
+The Asciiz string is defined in the same way as the one used by MS-DOS for
+internal operations and by the C programming language. An Asciiz is simply
+an array of characters terminated by a null character (ASCII #0).
+
+Because the Asciiz string is terminated by a null character, it may not
+contained nulls itself.
+
+  0030Asc2Str                   0057AscCenter               0056AscCenterCh
+  0048AscCharStr                0042AscFromHeap             0062Asciiz
+  0052AscLeftPad                0051AscLeftPadCh            0047AscLocase
+  0050AscPad                    0049AscPadCh                0041AscToHeap
+  0055AscTrim                   0053AscTrimLead             0054AscTrimTrail
+  0046AscUpcase                 0058CompAsc                 0059CompUCAsc
+  0035ConcatAsc                 0036ConcatStr               0033CopyAsc
+  0034DeleteAsc                 0043DisposeAsc              0037InsertAsc
+  0038InsertStr                 0032LenAsc                  0060MaxAsciiz
+  0061NotFound                  0040PosAsc                  0039PosStr
+  0044ReadLnAsc                 0031Str2Asc                 0045WriteAsc
+;
+;------------------------------------------------------------
+!TOPIC 30 Asc2Str
+!NOINDEX
+function 0029OpAsciiz.Asc2Str(var A : Asciiz) : string;
+
+Convert Asciiz to Turbo string, truncating if longer than 255 chars.
+
+See also:  0031Str2Asc
+;
+;------------------------------------------------------------
+!TOPIC 31 Str2Asc
+!NOINDEX
+procedure 0029OpAsciiz.Str2Asc(S : string; var A : Asciiz);
+
+Convert a Turbo string into an Asciiz.
+
+See also:  0030Asc2Str
+;
+;------------------------------------------------------------
+!TOPIC 32 LenAsc
+!NOINDEX
+function 0029OpAsciiz.LenAsc(A : Asciiz) : Word;
+
+Return the length of an Asciiz string.
+;
+;------------------------------------------------------------
+!TOPIC 33 CopyAsc
+!NOINDEX
+procedure 0029OpAsciiz.CopyAsc(var A : Asciiz;
+                           Start, Len : Word; var O : Asciiz);
+
+Return a substring of A. Note start=0 for first char in A.
+;
+;------------------------------------------------------------
+!TOPIC 34 DeleteAsc
+!NOINDEX
+procedure 0029OpAsciiz.DeleteAsc(var A : Asciiz;
+                             Start, Len : Word);
+
+Delete len characters of A, starting at position start.
+;
+;------------------------------------------------------------
+!TOPIC 35 ConcatAsc
+!NOINDEX
+procedure 0029OpAsciiz.ConcatAsc(var A, B, C : Asciiz);
+
+Concatenate two Asciiz strings, returning a third.
+
+See also:  0036ConcatStr
+;
+;------------------------------------------------------------
+!TOPIC 36 ConcatStr
+!NOINDEX
+procedure 0029OpAsciiz.ConcatStr(var A : Asciiz; S : string;
+                             var C : Asciiz);
+
+Concatenate a string to an asciiz, returning a new asciiz.
+
+See also:  0035ConcatAsc
+;
+;------------------------------------------------------------
+!TOPIC 37 InsertAsc
+!NOINDEX
+procedure 0029OpAsciiz.InsertAsc(var Obj, A : Asciiz;
+                             Start : Word);
+
+Insert asciiz Obj at position start of A.
+
+See also:  0038InsertStr
+;
+;------------------------------------------------------------
+!TOPIC 38 InsertStr
+!NOINDEX
+procedure 0029OpAsciiz.InsertStr(Obj : string; var A : Asciiz;
+                             Start : Word);
+
+Insert string Obj at position start of A.
+
+See also:  0037InsertAsc
+;
+;------------------------------------------------------------
+!TOPIC 39 PosStr
+!NOINDEX
+function 0029OpAsciiz.PosStr(Obj : string; var A : Asciiz) : Word;
+
+Return the position of the string Obj in A, returning NotFound if not found.
+
+See also:  0040PosAsc
+;
+;------------------------------------------------------------
+!TOPIC 40 PosAsc
+!NOINDEX
+function 0029OpAsciiz.PosAsc(var Obja, A : Asciiz) : Word;
+
+Return the position of Obja in A, returning NotFound if not found.
+
+See also:  0039PosStr
+;
+;------------------------------------------------------------
+!TOPIC 41 AscToHeap
+!NOINDEX
+function 0029OpAsciiz.AscToHeap(var A : Asciiz) : AsciizPtr;
+
+Put Asciiz on heap, returning a pointer, Nil if insufficient memory.
+
+See also:  0042AscFromHeap  0043DisposeAsc
+;
+;------------------------------------------------------------
+!TOPIC 42 AscFromHeap
+!NOINDEX
+procedure 0029OpAsciiz.AscFromHeap(P : AsciizPtr; var A : Asciiz);
+
+Return an Asciiz from the heap, empty if pointer is Nil.
+
+See also:  0041AscToHeap  0043DisposeAsc
+;
+;------------------------------------------------------------
+!TOPIC 43 DisposeAsc
+!NOINDEX
+procedure 0029OpAsciiz.DisposeAsc(P : AsciizPtr);
+
+Dispose of heap space pointed to by P.
+
+See also:  0042AscFromHeap  0041AscToHeap
+;
+;------------------------------------------------------------
+!TOPIC 44 ReadLnAsc
+!NOINDEX
+function 0029OpAsciiz.ReadLnAsc(var F : Text; var A : Asciiz) : Boolean;
+
+Read an Asciiz from text file, returning true if successful.
+
+See also:  0045WriteAsc
+;
+;------------------------------------------------------------
+!TOPIC 45 WriteAsc
+!NOINDEX
+function 0029OpAsciiz.WriteAsc(var F : Text; var A : Asciiz) : Boolean;
+
+Write an Asciiz to text file, returning true if successful.
+
+See also:  0044ReadLnAsc
+;
+;------------------------------------------------------------
+!TOPIC 46 AscUpcase
+!NOINDEX
+procedure 0029OpAsciiz.AscUpcase(var A, B : Asciiz);
+
+Uppercase the Asciiz in A, returning B.
+
+See also:  0047AscLocase
+;
+;------------------------------------------------------------
+!TOPIC 47 AscLocase
+!NOINDEX
+procedure 0029OpAsciiz.AscLocase(var A, B : Asciiz);
+
+Lowercase the Asciiz in A, returning B.
+
+See also:  0046AscUpcase
+;
+;------------------------------------------------------------
+!TOPIC 48 AscCharStr
+!NOINDEX
+procedure 0029OpAsciiz.AscCharStr(Ch : Char; Len : Word;
+                              var A : Asciiz);
+
+Return an Asciiz of length len filled with Ch.
+
+See also:  2751OpString.CharStr
+;
+;------------------------------------------------------------
+!TOPIC 49 AscPadCh
+!NOINDEX
+procedure 0029OpAsciiz.AscPadCh(var A : Asciiz; Ch : Char;
+                            Len : Word; var B : Asciiz);
+
+Right-pad the Asciiz in A to length len with Ch, returning B.
+
+See also:  0051AscLeftPadCh  0050AscPad  2752OpString.PadCh
+;
+;------------------------------------------------------------
+!TOPIC 50 AscPad
+!NOINDEX
+procedure 0029OpAsciiz.AscPad(var A : Asciiz; Len : Word;
+                          var B : Asciiz);
+
+Right-pad the Asciiz in A to length len with blanks, returning B.
+
+See also:  0052AscLeftPad  0049AscPadCh  2752OpString.PadCh
+;
+;------------------------------------------------------------
+!TOPIC 51 AscLeftPadCh
+!NOINDEX
+procedure 0029OpAsciiz.AscLeftPadCh(var A : Asciiz; Ch : Char;
+                                Len : Word; var B : Asciiz);
+
+Left-pad the Asciiz in A to length len with Ch, returning B.
+
+See also:  0052AscLeftPad  0049AscPadCh  2754OpString.LeftPadCh
+;
+;------------------------------------------------------------
+!TOPIC 52 AscLeftPad
+!NOINDEX
+procedure 0029OpAsciiz.AscLeftPad(var A : Asciiz; Len : Word;
+                              var B : Asciiz);
+
+Left-pad the Asciiz in A to length Len with blanks, returning B.
+
+See also:  0051AscLeftPadCh  0050AscPad  2755OpString.LeftPad
+;
+;------------------------------------------------------------
+!TOPIC 53 AscTrimLead
+!NOINDEX
+procedure 0029OpAsciiz.AscTrimLead(var A, B : Asciiz);
+
+Return an Asciiz with leading white space removed.
+
+See also:  0055AscTrim  0054AscTrimTrail  2756OpString.TrimLead
+;
+;------------------------------------------------------------
+!TOPIC 54 AscTrimTrail
+!NOINDEX
+procedure 0029OpAsciiz.AscTrimTrail(var A, B : Asciiz);
+
+Return an Asciiz with trailing white space removed.
+
+See also:  0055AscTrim  0053AscTrimLead  2757OpString.TrimTrail
+;
+;------------------------------------------------------------
+!TOPIC 55 AscTrim
+!NOINDEX
+procedure 0029OpAsciiz.AscTrim(var A, B : Asciiz);
+
+Return an Asciiz with leading and trailing white space removed.
+
+See also:  0053AscTrimLead  0054AscTrimTrail  2758OpString.Trim
+;
+;------------------------------------------------------------
+!TOPIC 56 AscCenterCh
+!NOINDEX
+procedure 0029OpAsciiz.AscCenterCh(var A : Asciiz; Ch : Char;
+                               Width : Word; var B : Asciiz);
+
+Return an Asciiz centered in an Asciiz of Ch with specified width.
+
+See also:  0057AscCenter  2760OpString.CenterCh
+;
+;------------------------------------------------------------
+!TOPIC 57 AscCenter
+!NOINDEX
+procedure 0029OpAsciiz.AscCenter(var A : Asciiz; Width : Word;
+                             var B : Asciiz);
+
+Return an Asciiz centered in an Asciiz of blanks with specified width.
+
+See also:  0056AscCenterCh  2761OpString.Center
+;
+;------------------------------------------------------------
+!TOPIC 58 CompAsc
+!NOINDEX
+function 0029OpAsciiz.CompAsc(var A1, A2 : Asciiz) : AscCompareType;
+
+Return less, equal, greater if A1<A2, A1=A2, or A1>A2.
+
+See also:  2771OpString.CompString  0059CompUCAsc
+;
+;------------------------------------------------------------
+!TOPIC 59 CompUCAsc
+!NOINDEX
+function 0029OpAsciiz.CompUCAsc(var A1, A2 : Asciiz) : AscCompareType;
+
+Compare two Asciizs in a case insensitive manner.
+
+See also:  0058CompAsc  2772OpString.CompUCString
+;
+;------------------------------------------------------------
+!TOPIC 60 MaxAsciiz
+!NOINDEX
+const
+  MaxAsciiz = 1024;
+
+The maximum length of an Asciiz string. It may be increased up to 65,520.
+;
+;------------------------------------------------------------
+!TOPIC 61 NotFound
+!NOINDEX
+const
+  NotFound = $FFFF;
+
+Value returned by PosAsc and PosStr if the target substring is not found.
+;
+;------------------------------------------------------------
+!TOPIC 62 Asciiz
+!NOINDEX
+type
+  Asciiz = array[0..MaxAsciiz] of Char;
+  AsciizPtr = ^Asciiz;
+
+Data types describing the ASCIIZ string.  One extra character position
+is allocated to store the null termination byte.

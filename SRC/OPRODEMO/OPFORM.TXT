@@ -1,0 +1,1374 @@
+;
+;------------------------------------------------------------
+!TOPIC 1333 OpForm
+OpForm is the highest level printer support unit. Building on top of
+2211OpPrnLow, 2127OpPrint, and 0554OpDevice, it provides the ability to design printed
+forms in much the same way that OpEntry supports data entry screens. Forms
+are built using a hierarchy of objects whose highest level is called a
+PrintedForm. Here's the relevant hierarchy:
+
+  [2306Root]
+    [2425SingleListNode]
+      FieldListNode*
+      1420PrintBlock*
+      1421PrintPage*
+      1345PrintedForm
+
+    1399Report
+
+The objects whose names are surrounded by brackets are described in other
+help topics and are shown here only to provide a frame of reference.
+
+  1334PrintField                1409Declarations            1408PrintedForm streams
+;
+;------------------------------------------------------------
+!TOPIC 1334 PrintField
+!NOINDEX
+1333OpForm.PrintField = object(0017AbstractField)
+!LINE
+PrintFieldPtr = ^PrintField;
+
+The abstract field type from which all of the actual print fields are
+derived. There are about 20 such types, as the following hierarchy shows:
+
+  [2306Root]
+    [2446DoubleListNode]
+      [0017AbstractField]
+        PrintField
+          StringPrintField*
+          CharPrintField*
+          WordPrintField*
+          BooleanPrintField*
+          YesNoPrintField*
+          LongPrintField*
+          IntPrintField*
+          BytePrintField*
+          ShortPrintField*
+          RealPrintField*
+          BCDPrintField*
+          ExtPrintField*
+          DblPrintField*
+          SglPrintField*
+          CompPrintField*
+          DatePrintField*
+          TimePrintField*
+          LineField*
+            ShadedField*
+
+PrintField is primarily for internal use; however, a few of its methods may
+be useful to writers of custom conversion routines and other full-featured
+applications using OpForm. These methods are documented in the topics
+listed below. Typically you will access a particular PrintField by calling
+PrintedForm's 1390FindField method to get its address.
+
+  1338Convert                   1341GetFieldAttr            1342GetFieldPos
+  1337pfOptionsAreOn            1336pfOptionsOff            1335pfOptionsOn
+  1344pfSetPicture              1339Print                   1340SetConversion
+  1343SetFieldPos
+;
+;------------------------------------------------------------
+!TOPIC 1335 pfOptionsOn
+!NOINDEX
+procedure 1334PrintField.pfOptionsOn(OptionFlags : LongInt);
+
+Activate multiple options.
+
+See also:  1410Option flags  1337pfOptionsAreOn  1336pfOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1336 pfOptionsOff
+!NOINDEX
+procedure 1334PrintField.pfOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple options.
+
+See also:  1410Option flags  1337pfOptionsAreOn  1335pfOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1337 pfOptionsAreOn
+!NOINDEX
+function 1334PrintField.pfOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Determine if multiple options are on.
+
+See also:  1410Option flags  1336pfOptionsOff  1335pfOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1338 Convert
+!NOINDEX
+function 1334PrintField.Convert : Boolean; virtual;
+
+Convert from native type to printable string.
+
+See also:  1340SetConversion
+;
+;------------------------------------------------------------
+!TOPIC 1339 Print
+!NOINDEX
+procedure 1334PrintField.Print(PrinterP : PrinterPtr); virtual;
+
+Print the print field.
+
+See also:  2132Printer.PrintStr
+;
+;------------------------------------------------------------
+!TOPIC 1340 SetConversion
+!NOINDEX
+procedure 1334PrintField.SetConversion(ConvertFunc : PrintConversionFunc);
+
+Sets the conversion routine.
+
+See also:  1392PrintedForm.ChangeConversion  1338Convert
+;
+;------------------------------------------------------------
+!TOPIC 1341 GetFieldAttr
+!NOINDEX
+function 1334PrintField.GetFieldAttr : Byte;
+
+Return the print attribute for this Field.
+
+See also:  1342GetFieldPos
+;
+;------------------------------------------------------------
+!TOPIC 1342 GetFieldPos
+!NOINDEX
+procedure 1334PrintField.GetFieldPos(var Row, Col : Dimension);
+
+Return the row and col for this field.
+;
+;------------------------------------------------------------
+!TOPIC 1343 SetFieldPos
+!NOINDEX
+procedure 1334PrintField.SetFieldPos(Row, Col : Dimension);
+
+Sets the row and col for this field.
+;
+;------------------------------------------------------------
+!TOPIC 1344 pfSetPicture
+!NOINDEX
+procedure 1334PrintField.pfSetPicture(NewPicture : String);
+
+Sets the picture mask.
+;
+;------------------------------------------------------------
+!TOPIC 1345 PrintedForm
+!NOINDEX
+1333OpForm.PrintedForm = object(2425SingleListNode)
+!LINE
+PrintedFormPtr = ^PrintedForm;
+
+This is the primary object in OpForm. It manages pages, blocks and fields to
+produce custom printed forms.
+
+  1422Adding fields             1423Field control           1424General methods
+  1425Headers/footers
+;
+;------------------------------------------------------------
+!TOPIC 1346 Init,PrintedForm
+!NOINDEX
+constructor 1345PrintedForm.Init(FormID : Byte; PrinterP : PrinterPtr);
+
+Initialize a PrintedForm.
+
+See also:  1347InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1347 InitCustom,PrintedForm
+!NOINDEX
+constructor 1345PrintedForm.InitCustom(FormID : Byte;
+                                   TopMargin, BottomMargin,
+                                   LeftMargin, RightMargin : Dimension;
+                                   PrinterP : PrinterPtr);
+
+Initialize a PrintedForm with custom options.
+
+See also:  1346Init
+;
+;------------------------------------------------------------
+!TOPIC 1348 Done,PrintedForm
+!NOINDEX
+destructor 1345PrintedForm.Done; virtual;
+
+Dispose of a PrintedForm.
+
+See also:  1346Init  1347InitCustom  1397Load
+;
+;------------------------------------------------------------
+!TOPIC 1349 Process,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.Process; virtual;
+
+Print the Form.
+;
+;------------------------------------------------------------
+!TOPIC 1350 fPrinterPtr
+!NOINDEX
+function 1345PrintedForm.fPrinterPtr : PrinterPtr;
+
+Returns the PrinterPtr for this form.
+
+See also:  2156Printer.GetBasePrinter
+;
+;------------------------------------------------------------
+!TOPIC 1351 fGetLastError
+!NOINDEX
+function 1345PrintedForm.fGetLastError : Word;
+
+Returns the last error and resets to zero.
+;
+;------------------------------------------------------------
+!TOPIC 1352 NewBlock
+!NOINDEX
+procedure 1345PrintedForm.NewBlock(BaseRow, BaseCol : Dimension;
+                               BlockFunc : UserBlockFunc);
+
+Starts a new block.
+
+See also:  1381NewPage
+;
+;------------------------------------------------------------
+!TOPIC 1353 SetUserRecord,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.SetUserRecord(var UserRec; UserRecSize : Word);
+
+Set the address and size of the user record for current block.
+
+See also:  1354GetUserRecord  1355GetUserRecordSize
+;
+;------------------------------------------------------------
+!TOPIC 1354 GetUserRecord,PrintedForm
+!NOINDEX
+function 1345PrintedForm.GetUserRecord : Pointer;
+
+Return a pointer to the user record for current block.
+
+See also:  1355GetUserRecordSize  1397Load
+;
+;------------------------------------------------------------
+!TOPIC 1355 GetUserRecordSize,PrintedForm
+!NOINDEX
+function 1345PrintedForm.GetUserRecordSize : Word;
+
+Return the size of the user record for current block.
+
+See also:  1354GetUserRecord  1397Load
+;
+;------------------------------------------------------------
+!TOPIC 1356 DupCurrentBlock
+!NOINDEX
+procedure 1345PrintedForm.DupCurrentBlock(NewRow, NewCol : Dimension);
+
+Duplicates the current block at the new block coordinates.
+
+See also:  1357DupCurrentPage
+;
+;------------------------------------------------------------
+!TOPIC 1357 DupCurrentPage
+!NOINDEX
+procedure 1345PrintedForm.DupCurrentPage;
+
+Duplicates the current page.
+
+See also:  1356DupCurrentBlock
+;
+;------------------------------------------------------------
+!TOPIC 1358 PromptOptionsOn
+!NOINDEX
+procedure 1345PrintedForm.PromptOptionsOn(OptionFlags : LongInt);
+
+Turn options for the prompts on.
+
+See also:
+    1359FieldOptionsOn                    1410PrintField.Option flags
+    1362PromptOptionsAreOn                1360PromptOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1359 FieldOptionsOn
+!NOINDEX
+procedure 1345PrintedForm.FieldOptionsOn(OptionFlags : LongInt);
+
+Turn options for the fields on.
+
+See also:
+    1363FieldOptionsAreOn                 1361FieldOptionsOff
+    1410PrintField.Option flags           1358PromptOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1360 PromptOptionsOff
+!NOINDEX
+procedure 1345PrintedForm.PromptOptionsOff(OptionFlags : LongInt);
+
+Turn options for the prompt off.
+
+See also:
+    1361FieldOptionsOff                   1410PrintField.Option flags
+    1362PromptOptionsAreOn                1358PromptOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1361 FieldOptionsOff
+!NOINDEX
+procedure 1345PrintedForm.FieldOptionsOff(OptionFlags : LongInt);
+
+Turn options for the fields off.
+
+See also:
+    1363FieldOptionsAreOn                 1359FieldOptionsOn
+    1410PrintField.Option flags           1360PromptOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1362 PromptOptionsAreOn
+!NOINDEX
+function 1345PrintedForm.PromptOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Determine whether options for the prompts are on.
+
+See also:
+  1363FieldOptionsAreOn         1410PrintField.Option flags  1360PromptOptionsOff
+  1358PromptOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1363 FieldOptionsAreOn
+!NOINDEX
+function 1345PrintedForm.FieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Determine whether options for the fields are on.
+
+See also:
+    1361FieldOptionsOff                   1359FieldOptionsOn
+    1410PrintField.Option flags           1362PromptOptionsAreOn
+;
+;------------------------------------------------------------
+!TOPIC 1364 AddTextField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddTextField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte);
+
+Adds a text string field (no user variable).
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1365 AddStringField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddStringField(pFieldID : Word;
+                                     Prompt : String;
+                                     pRow, pCol : Dimension;
+                                     pAttr : Byte; pWidth : Byte;
+                                     fFieldID : Word;
+                                     Picture : String;
+                                     fRow, fCol : Dimension;
+                                     fAttr : Byte; fWidth : Byte;
+                                     var PrintSt : String);
+
+Adds prompt and string field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1366 AddCharField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddCharField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr      : Byte;
+                                   fWidth     : Byte;
+                                   var PrintChar : Char);
+
+Adds prompt and character field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1367 AddBooleanField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddBooleanField(pFieldID : Word;
+                                     Prompt : String;
+                                     pRow, pCol : Dimension;
+                                     pAttr : Byte; pWidth : Byte;
+                                     fFieldID : Word;
+                                     Picture  : String;
+                                     fRow, fCol : Dimension;
+                                     fAttr : Byte; fWidth : Byte;
+                                     var PrintBool : Boolean);
+
+Adds prompt and Boolean field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1368 AddYesNoField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddYesNoField(pFieldID : Word;
+                                    Prompt : String;
+                                    pRow, pCol : Dimension;
+                                    pAttr : Byte; pWidth : Byte;
+                                    fFieldID : Word;
+                                    Picture : String;
+                                    fRow, fCol : Dimension;
+                                    fAttr : Byte; fWidth : Byte;
+                                    var PrintYesNo : Boolean);
+
+Adds prompt and Yes/No field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1369 AddLongField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddLongField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fWidth : Byte;
+                                   var PrintLong : LongInt);
+
+Adds prompt and LongInt field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1370 AddWordField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddWordField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fWidth : Byte;
+                                   var PrintWord : Word);
+
+Adds prompt and Word field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1371 AddIntField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddIntField(pFieldID : Word;
+                                  Prompt : String;
+                                  pRow, pCol : Dimension;
+                                  pAttr : Byte; pWidth : Byte;
+                                  fFieldID : Word;
+                                  Picture : String;
+                                  fRow, fCol : Dimension;
+                                  fAttr : Byte; fWidth : Byte;
+                                  var PrintInt : Integer);
+
+Adds prompt and Integer field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1372 AddByteField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddByteField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fWidth : Byte;
+                                   var PrintByte : Byte);
+
+Adds prompt and Byte field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1373 AddShortField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddShortField(pFieldID : Word;
+                                    Prompt : String;
+                                    pRow, pCol : Dimension;
+                                    pAttr : Byte; pWidth : Byte;
+                                    fFieldID : Word;
+                                    Picture : String;
+                                    fRow, fCol : Dimension;
+                                    fAttr : Byte; fWidth : Byte;
+                                    var PrintShort : ShortInt);
+
+Adds prompt and ShortInt field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1374 AddRealField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddRealField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fDPlaces : Byte;
+                                   fWidth : Byte;
+                                   var PrintReal : Real);
+
+Adds prompt and Real field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1375 AddDateField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddDateField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fWidth : Byte;
+                                   var PrintDate : Date);
+
+Adds prompt and Date field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1376 AddTimeField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddTimeField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fWidth : Byte;
+                                   var PrintTime : Time);
+
+Adds prompt and Time field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1377 AddDirective
+!NOINDEX
+procedure 1345PrintedForm.AddDirective(FieldID : Word;
+                                   Row, Col : Dimension;
+                                   On       : Boolean;
+                                   Attr     : Byte);
+
+Adds a print directive.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1378 AddLine
+!NOINDEX
+procedure 1345PrintedForm.AddLine(FieldID               : Word;
+                              Row, Col              : Dimension;
+                              Len, LineThickness    : Dimension;
+                              Horizontal            : Boolean;
+                              LineChar              : Char;
+                              Attr                  : Byte);
+
+Adds a line field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1379 AddBox
+!NOINDEX
+procedure 1345PrintedForm.AddBox(FieldID : Word;
+                             Row, Col       : Dimension;
+                             Width, Height  : Dimension;
+                             HLineThickness : Dimension;
+                             VLineThickness : Dimension;
+                             BoxChars : BoxCharSet; Attr : Byte);
+
+Adds a box field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1380 AddShaded
+!NOINDEX
+procedure 1345PrintedForm.AddShaded(FieldID : Word;
+                                Row, Col,
+                                Width, Height : Dimension;
+                                Intensity     : Byte);
+
+Adds a shaded box field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1381 NewPage
+!NOINDEX
+procedure 1345PrintedForm.NewPage;
+
+Start a new page.
+
+See also:  1352NewBlock
+;
+;------------------------------------------------------------
+!TOPIC 1382 SetHeader
+!NOINDEX
+procedure 1345PrintedForm.SetHeader(HeaderStr : String;
+                                Row, Col : Dimension; HAttr : Byte);
+
+Define a header for the current page.
+
+See also:  1383SetHeaderFunc
+;
+;------------------------------------------------------------
+!TOPIC 1383 SetHeaderFunc
+!NOINDEX
+procedure 1345PrintedForm.SetHeaderFunc(Picture : String;
+                                    HeadFunc : PrintConversionFunc);
+
+Set the HeadFunc function pointer for the current page.
+
+See also:  1382SetHeader
+;
+;------------------------------------------------------------
+!TOPIC 1384 GetHeader
+!NOINDEX
+function 1345PrintedForm.GetHeader : String;
+
+Returns the header string for the current page.
+
+See also:  1382SetHeader  1383SetHeaderFunc
+;
+;------------------------------------------------------------
+!TOPIC 1385 SetFooter
+!NOINDEX
+procedure 1345PrintedForm.SetFooter(FooterStr : String;
+                                Row, Col : Dimension; FAttr : Byte);
+
+Define a footer for the current page.
+
+See also:  1386SetFooterFunc
+;
+;------------------------------------------------------------
+!TOPIC 1386 SetFooterFunc
+!NOINDEX
+procedure 1345PrintedForm.SetFooterFunc(Picture : String;
+                                    FootFunc : PrintConversionFunc);
+
+Set the FootFunc function pointer for the current page.
+
+See also:  1385SetFooter
+;
+;------------------------------------------------------------
+!TOPIC 1387 GetFooter
+!NOINDEX
+function 1345PrintedForm.GetFooter : String;
+
+Returns the Footer string for the current page.
+
+See also:  1385SetFooter  1386SetFooterFunc
+;
+;------------------------------------------------------------
+!TOPIC 1388 SetErrorHandler
+!NOINDEX
+procedure 1345PrintedForm.SetErrorHandler(ErrorFunc : PrintErrorFunc);
+
+Sets the user error handler.
+
+See also:  2160Printer.SetPrintErrorFunc
+;
+;------------------------------------------------------------
+!TOPIC 1389 AddPrintMode,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddPrintMode(Name, OnEscSeq, OffEscSeq : String;
+                                   Width, Height : Dimension;
+                                   ID : Byte; OptionFlags : Word);
+
+Add a Print Mode to the Printer's linked list of modes.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1390 FindField
+!NOINDEX
+function 1345PrintedForm.FindField(FieldID : Word;
+                               var Page : PrintPagePtr;
+                               var Block : PrintBlockPtr) : PrintFieldPtr;
+
+Finds the first field with the specified FieldID.
+
+See also:  1391FindNextField
+;
+;------------------------------------------------------------
+!TOPIC 1391 FindNextField
+!NOINDEX
+function 1345PrintedForm.FindNextField(Field  : PrintFieldPtr;
+                                   var Page : PrintPagePtr;
+                                   var Block : PrintBlockPtr) :
+                                   PrintFieldPtr;
+
+Finds the next field with the same FieldID as Field.
+
+See also:  1390FindField
+;
+;------------------------------------------------------------
+!TOPIC 1392 ChangeConversion,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.ChangeConversion(FieldID : Word;
+                                       ConvertFunc : PrintConversionFunc);
+
+Change field's conversion routine.
+
+See also:  1338PrintField.Convert  1340PrintField.SetConversion
+;
+;------------------------------------------------------------
+!TOPIC 1393 SetUserData
+!NOINDEX
+procedure 1345PrintedForm.SetUserData(P : Pointer);
+
+Sets the user data field.
+;
+;------------------------------------------------------------
+!TOPIC 1394 GetUserData
+!NOINDEX
+function 1345PrintedForm.GetUserData : Pointer;
+
+Returns the user data field.
+;
+;------------------------------------------------------------
+!TOPIC 1395 SetPrePageFunc
+!NOINDEX
+procedure 1345PrintedForm.SetPrePageFunc(ppFunc : UserPageFunc);
+
+Sets the function that gets called before the current page is printed.
+;
+;------------------------------------------------------------
+!TOPIC 1396 SetPrePostFormFunc
+!NOINDEX
+procedure 1345PrintedForm.SetPrePostFormFunc(ppFunc : UserFormFunc);
+
+Sets the function that gets called before and after printing the form.
+;
+;------------------------------------------------------------
+!TOPIC 1397 Load,PrintedForm
+!NOINDEX
+constructor 1345PrintedForm.Load(var S : IdStream);
+
+Load a PrintedForm from a stream.
+
+See also:  1398Store  1408PrintedForm streams
+;
+;------------------------------------------------------------
+!TOPIC 1398 Store,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.Store(var S : IdStream);
+
+Store a PrintedForm in a stream.
+
+See also:  1397Load  1408PrintedForm streams
+;
+;------------------------------------------------------------
+!TOPIC 1399 Report
+!NOINDEX
+1333OpForm.Report = object(2306Root)
+!LINE
+ReportPtr = ^Report;
+
+The Report object is a collection of PrintedForms.
+
+  1333OpForm                    1404AddForm                 1401Done
+  1405FindForm                  1400Init                    1406Load
+  1403Process                   1402rGetLastError           1407Store
+;
+;------------------------------------------------------------
+!TOPIC 1400 Init,Report
+!NOINDEX
+constructor 1399Report.Init;
+
+Create a report.
+
+See also:  1401Done  1406Load
+;
+;------------------------------------------------------------
+!TOPIC 1401 Done,Report
+!NOINDEX
+destructor 1399Report.Done; virtual;
+
+Destroy a report.
+
+See also:  1400Init  1406Load
+;
+;------------------------------------------------------------
+!TOPIC 1402 rGetLastError
+!NOINDEX
+function 1399Report.rGetLastError : Word;
+
+Get last error code and clear error code.
+
+See also:  1351PrintedForm.fGetLastError
+;
+;------------------------------------------------------------
+!TOPIC 1403 Process,Report
+!NOINDEX
+procedure 1399Report.Process; virtual;
+
+Print the Report.
+
+See also:  1349PrintedForm.Process
+;
+;------------------------------------------------------------
+!TOPIC 1404 AddForm
+!NOINDEX
+procedure 1399Report.AddForm(fPtr : PrintedFormPtr);
+
+Add a PrintedForm to Report.
+;
+;------------------------------------------------------------
+!TOPIC 1405 FindForm
+!NOINDEX
+function 1399Report.FindForm(FormID : Byte) : PrintedFormPtr;
+
+Return a pointer to the PrintedForm with the specified ID.
+
+See also:  1404AddForm
+;
+;------------------------------------------------------------
+!TOPIC 1406 Load,Report
+!NOINDEX
+constructor 1399Report.Load(var S : IdStream);
+
+Load a Report from a stream.
+
+See also:  1401Done  1400Init  1397PrintedForm.Load
+;
+;------------------------------------------------------------
+!TOPIC 1407 Store,Report
+!NOINDEX
+procedure 1399Report.Store(var S : IdStream);
+
+Store a Report in a stream.
+
+See also:  1406Load  1398PrintedForm.Store
+;
+;------------------------------------------------------------
+!TOPIC 1408 PrintedForm streams
+!NOINDEX
+!NOSEARCH
+Each field type that you actually use in a PrintedForm must be registered
+before you can store your PrintedForm in a stream. And those same field types
+must also be registered before you can reload it from the stream. We've done
+two things to simplify this task. First, we've put together a table (below)
+that shows the correspondences between the various AddXxxField methods and the
+stream registration routines that go with them. This table makes it fairly
+easy to come up with a list of registration routines to call. The second thing
+we've done is to provide a few routines that register multiple field types at
+once:
+
+!NOWRAP
+AllBasicFieldsStream
+AllDateFieldsStream
+AllLineFieldsStream
+AllPrintFieldsStream
+!WRAP
+
+AllPrintFieldsStream registers every field type there is. If you wish, you can
+just call this one routine and be done with it. But unless you really need all
+of the different field types (which is highly unlikely) it's unwise to do so.
+
+The other three routines register only a subset of the complete group of field
+types. The field types registered by these routines are indicated in the table
+below. Field types with an 'x' in the Basic column are registered by
+AllBasicFieldsStream. An 'x' in the Line column indicates a field is
+registered by AllLineFieldsStream. And an 'x' in the Date column indicates
+that the field is registered by AllDateFieldsStream.
+
+!NOWRAP
+AddXxxField routine      Stream registration           Basic   Line   Date
+AddBooleanField          BooleanPrintFieldStream       x
+AddByteField             BytePrintFieldStream          x
+AddCharField             CharPrintFieldStream          x
+AddIntField              IntPrintFieldStream           x
+AddLongField             LongPrintFieldStream          x
+AddRealField             RealPrintFieldStream          x
+AddShortField            ShortPrintFieldStream         x
+AddStringField           StringPrintFieldStream        x
+AddWordField             WordPrintFieldStream          x
+AddYesNoField            YesNoPrintFieldStream         x
+AddDateField             DatePrintFieldStream                         x
+AddTimeField             TimePrintFieldStream                         x
+AddBox                   LineFieldPrintStream                  x
+AddLine                  LineFieldStream                       x
+AddShaded                ShadedFieldStream                     x
+!WRAP
+
+The routine AddDirective does not require any special registration routine.
+
+All of the variables that correspond to one of the fields must also be
+registered. In the worst case, if no other solution were provided, you would
+have to register the address of each and every one of them using
+RegisterPointer. And you'd have to do it twice: once when the PrintedForm was
+stored, and once when it was loaded. Although it is not possible to automate
+this task completely, the PrintedForm is able to simplify it for you using the
+concept of the "user record." The assumption behind the user record concept is
+that, in the typical printed form, each PrintField corresponds to a field in a
+single record variable. If this is so, then the matter of registering the
+variables can be made much simpler.
+
+Before trying to store your PrintedForm and after starting the block the data
+is associated with, you can just call the SetUserRecord method with two
+parameters: the name and size of your record variable. When a given field is
+written to the stream, the Store method will see that the variable is part of
+the user record and simply save its offset relative to the start of the
+record. When the PrintedForm is reloaded from the stream, all that the Load
+method needs to know in order to fix up the addresses for all the variables is
+the address for the new user record. Here you have two choices:
+
+1) If you do not register the address of the user record when you Store the
+PrintedForm, the Load constructor will try to allocate one for you
+automatically when you go to reload it. You can then use the GetUserRecord
+method to return the address of the record variable that was allocated. And
+you can use GetUserRecordSize to verify that the size of the record variable
+matches your expectations.
+
+2) Alternatively, you can use RegisterPointer to register the address of your
+user record at the time that you Store it. When you go to reload it, you would
+call RegisterPointer again to register the address of the new user record. If
+it is not registered, the Load operation will fail.
+
+What about the case where most of the variables associated with the fields are
+part of a single record, but not quite all? In this case, you can simply use
+RegisterPointer to deal with all the exceptions.
+
+One important note about user records: User records are always relative to the
+current block. Each block may have its own user record. It is important to
+call SetUserRecord _after_ the call to the NewBlock method. Any blocks
+duplicated from the block that SetUserRecord was called for will automatically
+inherit the same user record (and user record size). In an entry screen, you
+may have only one user record for the entire entry screen, with a PrintedForm,
+each block may have its own user record.
+
+The difference in the "scope" of a user record is an important conceptual
+difference between OpForm and OpEntry. OpEntry allows one user record to be
+defined for the entire entry screen. OpForm deals with one or more blocks on a
+page. Since each block contains its own set of fields associated with it, each
+block is likely to be related to a different user record. This complicates
+matters somewhat, since when the SetUserRecord method is called becomes
+critical to its proper operation. Remeber--call SetUserRecord for a given
+block after you have created by calling the NewBlock method. If a block is
+duplicated from the current block, it will inherit its predecessor's user
+record information, otherwise you must explicitly call SetUserRecord again
+after defining any new blocks that will be associated with a given user
+record.
+
+    1354PrintedForm.GetUserRecord         1355PrintedForm.GetUserRecordSize
+    1397PrintedForm.Load                  1406Report.Load
+    1353PrintedForm.SetUserRecord         1398PrintedForm.Store
+    1407Report.Store
+;
+;------------------------------------------------------------
+!TOPIC 1409 Declarations,PrintFields
+!NOINDEX
+!NOSEARCH
+OpForm provides the following types, constants and variables for working
+with the PrintField object:
+
+  1412Box chars                 1419BoxCharSet              1411DefPadCh
+  1410PrintField.Option flags   1420PrintBlock              1413PrintConversionFunc
+  1417PrintFieldFunc            1421PrintPage               1414UserBlockFunc
+  1416UserFormFunc              1415UserPageFunc            1431Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1410 Option flags,PrintField
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+const
+  pfHexadecimal       = $00040000;
+  pfSuppressZero      = $00020000;
+  pfRightJustify      = $00010000;
+  pfInhibitAttrOn     = $00008000;
+  pfInhibitAttrOff    = $00004000;
+  pfInhibitString     = $00002000;
+  pfInhibitPos        = $00001000;
+  pfHidden            = $00000200;
+!WRAP
+
+These are option flags for objects derived from PrintField:
+
+pfHexadecimal - Internal flag, set if picture mask contains 'K'.
+
+pfSuppressZero - Integer fields (Byte, ShortInt, Integer, Word, LongInt) will
+not be printed if the value is exactly zero.
+
+pfRightJustify - Field is to be right justified in the field's specified
+width.
+
+pfInhibitAttrOn - When the field is printed, do not enable the PrintMode
+associated with the field.
+
+pfInhibitAttrOff - When the field is printed, do not disable the PrintMode
+associated with the field.
+
+pfInhibitString - When the field is printed, do not write the field's string.
+
+pfInhibitPos - When the field is printed, inhibit the head positioning for the
+field.
+
+pfHidden - Hide the field, i.e., don't print its PrintMode control sequences
+or the string.
+
+See also:
+    1363PrintedForm.FieldOptionsAreOn     1361PrintedForm.FieldOptionsOff
+    1359PrintedForm.FieldOptionsOn        1337pfOptionsAreOn
+    1336pfOptionsOff                      1335pfOptionsOn
+    1362PrintedForm.PromptOptionsAreOn    1360PrintedForm.PromptOptionsOff
+    1358PrintedForm.PromptOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1411 DefPadCh
+!NOINDEX
+const
+  DefPadCh  : Char = ' ';
+
+The character used by default to pad fields.
+;
+;------------------------------------------------------------
+!TOPIC 1412 Box chars
+!NOINDEX
+!NOSEARCH
+const
+  SingleLineBox : BoxCharSet = ('Ú','Ä','¿','³','À','Ù');
+  DoubleLineBox : BoxCharSet = ('É','Í','»','º','È','¼');
+
+Box character sets for single and double line boxes.
+
+See also:  1419BoxCharSet
+;
+;------------------------------------------------------------
+!TOPIC 1413 PrintConversionFunc
+!NOINDEX
+type
+  PrintConversionFunc = function (PFP : PrintFieldPtr) : Boolean;
+
+The definition of a PrintField conversion function. A print conversion
+function is called prior to printing each field.
+
+See also:  1417PrintFieldFunc
+;
+;------------------------------------------------------------
+!TOPIC 1414 UserBlockFunc
+!NOINDEX
+type
+  UserBlockFunc = function (PB : PrintBlockPtr) : Boolean;
+
+The definition of the user block function. This function is called prior
+to building the field list for each PrintBlock.
+
+See also:  1416UserFormFunc  1415UserPageFunc
+;
+;------------------------------------------------------------
+!TOPIC 1415 UserPageFunc
+!NOINDEX
+type
+  UserPageFunc = function (PP : PrintPagePtr) : Boolean;
+
+The definition of the user page function. This function is called prior to
+printing each page.
+
+See also:  1414UserBlockFunc  1416UserFormFunc
+;
+;------------------------------------------------------------
+!TOPIC 1416 UserFormFunc
+!NOINDEX
+type
+  UserFormFunc = function (PreForm : Boolean; F : FormPtr) : Boolean;
+
+The definition of the user form function. This function is called before
+and after each form is printed.
+
+See also:  1414UserBlockFunc  1415UserPageFunc
+;
+;------------------------------------------------------------
+!TOPIC 1417 PrintFieldProc
+!NOINDEX
+type
+  PrintFieldProc = procedure (pfPtr : PrintFieldPtr;
+                              var D; FPtr : FormPtr);
+
+ The procedure type definition used by the 1418VisitAllPrintFields method.
+;
+;------------------------------------------------------------
+!TOPIC 1418 VisitAllPrintFields
+!NOINDEX
+procedure 1385PrintedForm.VisitAllPrintFields(PfProc : PrintFieldProc; var D);
+
+Visit all fields in the form, calling PfProc for each one.
+
+See also:  1417PrintFieldProc
+;
+;------------------------------------------------------------
+!TOPIC 1419 BoxCharSet
+!NOINDEX
+type
+  BoxCharType = frTL..frRR;
+  BoxCharSet = array[BoxCharType] of Char;
+
+The character elements used by the box drawing routines. Note that the
+constants frTL..frRR are consistent with those defined by OpCrt, but are
+redeclared in OpForm to avoid having to use OpCrt in this unit.
+
+See also:  1412Box chars
+;
+;------------------------------------------------------------
+!TOPIC 1420 PrintBlock
+!NOINDEX
+1333OpForm.PrintBlock = object(2425SingleListNode)
+!LINE
+PrintBlockPtr = ^PrintBlock;
+
+An intermediate level object used to organize the fields in a PrintedForm.
+PrintPage contains a list of PrintBlocks. PrintBlock's methods are used
+internally and are not documented here.
+;
+;------------------------------------------------------------
+!TOPIC 1421 PrintPage
+!NOINDEX
+1333OpForm.PrintPage = object(2425SingleListNode)
+!LINE
+PrintPagePtr = ^PrintPage;
+
+Another intermediate level object used to organize print fields.
+PrintedForm contains a list of PrintPages. PrintPage's methods are used
+internally and are not documented here.
+;
+;------------------------------------------------------------
+!TOPIC 1422 Adding fields,OpForm
+!NOINDEX
+!NOSEARCH
+With a few exceptions the first 12 parameters to each of the routines for
+adding fields are the same. The following table lists these parameters,
+gives each a brief definition, and notes the methods that don't follow the
+general rule:
+
+!NOWRAP
+Parameter      Meaning              Field Types
+pFieldID       Prompt ID            All except directive fields
+Prompt         Prompt message       "
+pRow, pCol     Prompt coordinates   "
+pAttr          Prompt PrintMode ID  "
+pWidth         Prompt width         "
+Picture        Picture mask         All except text and line fields
+fFieldID       Field ID             "
+fRow, fCol     Field coordinates    "
+fAttr          Field PrintMode ID   "
+fWidth         Field width          All except text, real, and line fields
+fDPlaces       Decimal places       All reals except Comp
+!WRAP
+
+Parameters that start with 'p' are related to the prompt portion of the
+field, and those that start with 'f' are related to the data portion of the
+field.
+
+pFieldID and fFieldID are ID numbers (of type Word) associated with the
+prompt and data portions of the field, respectively. In contrast to
+OpEntry, the programmer assigns these numbers instead of the entry system.
+The numbers need not be unique within a PrintedForm. Instead they represent
+a convenient way to identify particular PrintFields, perhaps in order to
+dynamically modify them. The most common approach will be to number the ID
+codes sequentially; another logical method would be to assign common codes
+to related groups. Note that the ID number $FFFF is reserved for OpForm's
+internal use. See the PrintedForm methods 1390FindField,
+1391FindNextField, and 1392ChangeConversion for more information.
+
+Prompt is a fixed string to be printed whenever the varying portion of the
+field is printed. Prompt may be an empty string, in which case the values
+of pRow and pCol don't matter. Note that the prompt and data need not
+appear on the same row of the form. pRow and pCol specify the position of
+the prompt using absolute page coordinates in units of Dimension.
+
+pAttr is the ID code of a PrintMode that will be activated prior to
+printing the prompt and deactivated after. The PrintMode ID code is
+analogous to the video attribute of an entry field; keep this in mind when
+we use the Attr abbreviation hereafter.
+
+pWidth specifies the desired width of the prompt in characters; the prompt
+will be padded or truncated to this width before printing.
+
+Picture is the picture mask for the field's data portion, which describes
+the format of the field and how it is converted from the Pascal data type
+to a string. For all simple fields, the picture mask is optional and an
+empty string may be specified in its position. When no picture mask is
+specified, fWidth and fDPlaces (for reals) determine how the string is
+formatted. For further discussion of picture masks, see OpAbsFld. Although
+picture masks obviously do not play a role in validating input for the
+OpForm unit, they are used just as OpEntry does for formatting output.
+
+fFieldID, fRow, fCol, fAttr, and fWidth play the same role for the data
+portion of the field as the previously described parameters do for the
+prompt.
+
+fDPlaces is used for floating point data fields (Real, BCD, Single, Double,
+and Extended). If the picture mask for the field has no fixed decimal
+point, fDPlaces indicates the number of decimal places to be displayed in
+the output. If the picture mask does contain a decimal point, fDPlaces is
+ignored.
+
+The last parameter to an AddField method (PrintXxx) is almost always the
+name of the variable associated with the field. The only exceptions are
+AddTextField, AddBox, AddDirective, AddLine, and AddShaded, none of which
+are associated with any variable.
+
+The following topics contain the specific declarations for adding each field
+type:
+
+  1426AddBCDField               1367AddBooleanField         1379AddBox
+  1372AddByteField              1366AddCharField            1430AddCompField
+  1375AddDateField              1428AddDblField             1377AddDirective
+  1427AddExtField               1371AddIntField             1378AddLine
+  1369AddLongField              1389AddPrintMode            1374AddRealField
+  1429AddSglField               1380AddShaded               1373AddShortField
+  1365AddStringField            1364AddTextField            1376AddTimeField
+  1370AddWordField              1368AddYesNoField
+;
+;------------------------------------------------------------
+!TOPIC 1423 Field control
+!NOINDEX
+!NOSEARCH
+The following methods all relate to controlling fields on a printed page. This
+includes field conversion, position and options:
+
+  1392ChangeConversion          1363FieldOptionsAreOn       1361FieldOptionsOff
+  1359FieldOptionsOn            1390FindField               1391FindNextField
+  1362PromptOptionsAreOn        1360PromptOptionsOff        1358PromptOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1424 General methods,PrintedForm
+!NOINDEX
+!NOSEARCH
+The following includes all PrintedForm methods not specifically used for
+adding or controlling PrintFields or manipulating headers and footers:
+
+  1348Done                      1356DupCurrentBlock         1357DupCurrentPage
+  1351fGetLastError             1350fPrinterPtr             1394GetUserData
+  1354GetUserRecord             1355GetUserRecordSize       1346Init
+  1347InitCustom                1397Load                    1352NewBlock
+  1381NewPage                   1349Process                 1388SetErrorHandler
+  1395SetPrePageFunc            1396SetPrePostFormFunc      1393SetUserData
+  1353SetUserRecord             1398Store                   1418VisitAllPrintFields
+;
+;------------------------------------------------------------
+!TOPIC 1425 Headers/footers
+!NOINDEX
+!NOSEARCH
+The following methods are for adding and modifying page headers and footers:
+
+  1387GetFooter                 1384GetHeader               1385SetFooter
+  1386SetFooterFunc             1382SetHeader               1383SetHeaderFunc
+;
+;------------------------------------------------------------
+!TOPIC 1426 AddBCDField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddBCDField(pFieldID : Word;
+                                  Prompt : String;
+                                  pRow, pCol : Dimension;
+                                  pAttr : Byte; pWidth : Byte;
+                                  fFieldID : Word;
+                                  Picture : String;
+                                  fRow, fCol : Dimension;
+                                  fAttr : Byte; fDPlaces : Byte;
+                                  fWidth : Byte;
+                                  var PrintBCD : BCD);
+
+Adds prompt and BCD field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1427 AddExtField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddExtField(pFieldID : Word;
+                                  Prompt : String;
+                                  pRow, pCol : Dimension;
+                                  pAttr : Byte; pWidth : Byte;
+                                  fFieldID : Word;
+                                  Picture : String;
+                                  fRow, fCol : Dimension;
+                                  fAttr : Byte; fDPlaces : Byte;
+                                  fWidth : Byte;
+                                  var PrintExt : Extended);
+
+Adds prompt and Extended field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1428 AddDblField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddDblField(pFieldID : Word;
+                                  Prompt : String;
+                                  pRow, pCol : Dimension;
+                                  pAttr : Byte; pWidth : Byte;
+                                  fFieldID : Word;
+                                  Picture : String;
+                                  fRow, fCol : Dimension;
+                                  fAttr : Byte; fDPlaces : Byte;
+                                  fWidth : Byte;
+                                  var PrintDbl : Double);
+
+Adds prompt and Double field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1429 AddSglField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddSglField(pFieldID : Word;
+                                  Prompt : String;
+                                  pRow, pCol : Dimension;
+                                  pAttr : Byte; pWidth : Byte;
+                                  fFieldID : Word;
+                                  Picture : String;
+                                  fRow, fCol : Dimension;
+                                  fAttr : Byte; fDPlaces : Byte;
+                                  fWidth : Byte;
+                                  var PrintSgl : Single);
+
+Adds prompt and Single field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1430 AddCompField,PrintedForm
+!NOINDEX
+procedure 1345PrintedForm.AddCompField(pFieldID : Word;
+                                   Prompt : String;
+                                   pRow, pCol : Dimension;
+                                   pAttr : Byte; pWidth : Byte;
+                                   fFieldID : Word;
+                                   Picture : String;
+                                   fRow, fCol : Dimension;
+                                   fAttr : Byte; fWidth : Byte;
+                                   var PrintComp : Comp);
+
+Adds prompt and Comp field.
+
+See also:  1422Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1431 Option flags,PrintedForm
+!NOINDEX
+!NOSEARCH
+const
+  fDontStorePrinter = $0002;
+
+These are option flags for objects derived from PrintedForm:
+
+fDontStorePrinter - When the form is written to a stream, this option
+determines whether or not the associated printer object is stored
+as well.

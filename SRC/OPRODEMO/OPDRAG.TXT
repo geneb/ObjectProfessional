@@ -1,0 +1,348 @@
+;
+;-------------------------------------------------------------------
+!TOPIC 912 OpDrag
+OpDrag adds the capability to move and resize windows by holding down the
+left mouse button, moving the mouse to drag the window to its desired
+configuration, and then releasing the button to accept the change. Once
+OpDrag has been activated, other useful changes fall out automatically; for
+example, the mouse will drag the highlight bar in a pick list and the actions
+caused by clicking on the increment or decrement arrows of a scroll bar will
+autorepeat.
+
+OpDrag implements one new object, the DragProcessor, derived from the OpCmd
+unit's CommandProcessor object. OpDrag manages a global mouse event queue
+and provides procedures and functions for accessing this queue.
+
+  0931Declarations                   0913DragProcessor
+  0932Procedures and Functions
+;
+;-------------------------------------------------------------------
+!TOPIC 913 DragProcessor
+!NOINDEX
+DragProcessor = object(CommandProcessor)
+!LINE
+DragProcessorPtr = ^DragProcessor;
+
+DragProcessor overrides two methods of the CommandProcessor --
+cpKeyPressed and cpGetKey -- in order to change their behavior. Instead of
+calling the OpMouse ReadKeyOrButton routine, the new cpGetKey uses its own
+mouse event handler and event queue to deal with mouse events. OpDrag also
+installs a timer tick interrupt handler in order to "auto-repeat" mouse events
+while the left button is held down. The new cpKeyPressed method checks the
+event queue as well as the normal keyboard buffer in order to return True or
+False. DragProcessor implements the following public methods:
+
+  0914Init                      0918Load                    0917SetMickeyRatio
+  0915SetMouseCursor            0916SetScreenMask           0919Store
+;
+;-------------------------------------------------------------------
+!TOPIC 914 Init,DragProcessor
+!NOINDEX
+constructor 0913DragProcessor.Init(KeysPtr : CmdTablePtr; MaxIndex : Word);
+
+Initialize DragProcessor. Here's a list of the key tables and max index
+values for each standard CommandProcessor. If the UseDrag define is
+activated in OPDEFINE.INC, you don't need to worry about these, since each
+unit's initialization block will automatically instantiate a standard
+DragProcessor. Otherwise, you can use the information in the table to
+initialize your own DragProcessors using the standard key sets.
+
+   Unit       CommandProcessor Key Set        Key Max
+   --------   ---------------- ------------   ------------
+   OPBROWSE   BrowseCommands   BrowseKeySet   BrowseKeyMax
+   OPCAL      CalCommands      CalKeySet      CalKeyMax
+   OPCALC     CalcCommands     CalcKeySet     CalcKeyMax
+   OPDIALOG   DialogCommands   DialogKeySet   DialogKeyMax
+   OPEDIT     EditCommands     EditKeySet     EditKeyMax
+   OPEDITOR   EditorCommands   EditorKeySet   EditorKeyMax
+   OPENTRY    EntryCommands    EntryKeySet    EntryKeyMax
+   OPHELP     HelpCommands     HelpKeySet     HelpKeyMax
+   OPMACED    MacEdCommands    MacEdKeySet    MacEdKeyMax
+   OPMEMO     MemoCommands     MemoKeySet     MemoKeyMax
+   OPMENU     MenuCommands     MenuKeySet     MenuKeyMax
+   OPPICK     PickCommands     PickKeySet     PickKeyMax
+   OPQKREF    QkRefCommands    QkRefKeySet    QkRefKeyMax
+   OPSEDIT    SimpEditCommands SimpEditKeySet SimpEditKeyMax
+   OPSELECT   SelectCommands   SelectKeySet   SelectKeyMax
+
+For example, you'd instantiate a DragProcessor for OpEditor by writing
+EditorDragCommands.Init(@EditorKeySet, EditorKeyMax). When you create a new
+DragProcessor to replace the standard CommandProcessor, about 40 bytes of
+global data space are wasted (by the standard CommandProcessor variable that
+is no longer used).
+
+See also:  0915SetMouseCursor  0916SetScreenMask   0917SetMickeyRatio
+;
+;-------------------------------------------------------------------
+!TOPIC 915 SetMouseCursor
+!NOINDEX
+procedure 0913DragProcessor.SetMouseCursor(DefaultCur,
+                                       MoveCur, ResizeCur : Word);
+
+Set the mouse cursor masks for various conditions. (DefaultCur by default,
+MoveCur while a window is being moved, and ResizeCur while a window is being
+resized.)
+
+See also:  0914Init  0916SetScreenMask
+;
+;-------------------------------------------------------------------
+!TOPIC 916 SetScreenMask
+!NOINDEX
+procedure 0913DragProcessor.SetScreenMask(Mask : Word);
+
+Set the screen mask used for the mouse cursor.
+
+See also:  0915SetMouseCursor
+;
+;-------------------------------------------------------------------
+!TOPIC 917 SetMickeyRatio
+!NOINDEX
+procedure 0913DragProcessor.SetMickeyRatio(Ratio : Byte);
+
+Set the mickey to character scale factor used while moving or resizing a
+window.
+
+See also:  0920HandleMousePress
+;
+;-------------------------------------------------------------------
+!TOPIC 918 Load,DragProcessor
+!NOINDEX
+constructor 0913DragProcessor.Load(var S : IdStream);
+
+Load from a stream.
+
+See also:  0919Store
+;
+;-------------------------------------------------------------------
+!TOPIC 919 Store,DragProcessor
+!NOINDEX
+procedure 0913DragProcessor.Store(var S : IdStream);
+
+Store in a stream.
+
+See also:  0918Load
+;
+;-------------------------------------------------------------------
+!TOPIC 920 HandleMousePress
+!NOINDEX
+function 0912OpDrag.HandleMousePress(var M : CommandWindow) : Byte;
+
+Call this function after M's Process method returns a command code of
+ccMouseDown. HandleMousePress compares the mouse position to the hot spots in
+the window's main frame. If the hot spot codes match MoveHotCode,
+ResizeHotCode, ZoomHotCode, or CloseHotCode, HandleMousePress will
+interactively move, resize, toggle the zoom for, or close the window M. It
+doesn't return until the left mouse button is released. HandleMousePress clears
+the mouse event queue before returning if it handles the hot spot. Otherwise it
+leaves the event queue intact.
+
+When HandleMousePress handles the move and resize hot spots, it temporarily
+changes the mouse cursor appearance and restores it before it returns. You
+can control the cursor appearance by calling 0915DragProcessor.SetMouseCursor
+and 0916DragProcessor.SetScreenMask.
+
+HandleMousePress returns the hot spot code of the hot spot that it detected,
+or hsNone if the mouse wasn't over any hot spot when the ccMouseDown command
+occurred.
+;
+;-------------------------------------------------------------------
+!TOPIC 921 DragProcessorStream
+!NOINDEX
+procedure 0912OpDrag.DragProcessorStream(SPtr : IdStreamPtr);
+
+Register all types needed for streams containing drag processors.
+
+See also:  0918DragProcessor.Load  0919DragProcessor.Store
+;
+;-------------------------------------------------------------------
+!TOPIC 922 InstallISRs
+!NOINDEX
+procedure 0912OpDrag.InstallISRs;
+
+Install mouse event handler and Int1C Handler.
+
+See also:  0923RemoveISRs  0924SetChainedEventHandler
+;
+;-------------------------------------------------------------------
+!TOPIC 923 RemoveISRs
+!NOINDEX
+procedure 0912OpDrag.RemoveISRs;
+
+Restore Int1C and disable mouse event handling.
+
+See also:  0922InstallISRs
+;
+;-------------------------------------------------------------------
+!TOPIC 924 SetChainedEventHandler
+!NOINDEX
+procedure 0912OpDrag.SetChainedEventHandler(EventMask : MouseEventType;
+                                        UserRoutine : Pointer);
+
+Install a secondary mouse event handler, called after OpDrag's event handler
+is finished.
+;
+;-------------------------------------------------------------------
+!TOPIC 925 ClearMouseEvents
+!NOINDEX
+procedure 0912OpDrag.ClearMouseEvents;
+
+Clear the mouse event queue.
+
+See also:  0928ReadMouseEvent
+;
+;-------------------------------------------------------------------
+!TOPIC 926 MouseEventsPending
+!NOINDEX
+function 0912OpDrag.MouseEventsPending : Boolean;
+
+Return True if mouse events are available to read.
+
+See also:  0929PeekMouseEvent  0928ReadMouseEvent
+;
+;-------------------------------------------------------------------
+!TOPIC 927 StoreMouseEvent
+!NOINDEX
+procedure 0912OpDrag.StoreMouseEvent(K : Word; X, Y : Byte);
+
+Store a new event in the queue. Overwrites last event if queue is full.
+
+See also:  0928ReadMouseEvent
+;
+;-------------------------------------------------------------------
+!TOPIC 928 ReadMouseEvent
+!NOINDEX
+function 0912OpDrag.ReadMouseEvent(var X, Y : Byte) : Word;
+
+Read and remove the first event from the queue. It is an error to call
+ReadMouseEvent unless 0926MouseEventsPending already returns True.
+
+See also:  0929PeekMouseEvent
+;
+;-------------------------------------------------------------------
+!TOPIC 929 PeekMouseEvent
+!NOINDEX
+function 0912OpDrag.PeekMouseEvent(var X, Y : Byte) : Word;
+
+Read the first event from the queue but leave it there. It is an error to call
+PeekMouseEvent unless 0926MouseEventsPending already returns True.
+
+See also:  0928ReadMouseEvent
+;
+;-------------------------------------------------------------------
+!TOPIC 930 WaitForButtonUp
+!NOINDEX
+function 0912OpDrag.WaitForButtonUp;
+
+Take events from the queue until the left button is released.
+
+See also:  0920HandleMousePress   0925ClearMouseEvents
+;
+;-------------------------------------------------------------------
+!TOPIC 931 Declarations,OpDrag
+!NOINDEX
+!NOSEARCH
+The following constants control aspects of the OpDrag unit's behavior.
+
+  0933AutoRepeatTicks                0934AutoDelayTicks
+  0936MouseLftAuto                   0935MouseLftDown
+  0937MoveHotCode                    0938ResizeHotCode
+  0939ZoomHotCode                    0940CloseHotCode
+;
+;-------------------------------------------------------------------
+!TOPIC 932 Procedures and Functions
+!NOINDEX
+!NOSEARCH
+OpDrag provides the following procedures and functions. With the exception
+of 0921DragProcessorStream, which is used for registered the types needed to store
+a 0913DragProcessor in a stream, and 0920HandleMousePress, which deals with a
+mouse click that caused a Process method to exit, the routines are used to
+control and access the global mouse event queue.
+
+  0925ClearMouseEvents               0921DragProcessorStream
+  0920HandleMousePress               0922InstallISRs
+  0926MouseEventsPending             0929PeekMouseEvent
+  0928ReadMouseEvent                 0923RemoveISRs
+  0924SetChainedEventHandler         0927StoreMouseEvent
+  0930WaitForButtonUp
+;
+;-------------------------------------------------------------------
+!TOPIC 933 AutoRepeatTicks
+!NOINDEX
+const
+  AutoRepeatTicks : Word = 0;
+
+Ticks to delay between auto mouse down events. The default value of 0 provides
+the minimum delay and generates events at the rate of about 18 per second.
+Setting the value to 1 cuts the rate to about 9 per second.
+;
+;-------------------------------------------------------------------
+!TOPIC 934 AutoDelayTicks
+!NOINDEX
+const
+  AutoDelayTicks : Word = 0;
+
+Ticks to wait between the time the left mouse button is pressed and held, and
+the time that the first automatic mouse event is generated.
+;
+;-------------------------------------------------------------------
+!TOPIC 935 MouseLftDown
+!NOINDEX
+const
+  MouseLftDown  = $E800;
+
+Pseudo-scan code for pushing down on the left mouse button.
+;
+;-------------------------------------------------------------------
+!TOPIC 936 MouseLftAuto
+!NOINDEX
+const
+  MouseLftAuto  = $E700;
+
+Pseudo-scan code produced when the left mouse button is held down and either
+the mouse is moved or 0933AutoRepeatTicks timer ticks pass.
+;
+;-------------------------------------------------------------------
+!TOPIC 937 MoveHotCode
+!NOINDEX
+const
+  MoveHotCode   = hsRegion0;
+
+The hot spot code for which HandleMousePress will interactively move a window.
+The value is arbitrary; if it conflicts with other hot spot codes in an
+existing application, change it and recompile OpDrag.
+
+See also:  0938ResizeHotCode  0939ZoomHotCode
+;
+;-------------------------------------------------------------------
+!TOPIC 938 ResizeHotCode
+!NOINDEX
+const
+  ResizeHotCode = hsRegion1;
+
+The hot spot code for which HandleMousePress will interactively resize a
+window. The value is arbitrary; if it conflicts with other hot spot codes in
+an existing application, change it and recompile OpDrag.
+
+See also:  0937MoveHotCode  0939ZoomHotCode
+;
+;-------------------------------------------------------------------
+!TOPIC 939 ZoomHotCode
+!NOINDEX
+const
+  ZoomHotCode   = hsRegion2;
+
+The hot spot code for which HandleMousePress will interactively zoom or unzoom
+a window. The value is arbitrary; if it conflicts with other hot spot codes
+in an existing application, change it and recompile OpDrag.
+
+See also:  0937MoveHotCode  0938ResizeHotCode
+;
+;-------------------------------------------------------------------
+!TOPIC 940 CloseHotCode
+!NOINDEX
+const
+  CloseHotCode  = hsRegion3
+
+The hot spot code for which HandleMousePress will generate a last command of
+ccQuit for a window.  The value is arbitrary; if it conflicts with other hot
+spot codes in an existing application, change it and recompile OpDrag

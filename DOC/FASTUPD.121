@@ -1,0 +1,122 @@
+This file summarizes changes made between Object Professional versions 1.20
+and 1.21. It is of interest primarily to Fast Update Plan subscribers.
+
+Bugs fixed
+---------------------------------------------------------------------------
+OPCRT
+  - Corrected problem with CRT/OPCRT conflict check in DLLs
+
+OPCTRL
+  - Fixed problem with ChangeHidden and pushbuttons
+  - Fixed problem with clusters and dcSelectLocally option
+
+OPDIALOG
+  - Could not add right-aligned prompt containing '&'
+
+OPDIR
+  - Could display more than one column in PathList
+
+OPDOS
+  - GetDiskClass returned SubstDrive for invalid drives
+  - GetDiskClass returned bogus results in an OS/2 DOS box
+  - ShellWithPrompt gave -7 error in pmode
+  - Disk label routines and SetDta died in pmode
+  - FileHandlesOpen produced GPFs in pmode
+  - PRINT.COM services produced GPFs in pmode
+  - Potential for problems in pmode with SetRawMode
+  - Master environment code didn't work under DRDOS
+
+OPDRAG
+  - Improved drag move/resize behavior
+
+OPENHKBD
+  - Int 16 handler was messed up in 1.20
+
+OPEXEC
+  - Updated GetDiskClass to match version in OPDOS
+
+OPFORM
+  - Fixed read error problem when loading forms that use HP printers
+  - Not disposing printer allocated by form loaded from a stream
+  - Margin settings were handled improperly
+
+OPHELP
+  - Shift-Tab command missed cross-references
+
+OPINLINE
+  - Reboot macro didn't work in PMode
+
+OPINT
+  - Using EmulateInt could lead to random behavior/hangs
+
+OPMENU
+  - Couldn't drag highlight on items with submenus
+  - Alpha searching was incomplete with protected items
+
+OPROOT
+  - PointerStack crashed if more than 16380 elements pushed
+  - LargeBitSet.PrevSet skipped set bits
+
+OPSTRING
+  - BMSearchUC locked up occasionally
+
+OPSWAP1
+  - ModuleInstalled and ModulePtrByName failed with MemoryMate
+
+OPTSR
+  - ModuleInstalled and ModulePtrByName failed with MemoryMate
+
+MAKEHELP
+  - Empty last topic caused problems in OPHELP; MH now prevents this
+
+POPHELP
+  - POPHELP was permanently grabbing COM2 under OS/2
+
+TPUI
+  - Would not compile in protected mode application
+
+
+New Features
+----------------------------------------------------------------------
+Most new features are described in detail in READ.1ST. The following
+is a brief description of them, arranged by unit. Minor enhancements
+to existing programs and routines are listed here only and are denoted
+by asterisks.
+
+OPCRT
+  - Reenabled UseCRT define and CRT conflict checking in pmode
+
+OPCTRL
+  - dcSelectLocally option now affects drawing of cluster items
+
+OPDEVICE
+  - Added registration routines for Brother M-1709 and IBM QuickWriter
+
+OPDIALOG
+  * Added support for efReadOnly option for edit controls
+  - Added Enter-To-Tab option
+
+OPENTRY
+  * Better error when no mask passed to AddXxxField call
+
+OPERRHAN
+  * Made changes to allow unit to link with SB Pascal+ 6.14
+  * Added support for runtime error 215 (arithmetic overflow)
+
+OPINLINE
+  - Added LoNibble, HiNibble, and MakeByte routines
+
+OPMENU
+  - Added option to keep the select char visible in a highlighted item
+
+OPMOUSE
+  * Protect against bogus MouseMove events in Windows DOS box
+
+OPROOT
+  - Now allows more than 64K elements in a linked list
+  - Unit may now be overlayed
+
+OPSTRING
+  * Made Form and LongIntForm mutually reentrant
+  - Str2Int/Str2Word/Str2Long now recognize 0000h and 0x0000 formats
+

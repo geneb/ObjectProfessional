@@ -1,0 +1,1125 @@
+;------------------------------------------------------------
+!TOPIC 2617 OpSelect
+With OpSelect begins a hierarchy of objects derived from CommandWindow
+that link individual fields together to form groups:
+
+[3045CommandWindow]
+  2618AbstractSelector
+    2664Selector
+      2681ScrollingSelector
+    [1137EntryScreen]
+      [1214ScrollingEntryScreen]
+
+The AbstractSelector, Selector, and ScrollingSelector objects are
+implemented in OpSelect. The EntryScreen and ScrollingEntryScreen
+objects, which are derived from AbstractSelector, are implemented in
+OpEntry.
+
+See also:  2704Commands
+;
+;------------------------------------------------------------
+!TOPIC 2618 AbstractSelector
+!NOINDEX
+2617OpSelect.AbstractSelector = object(3045CommandWindow)
+!LINE
+AbstractSelectorPtr = ^AbstractSelector;
+
+The AbstractSelector is a purely abstract object; you'll never want to
+create an instance of one. If you are working with Selectors or
+EntryScreens, you will, however, need to be familiar with it because it
+defines some methods that are used frequently when working with objects
+derived from it.
+
+Those methods generally fall into the following groups:
+
+  2697Declarations              2707Fields                  2708General
+  2705Setting colors            2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2619 InitCustom,AbstractSelector
+!NOINDEX
+constructor 2618AbstractSelector.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                        var Colors : ColorSet;
+                                        Options : LongInt;
+                                        var CP : CommandProcessor;
+                                        UnitCode : Byte);
+
+Initialize an abstract selector with custom window options and colors. CP
+is the CommandProcessor to be used, and UnitCode is the unit code to be
+passed to error handlers and GetHelp routines.
+
+See also:  3047CommandWindow.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2620 Done,AbstractSelector
+!NOINDEX
+destructor 2618AbstractSelector.Done; virtual;
+
+Deallocate field list, screen buffers.
+
+See also:  2927RawWindow.Done
+;
+;------------------------------------------------------------
+!TOPIC 2621 DrawField
+!NOINDEX
+procedure 2618AbstractSelector.DrawField(ID : Word);
+
+Redraw the specified field.
+
+See also:  2622ResetScreen
+;
+;------------------------------------------------------------
+!TOPIC 2622 ResetScreen
+!NOINDEX
+procedure 2618AbstractSelector.ResetScreen;
+
+Call when contents of field(s) have been changed without calling DrawField.
+Sets a flag for the Selector/EntryScreen telling it that the contents of
+its window needs to be redrawn.
+
+See also:  2621DrawField
+;
+;------------------------------------------------------------
+!TOPIC 2623 DrawBackground
+!NOINDEX
+procedure 2618AbstractSelector.DrawBackground; virtual;
+
+Hook to give opportunity to draw background beneath fields.
+
+See also:  2621DrawField
+;
+;------------------------------------------------------------
+!TOPIC 2624 SetWrapMode
+!NOINDEX
+procedure 2618AbstractSelector.SetWrapMode(WM : WrapMode); virtual;
+
+Set the wrap mode for the Selector/EntryScreen.
+
+See also:  2700DefWrapMode  2699WrapMode
+;
+;------------------------------------------------------------
+!TOPIC 2625 SetScreenUpdateProc
+!NOINDEX
+procedure 2618AbstractSelector.SetScreenUpdateProc(SUP : ScreenUpdateProc);
+
+Allows you to specify a routine that is to be called each time a Selector
+or EntryScreen is redrawn entirely.
+
+See also:  2701ScreenUpdateProc  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2626 SetPromptAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetPromptAttr(Color, Mono : Byte);
+
+Set attributes for prompts.
+
+See also:  2633ChangePromptAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2627 SetSelectedPromptAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetSelectedPromptAttr(Color, Mono : Byte);
+
+Set attributes for selected prompts.
+
+See also:  2634ChangeSelectedPromptAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2628 SetProtectedPromptAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetProtectedPromptAttr(Color, Mono : Byte);
+
+Set attributes for protected prompts.
+
+See also:  2635ChangeProtectedPromptAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2629 SetFieldAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetFieldAttr(Color, Mono : Byte);
+
+Set attributes for unselected fields.
+
+See also:  2636ChangeFieldAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2630 SetSelectedFieldAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetSelectedFieldAttr(Color, Mono : Byte);
+
+Set attributes for selected fields.
+
+See also:  2637ChangeSelectedFieldAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2631 SetProtectedFieldAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetProtectedFieldAttr(Color, Mono : Byte);
+
+Set attributes for protected fields.
+
+See also:  2638ChangeProtectedFieldAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2632 SetCtrlAttr,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.SetCtrlAttr(Color, Mono : Byte);
+
+Set attributes for control characters.
+
+See also:  2639ChangeCtrlAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2633 ChangePromptAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangePromptAttr(ID : Word;
+                                            Color, Mono : Byte);
+
+Change attributes used for the prompt for the field specified by ID when it is
+unselected.
+
+See also:  2626SetPromptAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2634 ChangeSelectedPromptAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangeSelectedPromptAttr(ID : Word;
+                                                    Color, Mono : Byte);
+
+Change attributes used for the prompt for the field specified by ID when it is
+selected.
+
+See also:  2627SetSelectedPromptAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2635 ChangeProtectedPromptAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangeProtectedPromptAttr(ID : Word;
+                                                     Color, Mono : Byte);
+
+Change attributes used for the prompt for the field specified by ID when it is
+protected.
+
+See also:  2628SetProtectedPromptAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2636 ChangeFieldAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangeFieldAttr(ID : Word; Color, Mono : Byte);
+
+Change attributes used for the field specified by ID when it is unselected.
+
+See also:  2629SetFieldAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2637 ChangeSelectedFieldAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangeSelectedFieldAttr(ID : Word;
+                                                   Color, Mono : Byte);
+
+Change attributes used for the field specified by ID when it is selected.
+
+See also:  2630SetSelectedFieldAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2638 ChangeProtectedFieldAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangeProtectedFieldAttr(ID : Word;
+                                                    Color, Mono : Byte);
+
+Change attributes used for the field specified by ID when it is protected.
+
+See also:  2631SetProtectedFieldAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2639 ChangeCtrlAttr
+!NOINDEX
+procedure 2618AbstractSelector.ChangeCtrlAttr(ID : Word; Color, Mono : Byte);
+
+Change attributes used for control characters for the field specified by ID.
+
+See also:  2632SetCtrlAttr  2705Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2640 AddTextField,AbstractSelector
+!NOINDEX
+procedure 2618AbstractSelector.AddTextField(St : string; Row, Col : Word);
+
+Add a text field to a Selector or EntryScreen. The text (St) of the field will
+be displayed at the specified Row and Column, relative to the top left corner
+of the window, in the default video attribute for the window (TextColor or
+TextMono).
+
+See also:  1314TextField  2625SetScreenUpdateProc  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2641 AddTextFieldCustom
+!NOINDEX
+procedure 2618AbstractSelector.AddTextFieldCustom(St : string;
+                                              Row, Col : Word;
+                                              Color, Mono : Byte);
+
+Add a text field with specific colors.
+
+See also:  1314TextField  2625SetScreenUpdateProc  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2642 AddTextFieldDeluxe
+!NOINDEX
+procedure 2618AbstractSelector.AddTextFieldDeluxe(St : string;
+                                              Row, Col : Word;
+                                              var ColorAttrs : FlexAttrs;
+                                              var MonoAttrs : FlexAttrs);
+
+Add a text field with special colors. This method differs from AddTextField
+and AddTextFieldCustom in that it allows you to create text fields that can be
+displayed in multiple colors, not just one.
+
+See also:  1314TextField  2625SetScreenUpdateProc  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2643 AddCenteredTextField
+!NOINDEX
+procedure 2618AbstractSelector.AddCenteredTextField(St : string; Row : Word);
+
+Add a text field to a Selector or EntryScreen. The text (St) of the field will
+be centered on the specified Row, relative to the top left corner of the
+window, in the default video attribute for the window (TextColor or TextMono).
+
+See also:  1314TextField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2644 AddLineField
+!NOINDEX
+procedure 2618AbstractSelector.AddLineField(Ch1, Ch2, Ch3 : Char;
+                                        Row, Col, Length : Word;
+                                        Vertical : Boolean);
+
+Add a line field.
+
+See also:  1315TextLineField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2645 AddLineFieldCustom
+!NOINDEX
+procedure 2618AbstractSelector.AddLineFieldCustom(Ch1, Ch2, Ch3 : Char;
+                                              Row, Col, Length : Word;
+                                              Color, Mono : Byte;
+                                              Vertical : Boolean);
+
+Add a line field with specific colors.
+
+See also:  1315TextLineField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2646 AddBoxField
+!NOINDEX
+procedure 2618AbstractSelector.AddBoxField(BoxChars : 0422FrameArray;
+                                       XL, YL, XH, YH : Word);
+
+Add a box field.
+
+See also:  1316TextBoxField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2647 AddBoxFieldCustom
+!NOINDEX
+procedure 2618AbstractSelector.AddBoxFieldCustom(BoxChars : 0422FrameArray;
+                                             XL, YL, XH, YH : Word;
+                                             Color, Mono : Byte);
+
+Add a box field with specific colors.
+
+See also:  1316TextBoxField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2648 AddShadowedBoxField
+!NOINDEX
+procedure 2618AbstractSelector.AddShadowedBoxField(BoxChars : 0422FrameArray;
+                                               XL, YL, XH, YH : Word);
+
+Add a shadowed box field.
+
+See also:  1316TextBoxField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2649 AddShadowedBoxFieldCustom
+!NOINDEX
+procedure 2618AbstractSelector.AddShadowedBoxFieldCustom(
+                                           BoxChars : 0422FrameArray;
+                                           XL, YL, XH, YH : Word;
+                                           BColor, BMono : Byte;
+                                           SColor, SMono : Byte);
+
+Add a shadowed box field with specific colors.
+
+See also:  1316TextBoxField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2650 FindField,AbstractSelector
+!NOINDEX
+function 2618AbstractSelector.FindField(ID : Word) : SelectFieldPtr;
+
+Return a pointer to the specified field, or Nil if not found.
+
+See also:  2652FindTextField  2651FindFieldByName
+;
+;------------------------------------------------------------
+!TOPIC 2651 FindFieldByName
+!NOINDEX
+function 2618AbstractSelector.FindFieldByName(Name : string) : SelectFieldPtr;
+
+Return a pointer to the field associated with Name. Note that the search is
+case-insensitive.
+
+See also:  2650FindField
+;
+;------------------------------------------------------------
+!TOPIC 2652 FindTextField
+!NOINDEX
+function 2618AbstractSelector.FindTextField(ID : Word) : TextFieldPtr;
+
+Return a pointer to the specified text field, or Nil if not found.
+
+See also:  1314TextField  2650FindField  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2653 SetNextField
+!NOINDEX
+procedure 2618AbstractSelector.SetNextField(ID : Word);
+
+Set field to move cursor to next. There are three places in a program from
+which this method may safely be called: 1) just prior to a call to Process
+(the most common case), 2) within a pre-edit or pre-select routine, or 3)
+within a post-edit or post-select routine.
+
+See also:  2656SetAllFieldLinks
+;
+;------------------------------------------------------------
+!TOPIC 2654 GetCurrentID
+!NOINDEX
+function 2618AbstractSelector.GetCurrentID : Word;
+
+Returns the ID for the current field.
+;
+;------------------------------------------------------------
+!TOPIC 2655 GetHelpIndex,AbstractSelector
+!NOINDEX
+function 2618AbstractSelector.GetHelpIndex(ID : Word) : Word;
+
+Returns the help index for the specified field.
+;
+;------------------------------------------------------------
+!TOPIC 2656 SetAllFieldLinks
+!NOINDEX
+procedure 2618AbstractSelector.SetAllFieldLinks(var LinksMap);
+
+Set the forward and backward links for all fields. The variable passed as the
+LinksMap parameter should be an 'array[0..n] of Word', where n is the ID
+number of the last field. Each element in the array specifies the forward link
+for that field.
+
+See also:  2657SetFieldLinks  2653SetNextField
+;
+;------------------------------------------------------------
+!TOPIC 2657 SetFieldLinks
+!NOINDEX
+procedure 2618AbstractSelector.SetFieldLinks(ID, Next, Prev : Word);
+
+Set the forward and backward links for a single field.
+
+See also:  2656SetAllFieldLinks
+;
+;------------------------------------------------------------
+!TOPIC 2658 ChangeProtection
+!NOINDEX
+procedure 2618AbstractSelector.ChangeProtection(ID : Word; On : Boolean);
+
+Change the protection status of the specified field.
+
+See also:  2659ChangeHidden  2660ChangeInvisibility
+;
+;------------------------------------------------------------
+!TOPIC 2659 ChangeHidden
+!NOINDEX
+procedure 2618AbstractSelector.ChangeHidden(ID : Word; On : Boolean);
+
+Change the hidden status of the specified field.
+
+See also:  2660ChangeInvisibility  2658ChangeProtection
+;
+;------------------------------------------------------------
+!TOPIC 2660 ChangeInvisibility
+!NOINDEX
+procedure 2618AbstractSelector.ChangeInvisibility(ID : Word; On : Boolean);
+
+Change the invisibility status of the specified field.
+
+See also:  2659ChangeHidden  2658ChangeProtection
+;
+;------------------------------------------------------------
+!TOPIC 2661 PositionCursorAt
+!NOINDEX
+procedure 2618AbstractSelector.PositionCursorAt(SFP : SelectFieldPtr);
+                                                                virtual;
+
+Puts the cursor on the beginning of the specified field. Also insures that the
+specified field is visible.
+
+See also:  2650FindField
+;
+;------------------------------------------------------------
+!TOPIC 2662 VisitAllSelectFields
+!NOINDEX
+procedure 2618AbstractSelector.VisitAllSelectFields(FProc : asFieldProc;
+                                                var D);
+
+Call the specified procedure for all fields in the Selector/EntryScreen. D is
+the data to be passed to it.
+
+See also:  2702asFieldProc  1213EntryScreen.VisitAllEntryFields
+;
+;------------------------------------------------------------
+!TOPIC 2663 VisitAllTextFields
+!NOINDEX
+procedure 2618AbstractSelector.VisitAllTextFields(FProc : asTextFieldProc;
+                                              var D);
+
+Call the specified procedure for all text fields in the Selector/EntryScreen.
+D is the data to be passed to it.
+
+See also:  2703asTextFieldProc  2706Text fields
+;
+;------------------------------------------------------------
+!TOPIC 2664 Selector
+!NOINDEX
+2617OpSelect.Selector = object(2618AbstractSelector)
+!LINE
+SelectorPtr = ^Selector;
+
+The Selector extends the AbstractSelector concept to provide methods for
+actually displaying the fields in the list and for processing commands that
+allow the user to move the cursor from field to field and to make selections.
+
+Selector provides methods that fall generally into one of the following
+groups:
+
+  2704Commands                  2689Declarations            2711General
+  2709Setting options           2710User hooks
+;
+;------------------------------------------------------------
+!TOPIC 2665 Init,Selector
+!NOINDEX
+constructor 2664Selector.Init(X1, Y1, X2, Y2 : Byte);
+
+Instantiate a Selector using the default window options and colors.
+
+See also:
+    0472OpCrt.DefaultColorSet      3115OpWindow.DefWindowOptions
+    2666InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2666 InitCustom,Selector
+!NOINDEX
+constructor 2664Selector.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                var Colors : ColorSet;
+                                Options : LongInt);
+
+Instantiate a Selector using the specified window Options and Colors. X1, Y1,
+X2, and Y2 are the coordinates for the interior portion of the window.
+
+See also:  2665Init  2619AbstractSelector.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2667 ProcessSelf,Selector
+!NOINDEX
+procedure 2664Selector.ProcessSelf; virtual;
+
+Process selection commands.
+
+See also:  3048CommandWindow.Process  2710User hooks
+;
+;------------------------------------------------------------
+!TOPIC 2668 AddField
+!NOINDEX
+procedure 2664Selector.AddField(PromptRow, PromptCol : Word;
+                            PromptWidth : Byte;
+                            FieldRow, FieldCol : Word;
+                            FieldWidth : Byte;
+                            HelpIndex : Word);
+
+Add a field with the specified coordinates and help index.
+
+See also:  2655AbstractSelector.GetHelpIndex
+;
+;------------------------------------------------------------
+!TOPIC 2669 slOptionsOn
+!NOINDEX
+procedure 2664Selector.slOptionsOn(OptionFlags : Byte);
+
+Activate multiple options.
+
+See also:  2690Options  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2670 slOptionsOff
+!NOINDEX
+procedure 2664Selector.slOptionsOff(OptionFlags : Byte);
+
+Deactivate multiple options.
+
+See also:  2690Options  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2671 slOptionsAreOn
+!NOINDEX
+function 2664Selector.slOptionsAreOn(OptionFlags : Byte) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  2690Options  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2672 slFieldOptionsOn
+!NOINDEX
+procedure 2664Selector.slFieldOptionsOn(OptionFlags : LongInt);
+
+Activate multiple options.
+
+See also:  1320SelectField.Option flags  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2673 slFieldOptionsOff
+!NOINDEX
+procedure 2664Selector.slFieldOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple options.
+
+See also:  1320SelectField.Option flags  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2674 slFieldOptionsAreOn
+!NOINDEX
+function 2664Selector.slFieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  1320SelectField.Option flags  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2675 SetGetFieldProc
+!NOINDEX
+procedure 2664Selector.SetGetFieldProc(GFP : GetFieldProc);
+
+Set routine to call to get the strings to be displayed for a given field.
+
+See also:  2694GetFieldProc  2710User hooks
+;
+;------------------------------------------------------------
+!TOPIC 2676 SetActionProc
+!NOINDEX
+procedure 2664Selector.SetActionProc(AP : SelectProc);
+
+Set routine to call when a field has been selected.
+
+See also:  2710User hooks
+;
+;------------------------------------------------------------
+!TOPIC 2677 SetPreSelectProc
+!NOINDEX
+procedure 2664Selector.SetPreSelectProc(PSP : SelectProc);
+
+Set routine to call before moving to new field.
+
+See also:  2695SelectProc  2710User hooks
+;
+;------------------------------------------------------------
+!TOPIC 2678 SetPostSelectProc
+!NOINDEX
+procedure 2664Selector.SetPostSelectProc(PSP : SelectProc);
+
+Set routine to call before moving to next field.
+
+See also:  2695SelectProc  2710User hooks
+;
+;------------------------------------------------------------
+!TOPIC 2679 Load,Selector
+!NOINDEX
+constructor 2664Selector.Load(var S : IdStream);
+
+Load a Selector from a stream. The stream registration procedure for a
+Selector is SelectorStream.
+
+See also:  2680Store
+;
+;------------------------------------------------------------
+!TOPIC 2680 Store,Selector
+!NOINDEX
+procedure 2664Selector.Store(var S : IdStream);
+
+Store a Selector in a stream. The stream registration procedure for a
+Selector is SelectorStream.
+
+See also:  2679Load
+;
+;------------------------------------------------------------
+!TOPIC 2681 ScrollingSelector
+!NOINDEX
+2617OpSelect.ScrollingSelector = object(2664Selector)
+!LINE
+ScrollingSelectorPtr = ^ScrollingSelector;
+
+The Selector has two important limitations: 1) all the fields associated with
+it must fit within the window at one time, and 2) the window cannot be zoomed
+or resized. The purpose of the ScrollingSelector is to provide a
+Selector-based object that lacks these limitations.
+
+  2704Commands                  2685AllocateScreen          2684Done
+  2682Init                      2683InitCustom              2687Load
+  2688Store                     2686VScreenToScreen
+;
+;------------------------------------------------------------
+!TOPIC 2682 Init,ScrollingSelector
+!NOINDEX
+constructor 2681ScrollingSelector.Init(X1, Y1, X2, Y2 : Byte);
+
+Instantiate a ScrollingSelector using the default window options and colors.
+
+See also:
+    0472OpCrt.DefaultColorSet      3115OpWindow.DefWindowOptions
+    2683InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2683 InitCustom,ScrollingSelector
+!NOINDEX
+constructor 2681ScrollingSelector.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                         var Colors : ColorSet;
+                                         Options : LongInt);
+
+Instantiate a Selector using the specified window Options and Colors. X1, Y1,
+X2, and Y2 are the coordinates for the interior portion of the window.
+
+See also:  2682Init  2666Selector.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2684 Done,ScrollingSelector
+!NOINDEX
+destructor 2681ScrollingSelector.Done; virtual;
+
+Deallocate virtual screen, field list, screen buffers.
+
+See also:  2620AbstractSelector.Done
+;
+;------------------------------------------------------------
+!TOPIC 2685 AllocateScreen,ScrollingSelector
+!NOINDEX
+procedure 2681ScrollingSelector.AllocateScreen;
+
+This method should be called after the last field has been added to the
+ScrollingSelector. It scans the list of fields to determine the maximum row
+and column values for any field in the list, then tries to allocate a virtual
+screen large enough to allow all the fields to be drawn on it at once. To
+determine whether or not the virtual screen was allocated successfully, call
+GetLastError immediately following the call to AllocateScreen.
+
+See also:  2668Selector.AddField  2684Done  3062CommandWindow.GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 2686 VScreenToScreen,ScrollingSelector
+!NOINDEX
+procedure 2681ScrollingSelector.VScreenToScreen; virtual;
+
+This method is intended strictly for internal use, and should never be called
+directly. It is documented only because it is one that you might want to
+override in an object derived from a ScrollingSelector. It copies the
+relevant portion of the virtual screen to the physical screen when the entry
+screen is being redrawn in its entirety or scrolled.
+
+See also:  2625AbstractSelector.SetScreenUpdateProc
+;
+;------------------------------------------------------------
+!TOPIC 2687 Load,ScrollingSelector
+!NOINDEX
+constructor 2681ScrollingSelector.Load(var S : IdStream);
+
+Load a selector from a stream. The stream registration procedure for a
+ScrollingSelector is ScrollingSelectorStream.
+
+See also:  2688Store
+;
+;------------------------------------------------------------
+!TOPIC 2688 Store,ScrollingSelector
+!NOINDEX
+procedure 2681ScrollingSelector.Store(var S : IdStream);
+
+Store a selector in a stream. The stream registration procedure for a
+ScrollingSelector is ScrollingSelectorStream.
+
+See also:  2687Load
+;
+;------------------------------------------------------------
+!TOPIC 2689 Declarations,OpSelect
+!NOINDEX
+!NOSEARCH
+The following type, constant, and variable declarations pertain to Selectors
+and ScrollingSelectors:
+
+  2693BadSelectOptions          2691Configuration data      2692DefSelectOptions
+  2694GetFieldProc              2690Options                 2696SelectCommands
+  2695SelectProc
+;
+;------------------------------------------------------------
+!TOPIC 2690 Options,OpSelect
+!NOINDEX
+!NOSEARCH
+The following options are available for Selectors:
+
+!NOWRAP
+slScrollbyPage  = $01;
+slMousePage     = $02;
+slUpdateActive  = $10;
+slAutoSelect    = $20;
+slFastUpdates   = $80;
+!WRAP
+
+slScrollbyPage affects the vertical scrolling behavior of a ScrollingSelector
+when the cursor is moved to a field not currently on screen. If the option is
+off, the display will be scrolled only enough to reveal the field to move to.
+If the option is on, the display will be scrolled by a full page (usually
+equal to the number of rows that can be displayed at one time).
+
+slMousePage determines what happens when you click on the increment or
+decrement hot spots of a scroll bar. If the option is off, clicking on these
+spots is equivalent to pressing <Down> or <Up>, respectively. If the option is
+on, clicking on them is equivalent to pressing <PgDn> or <PgUp>.
+
+slAutoSelect indicates that the Process method should automatically select the
+field that the cursor is on, rather than waiting for the user to press <Enter>
+to select it. slUpdateActive and slFastUpdates are internal flags.
+
+See also:  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2691 Configuration data,OpSelect
+!NOINDEX
+!NOSEARCH
+const
+  SelectKeyMax = 160;
+  SelectKeyID  : string[13] = 'opselect keys';
+  SelectKeySet : array[0..SelectKeyMax] of Byte = (...);
+  SelectCfgEnd : Byte = 0;
+
+SelectKeyId is an ID string used to mark the beginning of the configuration
+data area for OpSelect; SelectCfgEnd marks the end of the configuration data
+area. In between them is SelectKeySet, the command table used by
+SelectCommands. SelectKeyMax is the last valid index into the table.
+;
+;------------------------------------------------------------
+;
+!TOPIC 2692 DefSelectOptions
+!NOINDEX
+const
+  DefSelectOptions : Byte = slMousePage;
+
+The default options for a Selector or ScrollingSelector.
+
+See also:  2690Options  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2693 BadSelectOptions
+!NOINDEX
+const
+  BadSelectOptions : Byte = slFastUpdates+slUpdateActive;
+
+Selector options that exist for internal use, and may not be altered by
+calling slOptionsOn or slOptionsOff.
+
+See also:  2690Options  2709Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2694 GetFieldProc
+!NOINDEX
+type
+  GetFieldProc = procedure(ID : Word; NeedPrompt : Boolean;
+                           var S : string);
+
+A user-written procedure called to obtain a string (S) containing the prompt
+(NeedPrompt = True) or contents (NeedPrompt = False) of a specified field
+(ID).
+
+See also:  2675SetGetFieldProc
+;
+;------------------------------------------------------------
+!TOPIC 2695 SelectProc
+!NOINDEX
+type
+  SelectProc = procedure(SP : SelectorPtr; ID : Word);
+
+A user-written procedure called when 1) the cursor is about to be moved to a
+new field (a pre-select routine), 2) a field has been selected by the user (an
+action routine), or 3) the cursor is about to leave the current field (a
+post-select routine).
+
+See also:  2678SetPostSelectProc  2677SetPreSelectProc
+;
+;------------------------------------------------------------
+!TOPIC 2696 SelectCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  SelectCommands : DragProcessor;
+  {$ELSE}
+  SelectCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a Selector or ScrollingSelector.
+
+See also:  0218CommandProcessor
+;
+;------------------------------------------------------------
+!TOPIC 2697 Declarations,AbstractSelector
+!NOINDEX
+!NOSEARCH
+The following type and constant declarations pertain to AbstractSelectors and
+their descendents:
+
+  2702asFieldProc               2703asTextFieldProc         2700DefWrapMode
+  2698On                        2701ScreenUpdateProc        2699WrapMode
+;
+;------------------------------------------------------------
+!TOPIC 2698 On
+!NOINDEX
+const
+  On  = True;
+  Off = False;
+
+These two constants are intended to help you write self-documenting code with
+OpSelect and OpEntry. They are typically used as parameters to methods
+that turn certain options on or off.
+;
+;------------------------------------------------------------
+!TOPIC 2699 WrapMode
+!NOINDEX
+type
+  WrapMode = (StopAtEdges, WrapAtEdges, ExitAtEdges, ExitAtTop, ExitAtBot);
+
+Type used to describe different modes of behavior in cases where the cursor
+is at the top or bottom row and the user tries to move the cursor to a
+non-existent field (for example, if the current field is on the top row,
+and the user presses <Up>). If the WrapMode is StopAtEdges, the cursor
+stays where it is. If the WrapMode is WrapAtEdges, the cursor "wraps"
+around to the top or bottom row of the window. If the WrapMode is
+ExitAtEdges, the selector exits with an exit command of ccExitAtTop or
+ccExitAtBot, depending on the direction in which the cursor was being
+moved. ExitAtTop and ExitAtBot combine elements of ExitAtEdges and
+StopAtEdges. These modes are typically used only for entry screens embedded
+within other entry screens (by calling AddWindowField).
+
+See also:  2624SetWrapMode  1258EntryScreen.AddWindowField
+;
+;------------------------------------------------------------
+!TOPIC 2700 DefWrapMode
+!NOINDEX
+const
+  DefWrapMode : WrapMode = WrapAtEdges;
+
+Default wrap mode for an object derived from an AbstractSelector.
+
+See also:  2624SetWrapMode  2699WrapMode
+;
+;------------------------------------------------------------
+!TOPIC 2701 ScreenUpdateProc
+!NOINDEX
+type
+  ScreenUpdateProc = procedure (ASP : AbstractSelectorPtr);
+
+A user-written procedure called each time the interior of an
+AbstractSelector's window is completely redrawn.
+
+See also:  2625SetScreenUpdateProc
+;
+;------------------------------------------------------------
+!TOPIC 2702 asFieldProc
+!NOINDEX
+type
+  asFieldProc = procedure(SFP : SelectFieldPtr; var D;
+                          ASP : AbstractSelectorPtr);
+
+A user-written procedure called by VisitAllSelectFields to perform a
+particular action on all SelectFields associated with a Selector.
+
+See also:  2662VisitAllSelectFields
+;
+;------------------------------------------------------------
+!TOPIC 2703 asTextFieldProc
+!NOINDEX
+type
+  asTextFieldProc = procedure(TFP : TextFieldPtr; var D;
+                              ASP : AbstractSelectorPtr);
+
+A user-written procedure called by VisitAllTextFields to perform a particular
+action on all TextFields associated with a Selector or EntryScreen.
+
+See also:  2663VisitAllTextFields
+;
+;------------------------------------------------------------
+!TOPIC 2704 Commands,Selector
+!NOINDEX
+!NOSEARCH
+A Selector recognizes the following commands:
+
+!NOWRAP
+Field Movement
+
+ccPrevField   <ShiftTab>
+Move cursor to previous unprotected field.
+
+ccNextField   <Tab>, <CtrlI>
+Move cursor to next unprotected field.
+
+ccLeft        <Left>, <CtrlS>
+Cursor left one field.
+
+ccRight       <Right>, <CtrlD>
+Cursor right one field.
+
+ccHome        <Home>, <CtrlQ><S>
+Cursor to first unprotected field on current row.
+
+ccEnd         <End>, <CtrlQ><D>
+Cursor to last unprotected field on current row.
+
+ccUp          <Up>, <CtrlE>
+Cursor up one row.
+
+ccDown        <Down>, <CtrlX>
+Cursor down one row.
+
+ccPageUp      <PgUp>, <CtrlR>
+Scroll display up one page.
+
+ccPageDn      <PgDn>, <CtrlC>
+Scroll display down one page.
+
+ccFirstField  <CtrlPgUp>, <CtrlQ><R>
+Move cursor to first unprotected field in the list.
+
+ccLastField   <CtrlPgDn>, <CtrlQ><C>
+Move cursor to last unprotected field in the list.
+
+Field Selection
+
+ccSelect      <Enter>, <CtrlM>, <ClickCenter>
+Select the current field (call the Action routine).
+
+ccMouseSel    <ClickLeft>
+!WRAP
+Moves the cursor to the field indicated by the mouse. If that field is
+already highlighted, it is selected.
+
+!NOWRAP
+ccIncChoice   <+>, <Space>
+!WRAP
+If the current field is designated as an incrementable field, this command
+selects the field. The Action routine can distinguish between ccIncChoice and
+ccSelect by calling the Selector's GetLastCommand method.
+
+!NOWRAP
+ccDecChoice   <->
+!WRAP
+If the current field is designated as an incrementable field, this command
+selects the field. The Action routine can distinguish between ccDecChoice and
+ccSelect by calling the Selector's GetLastCommand method.
+
+!NOWRAP
+Other
+
+ccDone        <CtrlEnter>, <CtrlJ>, <CtrlK><D>, <CtrlK><Q>
+Exit from the Selector.
+
+ccHelp        <F1>, <ClickBoth>
+!WRAP
+Request help.
+
+!NOWRAP
+ccQuit        <Esc>, <CtrlBreak>, <ClickRight>
+Quit the selector.
+!WRAP
+;
+;------------------------------------------------------------
+!TOPIC 2705 Setting colors,AbstractSelector
+!NOINDEX
+!NOSEARCH
+AbstractSelector provides the following methods for setting colors:
+
+    2639ChangeCtrlAttr                    2636ChangeFieldAttr
+    2633ChangePromptAttr                  2638ChangeProtectedFieldAttr
+    2635ChangeProtectedPromptAttr         2637ChangeSelectedFieldAttr
+    2634ChangeSelectedPromptAttr          2632SetCtrlAttr
+    2629SetFieldAttr                      2626SetPromptAttr
+    2631SetProtectedFieldAttr             2628SetProtectedPromptAttr
+    2630SetSelectedFieldAttr              2627SetSelectedPromptAttr
+;
+;------------------------------------------------------------
+!TOPIC 2706 Text fields
+!NOINDEX
+!NOSEARCH
+AbstractSelector provides the following methods for working with text fields:
+
+    2646AddBoxField                       2647AddBoxFieldCustom
+    2643AddCenteredTextField              2644AddLineField
+    2645AddLineFieldCustom                2648AddShadowedBoxField
+    2649AddShadowedBoxFieldCustom         2640AddTextField
+    2641AddTextFieldCustom                2642AddTextFieldDeluxe
+    2652FindTextField                     2663VisitAllTextFields
+;
+;------------------------------------------------------------
+!TOPIC 2707 Fields
+!NOINDEX
+!NOSEARCH
+AbstractSelector provides the following methods for working with fields:
+
+  2659ChangeHidden              2660ChangeInvisibility      2658ChangeProtection
+  2621DrawField                 2650FindField               2651FindFieldByName
+  2654GetCurrentID              2655GetHelpIndex            2661PositionCursorAt
+  2656SetAllFieldLinks          2657SetFieldLinks
+  2653SetNextField              2662VisitAllSelectFields
+;
+;------------------------------------------------------------
+!TOPIC 2708 General,AbstractSelector
+!NOINDEX
+!NOSEARCH
+AbstractSelector provides the following general purpose methods:
+
+    2620Done                              2623DrawBackground
+    2619InitCustom                        2622ResetScreen
+    2625SetScreenUpdateProc               2624SetWrapMode
+;
+;------------------------------------------------------------
+!TOPIC 2709 Setting options,Selector
+!NOINDEX
+!NOSEARCH
+Selector provides the following methods for setting options:
+
+  2674slFieldOptionsAreOn       2673slFieldOptionsOff       2672slFieldOptionsOn
+  2671slOptionsAreOn            2670slOptionsOff            2669slOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2710 User hooks,Selector
+!NOINDEX
+!NOSEARCH
+Selector provides the following methods for hooking user-written routines into
+the selection process:
+
+  2676SetActionProc             2675SetGetFieldProc         2678SetPostSelectProc
+  2677SetPreSelectProc
+;
+;------------------------------------------------------------
+!TOPIC 2711 General,Selector
+!NOINDEX
+!NOSEARCH
+Selector provides the following general purpose methods:
+
+  2668AddField                  2665Init                    2666InitCustom
+  2679Load                      2667ProcessSelf             2680Store

@@ -1,0 +1,102 @@
+This file summarizes changes made between Object Professional versions 1.22
+and 1.30.  It is of interest primarily to users who have upgraded from
+version 1.22.
+
+Bugs fixed
+---------------------------------------------------------------------------
+
+OPDATE
+  - Problems when picture characters were used in the DayString and
+    MonthString arrays
+
+OPDRAG
+  - cpGetKey wasn't giving up timeslices in OS/2 and Windows DOS boxes
+
+OPEDITOR
+  - "Search again" not functional when block searching turned on
+
+OPENHKBD
+  - Alt key could stick under certain keyboard/BIOS combinations
+
+OPFIELD
+  - Garbage character sometimes displayed at the end of a simple
+    string field.
+
+OPFEDIT
+  - CalcEditor broken by change in OPRO 1.21.  Would not allow you to enter
+    a decimal point before entering a number.
+
+OPFORM
+  - Shaded fields not relative to current block
+  - LJRule would use a bad pattern ID for drawing lines in some cases
+
+OPMACED
+  - Was referring directly to segment $0040
+
+OPPICK
+  - FlexWriting not handled properly in some rare cases
+  - Span header redraws could overwrite highlight bar
+
+OPSELECT/OPENTRY/OPDIALOG
+  - Field visitation order incorrect around protected/hidden fields.
+
+OPTSR
+  - In rare cases, a program could crash if it EXECed another program
+    after installing a popup routine.
+
+OPTSR/OPSWAP
+  - Was checking for DOS versions <= 5.99
+
+PTIME
+  - On-screen clock was not being updated properly
+  - Crashes when clock displayed with a BP7 compile
+
+
+New Features
+---------------------------------------------------------------------------
+
+OPCMD
+  - Added a new user hook: "UserMatchFunc"
+
+OPCTRL/OPDIALOG
+  - Added support for the protection of individual cluster items
+
+OPDATE
+  - Routines added to convert between DOS dates and OPRO dates
+
+OPDIR
+  - Added methods to save and restore PathLists from disk
+
+OPDOS
+  - Add IsPhantom function to determine if a drive is a phantom drive
+  - Various changes to protect against the selection/access of
+    phantom drives
+
+OPDRAG
+  - Added CloseHotCode standard hot code
+
+OPEDITOR
+  - Added append block function
+  - Added whole word searching
+
+OPENTRY
+  - EntryScreen now exits Process on ccAltKey commands
+
+OPFIELD
+  - Incrementing/decrementing a choice field now calls PostEdit routine
+  - TextField and SelectField code and assorted constants moved to
+    OPSELECT to facilitate PMode debugging
+
+OPROOT
+  - Added "Reset" method to SingleList and DoubleList
+
+OPSTRING
+  - Added Replace and ReplaceUC functions for flexible replacing
+
+OPWINDOW
+  - OPWINDOW split into OPWINDOW and OPABSWIN in order to allow PMode
+    debugging
+
+MAKEMENU
+  - Better default identifiers generated for menu choices
+

@@ -1,0 +1,127 @@
+;
+;------------------------------------------------------------
+!TOPIC 2712 OpSort
+OpSort provides a sort routine that is fast and easy to use. With it, you
+can sort up to 65,535 data elements of any type. All elements must fit into
+normal memory, however, since paging to disk is not supported. The unit is
+quite compact, using less than 2000 bytes of code space. It implements a
+non-recursive quicksort that also minimizes use of stack space.
+
+OpSort provides the following routines:
+
+  2721Declarations              2714GetElement              2713PutElement
+  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2713 PutElement
+!NOINDEX
+function 2712OpSort.PutElement(var X) : Boolean;
+
+Call PutElement to add each new element to OpSort's internal sort
+structure. Your application will have the opportunity to call PutElement
+within the loader routine whose name you pass to the Sort function.
+
+See also:  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2714 GetElement
+!NOINDEX
+function 2712OpSort.GetElement(var X) : Boolean;
+
+Call GetElement to retrieve each element in sorted order after a sort has
+been completed. Your application will have the opportunity to call
+GetElement within the retrieval routine whose name you pass to the Sort
+function.
+
+See also:  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2715 Sort
+!NOINDEX
+function 2712OpSort.Sort(Elements, ElementSize : Word;
+                     GetElements : GetPutProc; LessFunc : UserLessFunc;
+                     PutElements : GetPutProc) : SortStatus;
+
+Sort a group of elements. The first two parameters to Sort tell it how many
+elements to expect, and the size of each element. In all but one special
+case, ElementSize specifies the number of bytes in each sort element. If
+you specify an ElementSize of 0, Sort interprets each element as a Turbo
+string and allocates memory for just the size required by each string.
+
+Sort will call your GetElements routine after performing some error
+checking and initialization tasks. GetElements in turn calls PutElement to
+put each element into OpSort's internal data structure. When GetElements
+returns, Sort actually performs the sorting operation.
+
+Whenever Sort needs to compare two elements to place them into sorted
+order, it calls your LessFunc function. After sorting is complete, Sort
+calls your PutElements routine, which in turn calls GetElement to get each
+element back in sorted order. When PutElements returns, Sort deallocates
+the memory it has used and returns a sort status to the original calling
+program.
+
+See also:
+  2714GetElement                2719GetPutProc              2713PutElement
+  2717SortStatus                2718UserLessFunc
+;
+;------------------------------------------------------------
+!TOPIC 2716 MaxElements
+!NOINDEX
+const
+  MaxElements = 65535;
+
+Absolute maximum number of elements to be sorted.
+;
+;------------------------------------------------------------
+!TOPIC 2717 SortStatus
+!NOINDEX
+type
+  SortStatus = (SortSuccess, SortOutOfMemory, SortTooManyElements);
+
+The Sort function returns a result of the type SortStatus. The calling
+application should check this result to determine the outcome of the sort.
+SortSuccess indicates a successful sort; SortOutOfMemory indicates
+insufficient memory; and SortTooManyElements indicates an attempt to sort
+more elements than were requested.
+
+See also:  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2718 UserLessFunc
+!NOINDEX
+type
+  UserLessFunc = function (var X, Y) : Boolean;
+
+A function to compare two elements.
+
+See also:  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2719 GetPutProc
+!NOINDEX
+type
+  GetPutProc = procedure;
+
+A procedure used to load or retrieve the elements being sorted.
+
+See also:  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2720 ElementsSorted
+!NOINDEX
+var
+  ElementsSorted : Word;
+
+When a sort has been completed, the ElementsSorted variable will have been
+initialized to contain the actual number of elements that were sorted.
+
+See also:  2715Sort
+;
+;------------------------------------------------------------
+!TOPIC 2721 Declarations,OpSort
+!NOINDEX
+!NOSEARCH
+OpSort declares the following types, constants, and variables:
+
+  2720ElementsSorted            2719GetPutProc              2716MaxElements
+  2717SortStatus                2718UserLessFunc

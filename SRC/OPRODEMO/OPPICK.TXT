@@ -1,0 +1,1326 @@
+;
+;------------------------------------------------------------
+!TOPIC 2026 OpPick
+OpPick provides a single object, the 2027PickList, which offers a very
+general way to display a list of arbitrary strings, to allow the user to
+scroll through the list, and to accept a selection. What distinguishes a
+PickList from a Menu is dynamic flexibility. The strings displayed by the
+PickList need not be known in advance; in fact, some applications will read
+the strings from a disk file on demand or even modify them during the
+selection process.
+
+See also:  2117Commands
+;
+;------------------------------------------------------------
+!TOPIC 2027 PickList
+!NOINDEX
+2026OpPick.PickList = object(3045CommandWindow)
+!LINE
+PickListPtr = ^PickList;
+
+The PickList object, which allows the user to select one or more items from a
+list of choices. PickList offers a host of methods that generally fall into
+one of the following categories:
+
+  2120Appearance/orientation    2100Declarations            2121General
+  2122Get/set choice            2123Item strings            2124Multiple choice lists
+  2125Searching                 2126Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2028 Init,PickList
+!NOINDEX
+constructor 2027PickList.Init(X1, Y1, X2, Y2 : Byte;
+                          ItemWidth : Byte; NumItems : Word;
+                          StringProc : pkStringProc;
+                          Orientation : pkGenlProc;
+                          CommandHandler : pkGenlProc);
+
+Instantiate a PickList using the default window options, the default color
+set, and the default pick options.
+
+See also:
+  0472OpCrt.DefaultColorSet     3115OpWindow.DefWindowOptions  2030InitAbstract
+  2029InitCustom                2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2029 InitCustom,PickList
+!NOINDEX
+constructor 2027PickList.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                var Colors : ColorSet;
+                                Options : LongInt;
+                                ItemWidth : Byte;
+                                NumItems : Word;
+                                StringProc : pkStringProc;
+                                Orientation : pkGenlProc;
+                                CommandHandler : pkGenlProc);
+
+Instantiate a PickList using the specified window Options, the specified
+Colors, and default pick options.
+
+See also:  2925RawWindow.InitCustom  2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2030 InitAbstract
+!NOINDEX
+constructor 2027PickList.InitAbstract(X1, Y1, X2, Y2 : Byte;
+                                  var Colors : ColorSet;
+                                  Options : LongInt;
+                                  ItemWidth : Byte;
+                                  NumItems : Word;
+                                  Orientation : pkGenlProc;
+                                  CommandHandler : pkGenlProc);
+
+Constructor to be called by derived types that override the ItemString method.
+It works like InitCustom except that no user string procedure is supplied. The
+caller must have overridden PickList's ItemString and/or CompleteItemString
+methods so that ItemString no longer generates a call to the user-defined
+string procedure.
+
+See also:  2032InitAbstractDeluxe  2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2031 InitDeluxe,PickList
+!NOINDEX
+constructor 2027PickList.InitDeluxe(X1, Y1, X2, Y2 : Byte;
+                                var Colors : ColorSet;
+                                Options : LongInt;
+                                ItemWidth : Byte;
+                                NumItems : Word;
+                                StringProc : pkStringProc;
+                                Orientation : pkGenlProc;
+                                CommandHandler : pkGenlProc;
+                                PickOptions : Word);
+
+Initialize a pick window with custom window and pick options. ItemWidth is the
+number of screen columns that each item will use. NumItems is the total number
+of items that the PickList will manage. StringProc supplies the name of a
+user-defined string procedure. Orientation specifies the list's orientation
+(PickVertical, PickHorizontal, or PickSnaking). CommandHandler specifies a
+single choice list (2098SingleChoice) or multiple choice
+(2099MultipleChoice). PickOptions provides options specific to a pick list.
+
+See also:
+  2068ChangeCommandHandler      2065ChangeItemWidth         2064ChangeNumItems
+  2067ChangeOrientation         2066ChangeStringProc        2925RawWindow.InitCustom
+  2102Options                   2113pkStringProc            1014Secondary options
+  2058SetPadSize                2071SetPickFlex             2072SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 2032 InitAbstractDeluxe
+!NOINDEX
+constructor 2027PickList.InitAbstractDeluxe(X1, Y1, X2, Y2 : Byte;
+                                        var Colors : ColorSet;
+                                        Options : LongInt;
+                                        ItemWidth : Byte;
+                                        NumItems : Word;
+                                        Orientation : pkGenlProc;
+                                        CommandHandler : pkGenlProc;
+                                        PickOptions : Word);
+
+Constructor to be called by derived types that override the ItemString method,
+with custom pick options. It works like InitAbstract, except that custom pick
+options can be specified at the time of the call.
+
+See also:  2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2033 Done,PickList
+!NOINDEX
+destructor 2027PickList.Done; virtual;
+
+Dispose of PickList.
+
+See also:  2927CommandWindow.Done
+;
+;------------------------------------------------------------
+!TOPIC 2034 AddMoreHeader
+!NOINDEX
+procedure 2027PickList.AddMoreHeader(PromptStr : String80;
+                                 Posn : HeaderPosType;
+                                 UpStr, DnStr, SepStr : String10;
+                                 UpPos, DnPos, SepPos : Byte);
+
+Add a specialized more header to indicate more pick items.
+
+See also:  1461Frame.AddHeader  2108String80
+;
+;------------------------------------------------------------
+!TOPIC 2035 AddSearchHeader
+!NOINDEX
+procedure 2027PickList.AddSearchHeader(MaxLen : Byte; Posn : HeaderPosType);
+
+Add a specialized search string header.
+
+See also:  2060SetSearchMode
+;
+;------------------------------------------------------------
+!TOPIC 2036 UpdateContents,PickList
+!NOINDEX
+procedure 2027PickList.UpdateContents; virtual;
+
+Redraw the complete pick window. You shouldn't need to call UpdateContents
+directly. Call Draw instead.
+
+See also:  2968RawWindow.Draw
+;
+;------------------------------------------------------------
+!TOPIC 2037 ProcessSelf,PickList
+!NOINDEX
+procedure 2027PickList.ProcessSelf; virtual;
+
+Process pick commands leading to a choice.
+
+See also:
+  2117Commands                  2046GetLastChoice           2116PickCommands
+  3048CommandWindow.Process
+;
+;------------------------------------------------------------
+!TOPIC 2038 ItemString,PickList
+!NOINDEX
+procedure 2027PickList.ItemString(Item : Word; Mode : pkMode;
+                              var IType : pkItemType;
+                              var IString : String); virtual;
+
+Supplies each item string when the list is displayed or searched. This virtual
+method may be overridden by derived types to implement a specific kind of
+list.
+
+See also:
+  2066ChangeStringProc          2039CompleteItemString      2031InitDeluxe
+  2109pkItemType                2112pkMode
+;
+;------------------------------------------------------------
+!TOPIC 2039 CompleteItemString
+!NOINDEX
+procedure 2027PickList.CompleteItemString(Item : Word; Mode : pkMode;
+                                      var IType : pkItemType;
+                                      var IString : String); virtual;
+
+Supplies, marks, and pads item string.
+
+See also:  2038ItemString  2058SetPadSize  2072SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 2040 PreMove
+!NOINDEX
+procedure 2027PickList.PreMove; virtual;
+
+Called just prior to getting each keyboard command.
+
+See also:  2059SetMoveProc
+;
+;------------------------------------------------------------
+!TOPIC 2041 ItemSearch
+!NOINDEX
+function 2027PickList.ItemSearch : Boolean; virtual;
+
+Called to search list each time an alphanumeric character is entered.
+
+See also:  2060SetSearchMode
+;
+;------------------------------------------------------------
+!TOPIC 2042 SetInitialChoice
+!NOINDEX
+procedure 2027PickList.SetInitialChoice(Choice : Word);
+
+Set initial choice without scrolling if possible.
+
+See also:  2043SetChoice
+;
+;------------------------------------------------------------
+!TOPIC 2043 SetChoice
+!NOINDEX
+procedure 2027PickList.SetChoice(Choice, FirstChoice : Word);
+
+Set initial choice with scrolling control. FirstChoice specifies the index of
+the item that appears in the upper left corner of the window.
+
+See also:  2042SetInitialChoice
+;
+;------------------------------------------------------------
+!TOPIC 2044 SetDefaultChoice
+!NOINDEX
+procedure 2027PickList.SetDefaultChoice(Choice : Word);
+
+Set the default choice number returned by GetDefaultChoice.
+
+See also:  2045GetDefaultChoice
+;
+;------------------------------------------------------------
+!TOPIC 2045 GetDefaultChoice
+!NOINDEX
+function 2027PickList.GetDefaultChoice : Word;
+
+Return default choice number.
+
+See also:  2046GetLastChoice  2044SetDefaultChoice  2042SetInitialChoice
+;
+;------------------------------------------------------------
+!TOPIC 2046 GetLastChoice
+!NOINDEX
+function 2027PickList.GetLastChoice : Word;
+
+Return last selected item number.
+
+See also:
+    2045GetDefaultChoice
+    2048GetLastChoiceString
+    3055CommandWindow.GetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 2047 GetItemString
+!NOINDEX
+function 2027PickList.GetItemString(Item : Word) : string;
+
+Return specified item string in search format.
+
+See also:  2039CompleteItemString  2048GetLastChoiceString
+;
+;------------------------------------------------------------
+!TOPIC 2048 GetLastChoiceString
+!NOINDEX
+function 2027PickList.GetLastChoiceString : string;
+
+Return last choice in search format.
+
+See also:  2047GetItemString  2046GetLastChoice
+;
+;------------------------------------------------------------
+!TOPIC 2049 WhereSelect
+!NOINDEX
+procedure 2027PickList.WhereSelect(var X, Y : Byte);
+
+Return window-relative coordinates of selected item.
+
+See also:  2050WhereSelectAbs
+;
+;------------------------------------------------------------
+!TOPIC 2050 WhereSelectAbs
+!NOINDEX
+procedure 2027PickList.WhereSelectAbs(var X, Y : Byte);
+
+Return absolute coordinates of selected item.
+
+See also:  2049WhereSelect
+;
+;------------------------------------------------------------
+!TOPIC 2051 GetOrientation
+!NOINDEX
+function 2027PickList.GetOrientation : Byte;
+
+Return the orientation code for the pick list.
+
+See also:  2067ChangeOrientation  2031InitDeluxe  2107Orientation codes
+;
+;------------------------------------------------------------
+!TOPIC 2052 GetItemCols
+!NOINDEX
+function 2027PickList.GetItemCols : Byte;
+
+Return number of visible item columns.
+
+See also:  2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2053 GetNumItems
+!NOINDEX
+function 2027PickList.GetNumItems : Word;
+
+Return total number of pick items.
+
+See also:  2064ChangeNumItems  2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2054 pkOptionsOn
+!NOINDEX
+procedure 2027PickList.pkOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  2104BadPickOptions  2102Options  2126Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2055 pkOptionsOff
+!NOINDEX
+procedure 2027PickList.pkOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  2104BadPickOptions  2102Options  2126Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2056 pkOptionsAreOn
+!NOINDEX
+function 2027PickList.pkOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  2104BadPickOptions  2102Options  2126Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2057 SetRowLimits
+!NOINDEX
+procedure 2027PickList.SetRowLimits(MinRows, MaxRows : Word);
+
+Set values for min and max rows.
+;
+;------------------------------------------------------------
+!TOPIC 2058 SetPadSize
+!NOINDEX
+procedure 2027PickList.SetPadSize(LeftPad, RightPad : Byte);
+
+Set number of characters for padding of pick items.
+
+See also:  2065ChangeItemWidth  2941RawWindow.SetBackChar  2072SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 2059 SetMoveProc
+!NOINDEX
+procedure 2027PickList.SetMoveProc(MP : pkGenlProc);
+
+Set user move procedure.
+
+See also:  2040PreMove
+;
+;------------------------------------------------------------
+!TOPIC 2060 SetSearchMode
+!NOINDEX
+procedure 2027PickList.SetSearchMode(SF : pkSearchFunc);
+
+Set a different search mode.
+
+See also:  2115pkSearchFunc  2119Search functions  2061SetSearchStart
+;
+;------------------------------------------------------------
+!TOPIC 2061 SetSearchStart
+!NOINDEX
+procedure 2027PickList.SetSearchStart(SStart : Byte);
+
+Set start offset for string searching.
+
+See also:  2060SetSearchMode
+;
+;------------------------------------------------------------
+!TOPIC 2062 DisableDividers
+!NOINDEX
+procedure 2027PickList.DisableDividers;
+
+Disable column dividers.
+
+See also:  2063EnableDividers
+;
+;------------------------------------------------------------
+!TOPIC 2063 EnableDividers
+!NOINDEX
+procedure 2027PickList.EnableDividers(Top, Bar, Bot : Char);
+
+Enable column dividers.
+
+See also:  2062DisableDividers
+;
+;------------------------------------------------------------
+!TOPIC 2064 ChangeNumItems
+!NOINDEX
+procedure 2027PickList.ChangeNumItems(NumItems : Word);
+
+Change the number of items in the pick list.
+
+See also:  2069OptimizeSize
+;
+;------------------------------------------------------------
+!TOPIC 2065 ChangeItemWidth
+!NOINDEX
+procedure 2027PickList.ChangeItemWidth(ItemWidth : Byte);
+
+Change the item width.
+
+See also:  2066ChangeStringProc  2069OptimizeSize
+;
+;------------------------------------------------------------
+!TOPIC 2066 ChangeStringProc
+!NOINDEX
+procedure 2027PickList.ChangeStringProc(StringProc : pkStringProc);
+
+Change the string function.
+
+See also:  2039CompleteItemString  2038ItemString  2113pkStringProc
+;
+;------------------------------------------------------------
+!TOPIC 2067 ChangeOrientation
+!NOINDEX
+procedure 2027PickList.ChangeOrientation(Orientation : pkGenlProc);
+
+Change the orientation.
+
+See also:  2051GetOrientation  2118Orientations  2114pkGenlProc
+;
+;------------------------------------------------------------
+!TOPIC 2068 ChangeCommandHandler
+!NOINDEX
+procedure 2027PickList.ChangeCommandHandler(CommandHandler : pkGenlProc);
+
+Change between single and multiple choice. Valid parameters are
+2098SingleChoice or 2099MultipleChoice.
+
+See also:  2031InitDeluxe  2114pkGenlProc
+;
+;------------------------------------------------------------
+!TOPIC 2069 OptimizeSize
+!NOINDEX
+procedure 2027PickList.OptimizeSize;
+
+Resize window to surround items.
+
+See also:
+    2065ChangeItemWidth            2064ChangeNumItems
+    2981StackWindow.ResizeWindow
+;
+;------------------------------------------------------------
+!TOPIC 2070 SetPickAttr
+!NOINDEX
+procedure 2027PickList.SetPickAttr(ItemType : pkItemType; Selected : Boolean;
+                               Color, Mono : Byte);
+
+Set one group of colors--disables flexwriting.
+
+See also:  2071SetPickFlex
+;
+;------------------------------------------------------------
+!TOPIC 2071 SetPickFlex
+!NOINDEX
+procedure 2027PickList.SetPickFlex(ItemType : pkItemType; Selected : Boolean;
+                               var Color, Mono : FlexAttrs);
+
+Set one group of colors for flexwriting.
+
+See also:  0384OpCrt.FlexWrite  2070SetPickAttr
+;
+;------------------------------------------------------------
+!TOPIC 2072 SetSelectMarker,PickList
+!NOINDEX
+procedure 2027PickList.SetSelectMarker(Left, Right : String);
+
+Define strings to mark selected items in multi-choice pick lists. Can also be
+used to display an arrow or other string next to the highlighted (current)
+item in a single choice pick list.
+
+See also:  2039CompleteItemString
+;
+;------------------------------------------------------------
+!TOPIC 2073 AllocateSelectSet
+!NOINDEX
+procedure 2027PickList.AllocateSelectSet(MaxItems : Word);
+
+Allocate the select set for the maximum items.
+
+See also:  2037ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 2074 ClearSelected
+!NOINDEX
+procedure 2027PickList.ClearSelected;
+
+Deselect all selected items.
+
+See also:  2073AllocateSelectSet  2075MarkAllSelected
+;
+;------------------------------------------------------------
+!TOPIC 2075 MarkAllSelected
+!NOINDEX
+procedure 2027PickList.MarkAllSelected;
+
+Mark all items selected.
+
+See also:  2073AllocateSelectSet  2074ClearSelected  2076SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 2076 SelectItem,PickList
+!NOINDEX
+procedure 2027PickList.SelectItem(Item : Word); virtual;
+
+Select an item.
+
+See also:  2077DeselectItem  2075MarkAllSelected
+;
+;------------------------------------------------------------
+!TOPIC 2077 DeselectItem
+!NOINDEX
+procedure 2027PickList.DeselectItem(Item : Word); virtual;
+
+Deselect an item.
+
+See also:  2074ClearSelected  2076SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 2078 ItemIsSelected
+!NOINDEX
+function 2027PickList.ItemIsSelected(Item : Word) : Boolean;
+
+Return True if item is selected.
+
+See also:  2077DeselectItem  2076SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 2079 GetSelectedCount
+!NOINDEX
+function 2027PickList.GetSelectedCount : Word;
+
+Return number of items selected.
+
+See also:  2073AllocateSelectSet  2074ClearSelected
+;
+;------------------------------------------------------------
+!TOPIC 2080 InitSequence
+!NOINDEX
+procedure 2027PickList.InitSequence(var Item : Word);
+
+This method is used in combination with HaveSelected and NextSelected to scan
+through all selected items in a multiple choice list. InitSequence initializes
+Item to the index of the first selected value.
+
+See also:  2081HaveSelected  2082NextSelected
+;
+;------------------------------------------------------------
+!TOPIC 2081 HaveSelected
+!NOINDEX
+function 2027PickList.HaveSelected(Item : Word) : Boolean;
+
+Return True if there is a selected item.
+
+See also:  2080InitSequence  2082NextSelected
+;
+;------------------------------------------------------------
+!TOPIC 2082 NextSelected
+!NOINDEX
+procedure 2027PickList.NextSelected(var Item : Word);
+
+Position Item at the next selected item.
+
+See also:  2081HaveSelected  2080InitSequence
+;
+;------------------------------------------------------------
+!TOPIC 2083 IsProtected,PickList
+!NOINDEX
+function 2027PickList.IsProtected(Item : Word) : Boolean;
+
+Return True if specified item is protected from selection.
+
+See also:  2085NumSelectableItems
+;
+;------------------------------------------------------------
+!TOPIC 2084 IsSemiProtected,PickList
+!NOINDEX
+function 2027PickList.IsSemiProtected(Item : Word) : Boolean; virtual;
+
+Return True if an item is semi-protected.
+
+See also:  2085NumSelectableItems
+;
+;------------------------------------------------------------
+!TOPIC 2085 NumSelectableItems
+!NOINDEX
+function 2027PickList.NumSelectableItems : Word;
+
+Return number of items that are not protected or semi-protected.
+
+See also:  2083IsProtected  2084IsSemiProtected  2037ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 2086 Load,PickList
+!NOINDEX
+constructor 2027PickList.Load(var S : IdStream);
+
+Load a pick list from a stream. The registration routine for a PickList is
+PickListStream.
+
+See also:  3068CommandWindow.Load  2087Store
+;
+;------------------------------------------------------------
+!TOPIC 2087 Store,PickList
+!NOINDEX
+procedure 2027PickList.Store(var S : IdStream);
+
+Store a pick list in a stream. The registration routine for a PickList is
+PickListStream.
+
+See also:  2086Load  3069CommandWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 2088 pkDrawItem
+!NOINDEX
+
+procedure 2027PickList.pkDrawItem(Item : Word; Row, Col : Byte;
+                                      Selected : Boolean); virtual;
+
+Draw the item with nuber Item at Row,Col in the PickList window.
+If the item to be drawn is the selected item, TRUE is passed in
+Selected, otherwise Selected is FALSE.
+;
+;------------------------------------------------------------
+!TOPIC 2089 PickNoSearch
+!NOINDEX
+function 2026OpPick.PickNoSearch(P : PickListPtr) : Boolean;
+
+No searching mode. A newly constructed PickList uses this function;
+alphanumeric characters are ignored in this mode.
+
+See also:  2119Search functions
+;
+;------------------------------------------------------------
+!TOPIC 2090 PickStringSearch
+!NOINDEX
+function 2026OpPick.PickStringSearch(P : PickListPtr) : Boolean;
+
+PickStringSearch performs an incremental search by appending each character
+that produces a match to an internal string. The capacity of this string is
+determined by the OpPick constant pkMaxSearchLen, which defaults to 15.
+Searching starts with the currently highlighted item. Each time a further
+match is obtained, OpPick advances the current item to that item. The
+Process method never exits as a result of a match (that is, the user must
+press <Enter> to complete the selection). When a non-matching character is
+entered, the internal search string is cleared and the current item remains
+unchanged.
+
+See also:  2111pkSearchString  2119Search functions
+;
+;------------------------------------------------------------
+!TOPIC 2091 PickAltStringSearch
+!NOINDEX
+function 2026OpPick.PickAltStringSearch(P : PickListPtr) : Boolean;
+
+PickAltStringSearch differs from PickStringSearch only after detecting a
+non-matching character. In that case, the internal search string is
+initialized to the last character entered (the non-matching character) and
+another search attempted. If this second attempt produces a match, the new
+matching item is highlighted. Otherwise the search string is truly cleared.
+
+See also:  2119Search functions
+;
+;------------------------------------------------------------
+!TOPIC 2092 PickCharSearch
+!NOINDEX
+function 2026OpPick.PickCharSearch(P : PickListPtr) : Boolean;
+
+PickCharSearch searches for only a single character at a time. The search
+always starts one item beyond the current one; in this way, pressing the same
+character repeatedly will advance the highlight through all of the items
+starting with the same character. The user must press <Enter> to complete a
+selection.
+
+See also:  2119Search functions
+;
+;------------------------------------------------------------
+!TOPIC 2093 PickCharExit
+!NOINDEX
+function 2026OpPick.PickCharExit(P : PickListPtr) : Boolean;
+
+PickCharExit searches for a single character, starting with the current item.
+If it finds a match, it highlights the matching item, changes the last entered
+command from ccChar to ccSelect, and returns True to force Process to exit.
+
+See also:  2119Search functions
+;
+;------------------------------------------------------------
+!TOPIC 2094 PickAnyCharExit
+!NOINDEX
+function 2026OpPick.PickAnyCharExit(P : PickListPtr) : Boolean;
+
+PickAnyCharExit doesn't do any matching at all. It simply forces Process to
+exit when any alphanumeric character is entered. GetLastCommand will return
+ccChar upon return from Process.
+
+See also:  2119Search functions
+;
+;------------------------------------------------------------
+!TOPIC 2095 PickVertical
+!NOINDEX
+procedure 2026OpPick.PickVertical(P : PickListPtr);
+
+Initialize pick for list items arranged vertically.
+
+See also:  2118Orientations
+;
+;------------------------------------------------------------
+!TOPIC 2096 PickHorizontal
+!NOINDEX
+procedure 2026OpPick.PickHorizontal(P : PickListPtr);
+
+Initialize pick list for items arranged horizontally.
+
+See also:  2118Orientations
+;
+;------------------------------------------------------------
+!TOPIC 2097 PickSnaking
+!NOINDEX
+procedure 2026OpPick.PickSnaking(P : PickListPtr);
+
+Initialize pick for list items arranged vertically, snaking.
+
+See also:  2118Orientations
+;
+;------------------------------------------------------------
+!TOPIC 2098 SingleChoice
+!NOINDEX
+procedure 2026OpPick.SingleChoice(P : PickListPtr);
+
+Initialize for a single choice picklist.
+
+See also:  2068ChangeCommandHandler  2099MultipleChoice
+;
+;------------------------------------------------------------
+!TOPIC 2099 MultipleChoice
+!NOINDEX
+procedure 2026OpPick.MultipleChoice(P : PickListPtr);
+
+Initialize for a multiple choice picklist.
+
+See also:  2068ChangeCommandHandler  2098SingleChoice
+;
+;----- no topic 4070
+;
+;------------------------------------------------------------
+!TOPIC 2100 Declarations,PickList
+!NOINDEX
+!NOSEARCH
+The following type, constant, and variable declarations pertain to PickLists:
+
+  2104BadPickOptions            2101Configuration data      2103DefPickOptions
+  2106DefSecPickOptions         2102Options                 2107Orientation codes
+  2116PickCommands              2110pkColorArray            2114pkGenlProc
+  2109pkItemType                2112pkMode                  2115pkSearchFunc
+  2111pkSearchString            2113pkStringProc            1014Secondary options
+  2108String80
+;
+;------------------------------------------------------------
+!TOPIC 2101 Configuration data,OpPick
+!NOINDEX
+!NOSEARCH
+const
+  PickKeyMax = 160;
+  PickKeyID  : string[11] = 'oppick keys';
+  PickKeySet : array[0..PickKeyMax] of Byte = (...);
+  PickCfgEnd : Byte = 0;
+
+PickKeyId is an ID string used to mark the beginning of the configuration data
+area for OpPick; PickCfgEnd marks the end of the configuration data area. In
+between them is PickKeySet, the command table used by PickCommands. PickKeyMax
+is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 2102 Options,PickList
+!NOINDEX
+!NOSEARCH
+The following options are available for PickLists:
+
+!NOWRAP
+pkStick           = $0001;
+pkExitAtEdges     = $0002;
+pkAlterPageRow    = $0004;
+pkMousePage       = $0008;
+pkDrawActive      = $0010;
+pkMinHeight       = $0020;
+pkSetDefault      = $0040;
+pkOptFullExtent   = $0080;
+pkUseItemForTopic = $0100;
+pkSelectOnClick   = $0800;
+pkProcessZero     = $1000;
+pkNoHighlightPad  = $4000;
+pkAltCurrent      = $8000;
+{for internal use}
+pkMultiChoice     = $0200;
+pkFlexWrite       = $0400;
+pkBitSetAlloc     = $2000;
+!WRAP
+
+pkStick forces the highlight bar to "stick" at the edges of scrolling lists.
+If this option is not enabled or the list fits completely in the window, the
+bar wraps to the next row or column.
+
+pkExitAtEdges also controls behavior at the edges of a list: if enabled, the
+Process method exits when a cursor key pointing outward from the window is
+pressed. GetLastCommand will return one of the four special values
+ccExitAtTop, ccExitAtBot, ccExitLeft, or ccExitRight.
+
+pkAlterPageRow affects the behavior of the <PgUp> and <PgDn> keys. See
+2117Commands for a details.
+
+When pkMousePage is enabled, clicking on the increment or decrement arrow of a
+vertical scroll bar is treated like pressing <PgUp> or <PgDn>. Otherwise, it
+is treated like pressing <Up> or <Down>.
+
+If pkDrawActive is in effect, the current item is highlighted and the
+specialized pick headers are visible after the Process method exits. Otherwise
+the highlight and the specialized headers are erased.
+
+When pkMinHeight is set prior to calling a PickList constructor, the pick
+window height will be reduced until the specified number of items completely
+fills the rows of the window.
+
+pkSetDefault indicates that Process should store the initially selected item
+number in an internal data field immediately upon entry. The data field can be
+accessed with the GetDefaultChoice method.
+
+When pkOptFullExtent is enabled, the OptimizeSize method takes into account
+the pick window's shadows while adjusting the window size. The window won't be
+allowed to grow so much that the shadows must be clipped.
+
+If pkUseItemForTopic is set, Process passes the current item number as the
+topic number to the user help routine. Otherwise, the help topic is the value
+designated as the window's help index, which defaults to 0.
+
+!NOWRAP
+pkSelectOnClick   = $0800;
+pkProcessZero     = $1000;
+pkNoHighlightPad  = $4000;
+pkAltCurrent      = $8000;
+!WRAP
+
+When the pkSelectOnClick option is activated, clicking on a pick item selects
+it immediately, whether or not the highlight bar was already there.
+
+When the pkProcessZero option is enabled, the following methods work correctly
+when the actual number of pick items is zero: ChangeNumItems, Draw,
+UpdateContents, Process, OptimizeSize, GetLastChoice, and GetLastChoiceString.
+Draw, UpdateContents, Process, and OptimizeSize all treat the zero item list
+as if it had one item that returns an empty string. Specifically, Process
+positions the highlight bar on a fake first item which is always an empty
+string. Cursor keys are ignored, but all exit commands (ccSelect, ccQuit,
+etc.) are processed as usual. GetLastChoice returns 0 and GetLastChoiceString
+returns an empty string when there are no items.
+
+When pkNoHighlightPad is enabled, the highlight bar for the current menu item
+will not be padded to the full item width of the pick list. Instead, the
+highlight will span just the actual length of the string returned by the user
+string procedure.
+
+When pkAltCurrent is enabled, the PickList uses the pkAlternate attribute set
+for writing the current (highlighted) item, whether Process is active or not.
+
+The remaining options are intended solely for internal use.
+
+See also:
+  2104BadPickOptions            2103DefPickOptions          2031InitDeluxe
+  2105Secondary options         2126Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2103 DefPickOptions
+!NOINDEX
+const
+  DefPickOptions : Word = pkStick+pkAlterPageRow+pkDrawActive+
+                          pkMinHeight+pkSetDefault+pkOptFullExtent;
+
+The default options for a PickList.
+
+See also:  2102Options
+;
+;------------------------------------------------------------
+!TOPIC 2104 BadPickOptions
+!NOINDEX
+const
+  BadPickOptions : Word = pkItemWrap+pkPickActive+pkBitSetAlloc+
+                          pkRedrawPage+pkRedrawOne+pkFlexWrite+
+                          pkMultiChoice;
+
+Options used internally by PickList. The pkOptionsOn and pkOptionsOff methods
+will not change these bits of a PickList option word.
+
+See also:  2102Options  2126Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2105 Secondary options,PickList
+!NOINDEX
+!NOSEARCH
+The following secondary options are available for PickLists:
+
+pkItemStrActive   = $01;
+
+This option is used internally by PickList.
+
+See also:  2106DefSecPickOptions
+;
+;------------------------------------------------------------
+!TOPIC 2106 DefSecPickOptions
+!NOINDEX
+const
+  DefSecPickOptions : Byte = 0;
+
+The default options for a PickList.
+
+See also:  1014Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 2107 Orientation codes
+!NOINDEX
+!NOSEARCH
+const
+  pkNoOrient   = 0;
+  pkVertical   = 1;
+  pkHorizontal = 2;
+  pkSnaking    = 3;
+
+Values returned by the GetOrientation method to indicate the orientation of
+the PickList.
+
+See also:  2051GetOrientation
+;
+;------------------------------------------------------------
+!TOPIC 2108 String80
+!NOINDEX
+type
+  String10 = String[10];
+  String80 = String[80];
+
+String types used while specifying a "more header."
+
+See also:  2034AddMoreHeader
+;
+;------------------------------------------------------------
+!TOPIC 2109 pkItemType
+!NOINDEX
+type
+  pkItemType      = pkNormal..pkSemiProtected;
+!LINE
+const
+  pkNormal        = 0; {Normal items}
+  pkAlternate     = 1; {Alternate items}
+  pkProtected     = 2; {Protected items}
+  pkPrivate       = 3; {Reserved for TurboPower - NO LONGER USED}
+  pkSemiProtected = 3; {Semi-protected items}
+
+Categories of items in a pick list.
+
+See also:  2038ItemString
+;
+;------------------------------------------------------------
+!TOPIC 2110 pkColorArray
+!NOINDEX
+type
+  pkBaseColorArray = array[pkItemType, Boolean] of FlexAttrs;
+  pkColorArray = array[Boolean] of pkBaseColorArray;
+
+Arrays used for video attribute storage in a PickList. Note that there are 64
+independent color values. If flexwriting is not enabled, at most 16 of these
+are used.
+;
+;------------------------------------------------------------
+!TOPIC 2111 pkSearchString
+!NOINDEX
+type
+  pkSearchString = string[pkMaxSearchLen];
+!LINE
+const
+  pkMaxSearchLen = 15;
+
+Data type used to hold the current incremental search string.
+
+See also:  2090PickStringSearch
+;
+;------------------------------------------------------------
+!TOPIC 2112 pkMode
+!NOINDEX
+type
+  pkMode = (pkDisplay, pkSearch, pkGetType);
+
+Modes that may be passed to the user string procedure.
+
+See also:  2038ItemString
+;
+;------------------------------------------------------------
+!TOPIC 2113 pkStringProc
+!NOINDEX
+type
+  pkStringProc = procedure (Item : Word; Mode : pkMode;
+                            var IType : pkItemType;
+                            var IString : String;
+                            PickPtr : PickListPtr);
+
+Procedural type that defines parameters of a user string procedure.
+
+See also:  2066ChangeStringProc  2031InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 2114 pkGenlProc
+!NOINDEX
+type
+  pkGenlProc = procedure (P : PickListPtr);
+
+Procedural type that defines the parameters of a user move procedure as well
+as other procedure variables used internally by the PickList.
+
+See also:  2068ChangeCommandHandler  2118Orientations
+;
+;------------------------------------------------------------
+!TOPIC 2115 pkSearchFunc
+!NOINDEX
+type
+  pkSearchFunc = function (P : PickListPtr) : Boolean;
+
+Procedural type that defines the parameters of a user search function.
+
+See also:  2119Search functions  2060SetSearchMode
+;
+;------------------------------------------------------------
+!TOPIC 2116 PickCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  PickCommands : DragProcessor;
+  {$ELSE}
+  PickCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a PickList.
+
+See also:  0218CommandProcessor  2117Commands  2037ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 2117 Commands,OpPick
+!NOINDEX
+!NOSEARCH
+PickList's Process method offers appropriate commands to navigate the list of
+items and mark selections. The list below arranges them by category. In each
+case the first line gives the name of the command, followed by the key(s) to
+which it is normally assigned. The second and following lines give a brief
+description of the command.
+
+!NOWRAP
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+!WRAP
+Highlight bar left one item. If the highlight is at the beginning of a row,
+and wrapping is allowed (more on this later), it is moved to the end of the
+previous row. If wrapping is not allowed, the highlight does not move.
+
+!NOWRAP
+ccRight       <Right>, <CtrlD>
+Highlight bar right one item.
+
+ccHome        <Home>, <CtrlQ><S>
+Highlight to first item.
+
+ccEnd         <End>, <CtrlQ><D>
+Highlight to last item.
+
+ccUp          <Up>, <CtrlE>, <CtrlW>
+!WRAP
+Highlight up one row. If the highlight is at the top of a column, and wrapping
+is allowed, it is moved to the bottom of the previous column. If it is on the
+first item, and wrapping is allowed, it is moved to the last item.
+
+!NOWRAP
+ccDown        <Down>, <CtrlX>, <CtrlZ>
+Cursor down one row, with wrapping analogous to ccUp.
+
+ccPageUp      <PgUp>, <CtrlR>
+!WRAP
+Scroll display up one page. If the pkAlterPageRow option is in effect, the
+highlight bar always moves to the top row of the window after ccPageUp. If
+not, the highlight bar remains on the same window-relative row until the
+window can scroll no more, at which time the highlight moves to the first row.
+
+!NOWRAP
+ccPageDn      <PgDn>, <CtrlC>
+!WRAP
+Scroll display down one page. The pkAlterPageRow option affects this command
+much like it does ccPageUp.
+
+!NOWRAP
+Multiple Choice Selection
+
+!WRAP
+The following commands are interpreted only for multiple choice PickLists,
+which are activated by passing the MultipleChoice CommandHandler to the
+PickList's constructor. Selected items are made apparent by using marker
+strings (check marks or arrows, for example) or a different video attribute.
+
+!NOWRAP
+ccIns         <Ins>
+Mark the current item selected.
+
+ccDel         <Del>, <->
+Deselect the current item.
+
+ccToggle      <Space>, <+>
+If the current item is not selected, select it; otherwise, deselect it.
+
+ccBlkToggle   <CtrlEnter>, <CtrlJ>
+!WRAP
+If any items are currently selected, clear all selections. If no items are
+currently selected, mark all items selected.
+
+!NOWRAP
+ccBlkBegin    <F7>, <CtrlK><B>
+!WRAP
+Indicate that the currently highlighted item is the first one in a marked
+block. The block operation is not complete (and no visible indication of the
+block appears) until the ccBlkEnd command is given.
+
+!NOWRAP
+ccBlkEnd      <F8>, <CtrlK><K>
+!WRAP
+If an item that begins a block has been set with the ccBlkBegin command, and
+if the current item index is equal to or beyond the begin, then all items from
+the begin to the current item are marked. The beginning item indicator (stored
+internally) is reset; another block cannot be marked until the ccBlkBegin
+command is given again.
+
+!NOWRAP
+ccRestore     <CtrlK><H>
+Deselect all items.
+
+Other
+
+ccSelect      <Enter>
+!WRAP
+For a single choice PickList, select the current item and exit the list. For
+multiple choice, accept the current set of selections and exit the list.
+
+!NOWRAP
+ccMouseSel    <ClickLeft>
+!WRAP
+Move the highlight bar to the position indicated by the mouse, if possible.
+For a single choice list, if the highlight bar is already over the indicated
+item, select the item and exit the list. For a multiple choice list, if the
+highlight bar is over the indicated item, toggle its selection. This command
+can also be used to scroll the pick list by clicking on a scroll bar.
+
+!NOWRAP
+ccQuit        <Esc>, <ClickRight>
+Quit processing the list without making a selection.
+
+ccHelp        <F1>, <ClickBoth>
+Request help.
+!WRAP
+
+See also:  2116PickCommands  2037PickList.ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 2118 Orientations
+!NOINDEX
+!NOSEARCH
+When the list items are arranged in more than one column, OpPick can display
+the items in any of three different orientations. It's easier to demonstrate
+these orientations visually than to describe them. Assume that we have an 11
+item list (the letters A through K) arranged in three columns in a window
+three rows tall. Here's what we would see for each of the three orientations
+when the list was first displayed:
+
+  PickVertical       PickHorizontal        PickSnaking
+   A   E   I          A   B   C             A   D   G
+   B   F   J          D   E   F             B   E   H
+   C   G   K          G   H   I             C   F   I
+
+For 2095PickVertical, increasing item numbers are arranged in vertical
+columns. Note that items D and H are below the window and will not appear
+until the window scrolls upward.
+
+For 2096PickHorizontal, increasing items are arranged in horizontal rows.
+The right hand edge of one row is continued immediately at the left edge of
+the next row. Scrolling the example up by one row would show the two remaining
+elements, J and K.
+
+2097PickSnaking is like PickVertical in that the items are arranged in
+columns. However, it is like PickHorizontal in that the top of one column
+picks up where the bottom of the previous column left off. Scrolling the
+example window left by one column would make items J and K appear in the right
+hand column.
+
+See also:  2067ChangeOrientation  2114pkGenlProc
+;
+;------------------------------------------------------------
+!TOPIC 2119 Search functions
+!NOINDEX
+!NOSEARCH
+OpPick's Process method calls the virtual method ItemSearch whenever it
+detects the ccChar command. ItemSearch calls a user-defined search function
+which must match the following prototype definition:
+
+!NOWRAP
+{$F+}
+function PickSearch(P : PickListPtr) : Boolean;
+begin
+end;
+!WRAP
+
+OpPick provides several of these functions already, so you probably won't
+need to write one yourself. Here are the predefined ones:
+
+  2091PickAltStringSearch       2094PickAnyCharExit         2093PickCharExit
+  2092PickCharSearch            2089PickNoSearch            2090PickStringSearch
+;
+;------------------------------------------------------------
+!TOPIC 2120 Appearance/orientation
+!NOINDEX
+!NOSEARCH
+PickList provides the following methods for altering the appearance and
+orientation of the pick list:
+
+  2034AddMoreHeader             2035AddSearchHeader         2065ChangeItemWidth
+  2067ChangeOrientation         2062DisableDividers         2063EnableDividers
+  2051GetOrientation            2069OptimizeSize            2118Orientations
+  2058SetPadSize                2070SetPickAttr             2071SetPickFlex
+  2072SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 2121 General,PickList
+!NOINDEX
+!NOSEARCH
+PickList provides the following general purpose methods:
+
+  2068ChangeCommandHandler      2064ChangeNumItems          2033Done
+  2052GetItemCols               2053GetNumItems             2028Init
+  2030InitAbstract              2032InitAbstractDeluxe      2029InitCustom
+  2031InitDeluxe                2083IsProtected             2084IsSemiProtected
+  2086Load                      2040PreMove                 2037ProcessSelf
+  2059SetMoveProc               2057SetRowLimits            2087Store
+  2036UpdateContents            2049WhereSelect             2050WhereSelectAbs
+;
+;------------------------------------------------------------
+!TOPIC 2122 Get/set choice
+!NOINDEX
+!NOSEARCH
+PickList provides the following methods for getting and setting pick list
+choices:
+
+  2045GetDefaultChoice          2046GetLastChoice           2043SetChoice
+  2044SetDefaultChoice          2042SetInitialChoice
+;
+;------------------------------------------------------------
+!TOPIC 2123 Item strings
+!NOINDEX
+!NOSEARCH
+PickList provides the following methods for working with item strings:
+
+  2066ChangeStringProc          2039CompleteItemString      2047GetItemString
+  2048GetLastChoiceString       2038ItemString              2088pkDrawItem
+;
+;------------------------------------------------------------
+!TOPIC 2124 Multiple choice lists
+!NOINDEX
+!NOSEARCH
+PickList provides the following methods for working with multiple choice pick
+lists:
+
+  2073AllocateSelectSet         2074ClearSelected           2077DeselectItem
+  2079GetSelectedCount          2081HaveSelected            2080InitSequence
+  2078ItemIsSelected            2075MarkAllSelected         2082NextSelected
+  2085NumSelectableItems        2076SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 2125 Searching
+!NOINDEX
+!NOSEARCH
+PickList provides the following methods for controlling the way that searches
+are handled within pick lists:
+
+  2041ItemSearch                2119Search functions        2060SetSearchMode
+  2061SetSearchStart
+;
+;------------------------------------------------------------
+!TOPIC 2126 Setting options,PickList
+!NOINDEX
+!NOSEARCH
+PickList provides the following methods for setting options:
+
+  2056pkOptionsAreOn            2055pkOptionsOff            2054pkOptionsOn

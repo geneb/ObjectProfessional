@@ -1,0 +1,87 @@
+;Help text for Object Professional Online Reference Guide
+;Copyright (c) 1989,1992, TurboPower Software
+;All rights reserved
+;Version 1.30
+;
+;Help file was designed for a ScrollingHelpWindow
+!SCROLLING
+;
+;Full screen width is used to best display procedure headers
+;Actual width available after framing and padding is 75 characters
+!WIDTH 77
+;
+;The help text assumes that wrapping is on, except where it temporarily
+;turns wrapping off.
+!WRAP
+;
+;For best appearance, use an active help window height of at least 12 rows.
+;
+;Formatting conventions:
+; Char  Where used (usually)  Video attribute
+; ----  --------------------  ---------------------------
+;   -   normal help text      dim on a monochrome monitor
+;  ^A   not used              reverse video
+;  ^B   function headers      bold video
+;  ^C   emphasis              underlined bold video
+;  ^E   unselected xref       underlined dim video
+;  ^E   selected xref         reverse video
+;
+!INCLUDE SPECIALS.TXT
+!INCLUDE OP8087.TXT
+!INCLUDE OPABSFLD.TXT
+!INCLUDE OPASCIIZ.TXT
+!INCLUDE OPBCD.TXT
+!INCLUDE OPBROWSE.TXT
+!INCLUDE OPCAL.TXT
+!INCLUDE OPCALC.TXT
+!INCLUDE OPCLONE.TXT
+!INCLUDE OPCMD.TXT
+!INCLUDE OPCOLOR.TXT
+!INCLUDE OPCONST.TXT
+!INCLUDE OPCRT.TXT
+!INCLUDE OPDATE.TXT
+!INCLUDE OPDEVICE.TXT
+!INCLUDE OPDIALOG.TXT
+!INCLUDE OPDIR.TXT
+!INCLUDE OPDOS.TXT
+!INCLUDE OPDRAG.TXT
+!INCLUDE OPEDIT.TXT
+!INCLUDE OPEDITOR.TXT
+!INCLUDE OPEMS.TXT
+!INCLUDE OPENHKBD.TXT
+!INCLUDE OPENTRY.TXT
+!INCLUDE OPERRHAN.TXT
+!INCLUDE OPEXEC.TXT
+!INCLUDE OPEXTMEM.TXT
+!INCLUDE OPFEDIT.TXT
+!INCLUDE OPFIELD.TXT
+!INCLUDE OPFORM.TXT
+!INCLUDE OPFRAME.TXT
+!INCLUDE OPHELP.TXT
+!INCLUDE OPINLINE.TXT
+!INCLUDE OPINT.TXT
+!INCLUDE OPLARRAY.TXT
+!INCLUDE OPMACED.TXT
+!INCLUDE OPMACRO.TXT
+!INCLUDE OPMEMO.TXT
+!INCLUDE OPMENU.TXT
+!INCLUDE OPMOUSE.TXT
+!INCLUDE OPPICK.TXT
+!INCLUDE OPPRINT.TXT
+!INCLUDE OPPRNLOW.TXT
+!INCLUDE OPQKREF.TXT
+!INCLUDE OPREPLAY.TXT
+!INCLUDE OPROOT.TXT
+!INCLUDE OPSEDIT.TXT
+!INCLUDE OPSELECT.TXT
+!INCLUDE OPSORT.TXT
+!INCLUDE OPSTRDEV.TXT
+!INCLUDE OPSTRING.TXT
+!INCLUDE OPSWAP.TXT
+!INCLUDE OPSWAP1.TXT
+!INCLUDE OPTSR.TXT
+!INCLUDE OPWINDOW.TXT
+!INCLUDE OPXMS.TXT
+;
+; insert !BIAS statement here
+; add !INCLUDE statement here

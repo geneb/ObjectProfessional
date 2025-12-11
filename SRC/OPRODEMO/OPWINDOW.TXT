@@ -1,0 +1,2409 @@
+;
+;------------------------------------------------------------
+!TOPIC 2918 OpWindow
+OpWindow picks up where OpFrame leaves off, providing the next level of
+sophistication in the window hierarchy. The following chart shows the objects
+implemented by OpWindow:
+
+!NOWRAP
+[2306Root]
+  3099LoadableColorSet
+  3103PackedWindow
+  [2394PointerStack]
+    3089WindowStack
+  3070VirtScreen
+  2919AbstractWindow
+    2923RawWindow
+      3015StackWindow
+        3045CommandWindow
+!WRAP
+
+See also:  3150Declarations
+;
+;------------------------------------------------------------
+!TOPIC 2919 AbstractWindow
+!NOINDEX
+2918OpAbsWin.AbstractWindow = object(2306Root)
+!LINE
+AbstractWindowPtr = ^AbstractWindow;
+
+AbstractWindow describes the most basic properties of a window. It implements
+the following methods:
+
+  2922ClearErrors               2921Height                  2920Width
+;
+;------------------------------------------------------------
+!TOPIC 2920 Width
+!NOINDEX
+function 2919AbstractWindow.Width : Word;
+
+Return the active width of the window.
+
+See also:  2921Height
+;
+;------------------------------------------------------------
+!TOPIC 2921 Height
+!NOINDEX
+function 2919AbstractWindow.Height : Word;
+
+Return the active height of the window.
+
+See also:  2966RawWindow.Coordinates  2920Width
+;
+;------------------------------------------------------------
+!TOPIC 2922 ClearErrors,AbstractWindow
+!NOINDEX
+procedure 2919AbstractWindow.ClearErrors; virtual;
+
+Clear all pending errors.
+
+See also:  2957RawWindow.GetLastError  2958RawWindow.PeekLastError
+;
+;------------------------------------------------------------
+!TOPIC 2923 RawWindow
+!NOINDEX
+2918OpWindow.RawWindow = object(2919AbstractWindow)
+!LINE
+RawWindowPtr = ^RawWindow;
+
+RawWindow implements most of the functions you would expect from a text
+window. It provides the buffers needed to save the screen region covered by
+and contained within the window, the logic needed to display the window's
+frame and set its active coordinates, and methods for clearing, writing to,
+and scrolling within the window.
+
+RawWindow provides a host of methods, which generally fall into one of the
+following categories:
+
+    3126Cursor type/position              3127Declarations
+    3128Display                           3129Frames and headers
+    3130General                           3131Options and effects
+    3132Screen writing                    3133Scroll bars
+    3134Size and position                 3135Status
+;
+;------------------------------------------------------------
+!TOPIC 2924 Init,RawWindow
+!NOINDEX
+constructor 2923RawWindow.Init(X1, Y1, X2, Y2 : Byte);
+
+Create a window with default options and colors.
+
+See also:  0472OpCrt.DefaultColorSet  3115DefWindowOptions  2925InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2925 InitCustom,RawWindow
+!NOINDEX
+constructor 2923RawWindow.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                 var Colors : ColorSet;
+                                 Options : LongInt);
+
+Create a window with custom colors and options.
+
+See also:  2924Init  1453Frame.Init  3114Options
+;
+;------------------------------------------------------------
+!TOPIC 2926 wCopy,RawWindow
+!NOINDEX
+constructor 2923RawWindow.wCopy(var W : RawWindow);
+
+Initialize one window from another one, making a unique copy of all dynamic
+structures.
+;
+;------------------------------------------------------------
+!TOPIC 2927 Done,RawWindow
+!NOINDEX
+destructor 2923RawWindow.Done; virtual;
+
+Destroy a window. All associated buffers and frame components are deallocated.
+
+See also:  2970Erase
+;
+;------------------------------------------------------------
+!TOPIC 2928 AdjustFrameCoords
+!NOINDEX
+procedure 2923RawWindow.AdjustFrameCoords(X1, Y1, X2, Y2 : Byte);
+
+Change frame coordinates of an inactive window. Completely clears existing
+frame definition.
+
+See also:  2982AdjustWindow  2929DeltaAdjustFrame
+;
+;------------------------------------------------------------
+!TOPIC 2929 DeltaAdjustFrame
+!NOINDEX
+procedure 2923RawWindow.DeltaAdjustFrame(dX1, dY1, dX2, dY2 : Integer);
+
+Change frame coordinates of an inactive window. Reallocates wCovers buffer but
+changes nothing else.
+
+See also:  2928AdjustFrameCoords  2982AdjustWindow
+;
+;------------------------------------------------------------
+!TOPIC 2930 SetSizeLimits,RawWindow
+!NOINDEX
+procedure 2923RawWindow.SetSizeLimits(MinW, MinH, MaxW, MaxH : Byte);
+
+Set limits for sizing of active window.
+
+See also:  2932SetFrameLimits  2931SetPosLimits
+;
+;------------------------------------------------------------
+!TOPIC 2931 SetPosLimits
+!NOINDEX
+procedure 2923RawWindow.SetPosLimits(MinX, MinY, MaxX, MaxY : Byte);
+
+Set limits for moving and drawing (generally limited by frame).
+
+See also:  2932SetFrameLimits  2930SetSizeLimits
+;
+;------------------------------------------------------------
+!TOPIC 2932 SetFrameLimits
+!NOINDEX
+procedure 2923RawWindow.SetFrameLimits(MinW, MinH, MaxW, MaxH : Byte);
+
+Set limits for sizing of frame.
+
+See also:  2931SetPosLimits  2930SetSizeLimits
+;
+;------------------------------------------------------------
+!TOPIC 2933 UpdateScreenSize,RawWindow
+!NOINDEX
+procedure 2923RawWindow.UpdateScreenSize;
+
+Update window size, position, and limits for current screen size.
+
+See also:  2982AdjustWindow
+;
+;------------------------------------------------------------
+!TOPIC 2934 EnableExplosions,RawWindow
+!NOINDEX
+procedure 2923RawWindow.EnableExplosions(StageDelay : Word);
+
+Enable exploding windows with StageDelay milliseconds per stage. Note that,
+when an expoding window is loaded from or stored in a stream, the special
+registration routine ExplodingWindowStream needs to be called.
+
+See also:
+    2935EnableAlternateOpen         2936EnableNormalOpen
+    3013Load                        3014Store
+;
+;------------------------------------------------------------
+!TOPIC 2935 EnableAlternateOpen
+!NOINDEX
+procedure 2923RawWindow.EnableAlternateOpen(OpenProc : RawWindowProc;
+                                        CloseProc : RawWindowProc;
+                                        StageDelay : Word);
+
+Enable alternate draw and erase routines.
+
+See also:  2934EnableExplosions  2936EnableNormalOpen  3116RawWindowProc
+;
+;------------------------------------------------------------
+!TOPIC 2936 EnableNormalOpen,RawWindow
+!NOINDEX
+procedure 2923RawWindow.EnableNormalOpen;
+
+Disable exploding windows or alternate draw routines.
+
+See also:  2935EnableAlternateOpen  2934EnableExplosions
+;
+;------------------------------------------------------------
+!TOPIC 2937 wOptionsOn
+!NOINDEX
+procedure 2923RawWindow.wOptionsOn(OptionCodes : LongInt);
+
+Turn the specified option(s) on.
+
+See also:  3114Options  2939wOptionsAreOn  2938wOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 2938 wOptionsOff
+!NOINDEX
+procedure 2923RawWindow.wOptionsOff(OptionCodes : LongInt);
+
+Turn the specified option(s) off.
+
+See also:  3114Options  2939wOptionsAreOn  2937wOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2939 wOptionsAreOn
+!NOINDEX
+function 2923RawWindow.wOptionsAreOn(OptionCodes : LongInt) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  3114Options  2938wOptionsOff  2937wOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2940 SetTextAttr,RawWindow
+!NOINDEX
+procedure 2923RawWindow.SetTextAttr(Color, Mono : Byte); virtual;
+
+Set attributes for normal window text.
+
+See also:  2941SetBackChar
+;
+;------------------------------------------------------------
+!TOPIC 2941 SetBackChar
+!NOINDEX
+procedure 2923RawWindow.SetBackChar(BackChar : Char); virtual;
+
+Set background character to use when clearing the window.
+
+See also:  3123DefBackChar  2940SetTextAttr
+;
+;------------------------------------------------------------
+!TOPIC 2942 wGotoXY
+!NOINDEX
+procedure 2923RawWindow.wGotoXY(X, Y : Integer); virtual;
+
+Move cursor to the specified window-relative coordinates.
+
+See also:  2943wWhereXY  2944wWhereXYAbs
+;
+;------------------------------------------------------------
+!TOPIC 2943 wWhereXY
+!NOINDEX
+procedure 2923RawWindow.wWhereXY(var X, Y : Integer); virtual;
+
+Return the window-relative coordinates of the cursor.
+
+See also:  2944wWhereXYAbs
+;
+;------------------------------------------------------------
+!TOPIC 2944 wWhereXYAbs
+!NOINDEX
+procedure 2923RawWindow.wWhereXYAbs(var X, Y : Byte);
+
+Return the absolute coordinates of the cursor.
+
+See also:  2943wWhereXY
+;
+;------------------------------------------------------------
+!TOPIC 2945 SetCursor
+!NOINDEX
+procedure 2923RawWindow.SetCursor(CT : CursorType);
+
+Set the shape of the cursor (while this window is active).
+
+See also:  0467OpCrt.CursorType  3122DefCursor  2946GetCursor
+;
+;------------------------------------------------------------
+!TOPIC 2946 GetCursor
+!NOINDEX
+function 2923RawWindow.GetCursor : CursorType;
+
+Return current shape of the cursor.
+
+See also:  0467OpCrt.CursorType  2945SetCursor
+;
+;------------------------------------------------------------
+!TOPIC 2947 ChangeHeader
+!NOINDEX
+procedure 2923RawWindow.ChangeHeader(Index : Byte; S : string);
+
+Change the text of the header with the specified Index to S; if window is
+current, update screen.
+
+See also:  1468Frame.ChangeHeaderString
+;
+;------------------------------------------------------------
+!TOPIC 2948 InWindow
+!NOINDEX
+function 2923RawWindow.InWindow(AX, AY : Byte) : Boolean;
+
+Return True if specified absolute position is within the window.
+
+See also:  2952CursorInWindow  2953EvaluatePos  2949InExtent  2950InFrame
+;
+;------------------------------------------------------------
+!TOPIC 2949 InExtent
+!NOINDEX
+function 2923RawWindow.InExtent(AX, AY : Byte;
+                            IncludeShadows : Boolean) : Boolean;
+
+Return True if specified absolute position is within extent of window.
+
+See also:  2950InFrame  2948InWindow
+;
+;------------------------------------------------------------
+!TOPIC 2950 InFrame
+!NOINDEX
+function 2923RawWindow.InFrame(AX, AY : Byte;
+                           IncludeShadows : Boolean) : Boolean;
+
+Return True if position is within extent of window, but not within active
+portion of window.
+
+See also:  2949InExtent  2948InWindow
+;
+;------------------------------------------------------------
+!TOPIC 2951 Intersects
+!NOINDEX
+function 2923RawWindow.Intersects(W : AbstractWindowPtr) : Boolean; virtual;
+
+Return True if Self intersects another window W.
+;
+;------------------------------------------------------------
+!TOPIC 2952 CursorInWindow
+!NOINDEX
+function 2923RawWindow.CursorInWindow : Boolean;
+
+Return True if cursor is currently within the window.
+
+See also:  2948InWindow
+;
+;------------------------------------------------------------
+!TOPIC 2953 EvaluatePos
+!NOINDEX
+procedure 2923RawWindow.EvaluatePos(X, Y : Byte);
+
+Evaluate specified absolute position relative to window, hotspots, and scroll
+bars. You can access the returned values by calling PosResults.
+
+See also:
+    2954EvaluateMousePos          3094WindowStack.EvaluateStackPos
+    2955PosResults                2974TweakSlider
+;
+;------------------------------------------------------------
+!TOPIC 2954 EvaluateMousePos
+!NOINDEX
+procedure 2923RawWindow.EvaluateMousePos;
+
+Evaluate current mouse position as with EvaluatePos.
+
+See also:  2953EvaluatePos  2955PosResults
+;
+;------------------------------------------------------------
+!TOPIC 2955 PosResults
+!NOINDEX
+function 2923RawWindow.PosResults(var FramePos : FramePosType;
+                              var HotCode : Byte) : LongInt;
+
+Return values from most recent call to EvaluatePos or EvaluateMousePos.
+
+See also:
+  2954EvaluateMousePos               2953EvaluatePos
+  3094WindowStack.EvaluateStackPos   2974TweakSlider
+;
+;------------------------------------------------------------
+!TOPIC 2956 Error,RawWindow
+!NOINDEX
+procedure 2923RawWindow.Error(Code : Word); virtual;
+
+Report that an error occurred.
+
+See also:  2957GetLastError  2958PeekLastError
+;
+;------------------------------------------------------------
+!TOPIC 2957 GetLastError,RawWindow
+!NOINDEX
+function 2923RawWindow.GetLastError : Word; virtual;
+
+Return and clear the last error code.
+
+See also:  2922AbstractWindow.ClearErrors  2956Error  2959RawError
+           2958PeekLastError
+;
+;------------------------------------------------------------
+!TOPIC 2958 PeekLastError,RawWindow
+!NOINDEX
+function 2923RawWindow.PeekLastError : Word; virtual
+
+Return the last error code without clearning it.
+
+See also:  2922AbstractWindow.ClearErrors  2956Error  2959RawError
+           2957GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 2959 RawError
+!NOINDEX
+function 2923RawWindow.RawError : Word;
+
+Return RawWindow internal error code without resetting it
+
+See also:  2957GetLastError  2958PeekLastError
+;
+;------------------------------------------------------------
+!TOPIC 2960 IsActive
+!NOINDEX
+function 2923RawWindow.IsActive : Boolean; virtual;
+
+Return True if window is on-screen.
+
+See also:  2961IsCurrent
+;
+;------------------------------------------------------------
+!TOPIC 2961 IsCurrent,RawWindow
+!NOINDEX
+function 2923RawWindow.IsCurrent : Boolean; virtual;
+
+Return True if window is the current one.
+
+See also:  2960IsActive
+;
+;------------------------------------------------------------
+!TOPIC 2962 IsZoomed
+!NOINDEX
+function 2923RawWindow.IsZoomed : Boolean; virtual;
+
+Return True if window is currently zoomed.
+
+See also:  2984Unzoom  2983Zoom
+;
+;------------------------------------------------------------
+!TOPIC 2963 MainFramePtr
+!NOINDEX
+function 2923RawWindow.MainFramePtr : AbstractFramePtr; virtual;
+
+Return a pointer to the frame used when the window is current.
+
+See also:  2965ActiveFramePtr  2964AltFramePtr
+;
+;------------------------------------------------------------
+!TOPIC 2964 AltFramePtr
+!NOINDEX
+function 2923RawWindow.AltFramePtr : AbstractFramePtr; virtual;
+
+Return a pointer to frame used when the window is active but not current.
+
+See also:  2965ActiveFramePtr  2963MainFramePtr
+;
+;------------------------------------------------------------
+!TOPIC 2965 ActiveFramePtr
+!NOINDEX
+function 2923RawWindow.ActiveFramePtr : AbstractFramePtr; virtual;
+
+Return a pointer to frame the window is currently displaying, Nil if none.
+
+See also:  2964AltFramePtr  2963MainFramePtr
+;
+;------------------------------------------------------------
+!TOPIC 2966 Coordinates,RawWindow
+!NOINDEX
+procedure 2923RawWindow.Coordinates(var X1, Y1, X2, Y2 : Byte);
+
+Return the active coordinates of the window (excluding frame and shadows).
+
+See also:  2967Extent  1491Frame.WithinFrameCoords
+;
+;------------------------------------------------------------
+!TOPIC 2967 Extent
+!NOINDEX
+procedure 2923RawWindow.Extent(var X1, Y1, X2, Y2 : Byte;
+                           IncludeShadows : Boolean);
+
+Return the complete extent of the window, counting shadows if requested.
+
+See also:  2966Coordinates
+;
+;------------------------------------------------------------
+!TOPIC 2968 Draw,RawWindow
+!NOINDEX
+procedure 2923RawWindow.Draw; virtual;
+
+Draw or update a window.
+
+See also:  3025StackWindow.Draw  2970Erase
+;
+;------------------------------------------------------------
+!TOPIC 2969 UpdateContents,RawWindow
+!NOINDEX
+procedure 2923RawWindow.UpdateContents; virtual;
+
+Update the contents of the currently displayed window. Application programs
+should not call this method directly.
+
+See also:  2968Draw
+;
+;------------------------------------------------------------
+!TOPIC 2970 Erase,RawWindow
+!NOINDEX
+procedure 2923RawWindow.Erase; virtual;
+
+Erase a window.
+
+See also:  2927Done  2968Draw
+;
+;------------------------------------------------------------
+!TOPIC 2971 SaveContents
+!NOINDEX
+procedure 2923RawWindow.SaveContents; virtual;
+
+Save current window contents in the contents buffer.
+
+See also:  2970Erase
+;
+;------------------------------------------------------------
+!TOPIC 2972 DrawSlider
+!NOINDEX
+procedure 2923RawWindow.DrawSlider(Posn : FrameEdgeType; UserVal : LongInt);
+
+Draw or update the slider at the specified position.
+
+See also:  2975ChangeScrollBar  2977DrawAllSliders
+;
+;------------------------------------------------------------
+!TOPIC 2973 EraseSlider
+!NOINDEX
+procedure 2923RawWindow.EraseSlider(Posn : FrameEdgeType);
+
+Erase the slider at the specified position.
+
+See also:  2977DrawAllSliders  2972DrawSlider
+;
+;------------------------------------------------------------
+!TOPIC 2974 TweakSlider
+!NOINDEX
+function 2923RawWindow.TweakSlider(Posn : FrameEdgeType; MousePosn : Byte;
+                               UserVal, Step : LongInt) : LongInt;
+
+Adjust user value until the slider at the specified position matches mouse
+position as closely as possible.
+
+See also:  2953EvaluatePos  2955PosResults
+;
+;------------------------------------------------------------
+!TOPIC 2975 ChangeScrollBar
+!NOINDEX
+procedure 2923RawWindow.ChangeScrollBar(Posn : FrameEdgeType;
+                                    MinUser, MaxUser : LongInt);
+
+Change user range of existing scroll bar.
+
+See also:  2976ChangeAllScrollBars  2972DrawSlider
+;
+;------------------------------------------------------------
+!TOPIC 2976 ChangeAllScrollBars
+!NOINDEX
+procedure 2923RawWindow.ChangeAllScrollBars(MinHoriz, MaxHoriz : LongInt;
+                                        MinVert, MaxVert : LongInt);
+                                                                 virtual;
+
+Change user ranges of existing scroll bars. Erases sliders.
+
+See also:  2965ActiveFramePtr  2975ChangeScrollBar  2977DrawAllSliders
+;
+;------------------------------------------------------------
+!TOPIC 2977 DrawAllSliders
+!NOINDEX
+procedure 2923RawWindow.DrawAllSliders(HorizVal, VertVal : LongInt); virtual;
+
+Draw or update all sliders.
+
+See also:  2976ChangeAllScrollBars  2972DrawSlider
+;
+;------------------------------------------------------------
+!TOPIC 2978 Clear,RawWindow
+!NOINDEX
+procedure 2923RawWindow.Clear; virtual;
+
+Clear active window area with wTextColor/Mono and wBackChar.
+
+See also:  2979ClearContents  2941SetBackChar
+;
+;------------------------------------------------------------
+!TOPIC 2979 ClearContents
+!NOINDEX
+procedure 2923RawWindow.ClearContents;
+
+Clear region within frame with wTextColor/Mono and wBackChar.
+
+See also:  2978Clear
+;
+;------------------------------------------------------------
+!TOPIC 2980 MoveWindow,RawWindow
+!NOINDEX
+procedure 2923RawWindow.MoveWindow(DX, DY : Integer); virtual;
+
+Move a window. DX and DY specify the direction and extent of the movement.
+
+See also:  2982AdjustWindow  2981ResizeWindow  2983Zoom
+;
+;------------------------------------------------------------
+!TOPIC 2981 ResizeWindow
+!NOINDEX
+procedure 2923RawWindow.ResizeWindow(DX, DY : Integer); virtual;
+
+Resize a window. DX and DY specify how much and in which direction(s) the
+window should be adjusted.
+
+See also:  2982AdjustWindow  2980MoveWindow  2983Zoom
+;
+;------------------------------------------------------------
+!TOPIC 2982 AdjustWindow
+!NOINDEX
+procedure 2923RawWindow.AdjustWindow(X1, Y1, X2, Y2 : Word); virtual;
+
+Set new coordinates and adjust all related structures.
+
+See also:
+    2980MoveWindow                2981ResizeWindow
+    2984Unzoom                    2983Zoom
+;
+;------------------------------------------------------------
+!TOPIC 2983 Zoom
+!NOINDEX
+procedure 2923RawWindow.Zoom; virtual;
+
+Increase window size to maximum limits temporarily.
+
+See also:  2982AdjustWindow  2981ResizeWindow  2984Unzoom
+;
+;------------------------------------------------------------
+!TOPIC 2984 Unzoom
+!NOINDEX
+procedure 2923RawWindow.Unzoom; virtual;
+
+Return a zoomed window to its pre-zoomed size.
+
+See also:  2982AdjustWindow  2983Zoom
+;
+;------------------------------------------------------------
+!TOPIC 2985 ScrollHoriz,RawWindow
+!NOINDEX
+procedure 2923RawWindow.ScrollHoriz(Cols : Integer); virtual;
+
+Scroll contents horizontally by the specified number of columns.
+
+See also:  2986ScrollVert
+;
+;------------------------------------------------------------
+!TOPIC 2986 ScrollVert,RawWindow
+!NOINDEX
+procedure 2923RawWindow.ScrollVert(Rows : Integer); virtual;
+
+Scroll contents vertically by the specified number of rows.
+
+See also:  2985ScrollHoriz
+;
+;------------------------------------------------------------
+!TOPIC 2987 MarkCurrent
+!NOINDEX
+procedure 2923RawWindow.MarkCurrent; virtual;
+
+Called when window is made current. Applications should not call this routine
+directly.
+
+See also:  2988MarkNotCurrent
+;
+;------------------------------------------------------------
+!TOPIC 2988 MarkNotCurrent
+!NOINDEX
+procedure 2923RawWindow.MarkNotCurrent; virtual;
+
+Called when window is deselected. Applications should not call this routine
+directly.
+
+See also:  2987MarkCurrent
+;
+;------------------------------------------------------------
+!TOPIC 2989 wFastWrite
+!NOINDEX
+procedure 2923RawWindow.wFastWrite(St : string; Row, Col, Attr : Byte);
+
+Write a string. Row and Col are relative to the top left corner of the window.
+
+See also:  0371OpCrt.FastWrite  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2990 wFastText
+!NOINDEX
+procedure 2923RawWindow.wFastText(St : string; Row, Col : Byte);
+
+Write St at Row,Col without changing the underlying video attribute. Row and
+Col are relative to the top left corner of the window.
+
+See also:  0372OpCrt.FastText  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2991 wFastVert
+!NOINDEX
+procedure 2923RawWindow.wFastVert(St : string; Row, Col, Attr : Byte);
+
+Write a string vertically. Row and Col are relative to the top left corner of
+the window.
+
+See also:  0373OpCrt.FastVert  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2992 wFastFill
+!NOINDEX
+procedure 2923RawWindow.wFastFill(Number : Word; Ch : Char;
+                              Row, Col, Attr : Byte);
+
+Fill Number chars at Row,Col in Attr. Row and Col are relative to the top left
+corner of the window.
+
+See also:  0374OpCrt.FastFill  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2993 wChangeAttribute
+!NOINDEX
+procedure 2923RawWindow.wChangeAttribute(Number : Word; Row, Col : Byte;
+                                     Attr : Byte);
+
+Change Number video attributes to Attr starting at Row,Col. Row and Col are
+relative to the top left corner of the window.
+
+See also:  0381OpCrt.ChangeAttribute  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2994 wFastCenter
+!NOINDEX
+procedure 2923RawWindow.wFastCenter(St : string; Row, Attr : Byte);
+
+Write St centered on Row in Attr. Row is relative to the top left corner of
+the window.
+
+See also:  0376OpCrt.FastCenter  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2995 wFastFlush
+!NOINDEX
+procedure 2923RawWindow.wFastFlush(St : string; Row, Attr : Byte);
+
+Write St flush right on Row in Attr. Row is relative to the top left corner of
+the window.
+
+See also:  0377OpCrt.FastFlush  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2996 wFastRead
+!NOINDEX
+procedure 2923RawWindow.wFastRead(Number, Row, Col : Byte; var St : string);
+
+Read Number characters from the screen into St starting at Row,Col. Row and
+Col are relative to the top left corner of the window.
+
+See also:  0378OpCrt.FastRead  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2997 wReadAttribute
+!NOINDEX
+procedure 2923RawWindow.wReadAttribute(Number, Row, Col : Byte;
+                                   var St : string);
+
+Read Number attributes from the screen into St starting at Row,Col. Row and
+Col are relative to the top left corner of the window.
+
+See also:  0379OpCrt.ReadAttribute  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 2998 wWriteAttribute
+!NOINDEX
+procedure 2923RawWindow.wWriteAttribute(St : String; Row, Col : Byte);
+
+Write string of attributes St at Row,Col without changing characters. Row and
+Col are relative to the top left corner of the window.
+
+See also:  3132Screen writing  0380OpCrt.WriteAttribute
+;
+;------------------------------------------------------------
+!TOPIC 2999 wFlexWrite
+!NOINDEX
+procedure 2923RawWindow.wFlexWrite(St : string; Row, Col : Byte;
+                               var FAttrs : FlexAttrs);
+
+Write a string flexibly using window-relative coordinates. Row and Col are
+relative to the top left corner of the window.
+
+See also:  0384OpCrt.FlexWrite  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3000 wFastWriteCtrl
+!NOINDEX
+procedure 2923RawWindow.wFastWriteCtrl(St : String; Row, Col : Byte;
+                                   Attr, Ctrl : Byte);
+
+Write St at Row,Col in Attr (video attribute) without snow. Control characters
+displayed in Ctrl as upper-case letters. Row and Col are relative to the top
+left corner of the window.
+
+See also:  0386OpCrt.FastWriteCtrl  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3001 fFastWrite
+!NOINDEX
+procedure 2923RawWindow.fFastWrite(St : string; Row, Col, Attr : Byte);
+
+Write a string. Row and Col are relative to the top left corner of the frame.
+
+See also:  0371OpCrt.FastWrite  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3002 fFastText
+!NOINDEX
+procedure 2923RawWindow.fFastText(St : string; Row, Col : Byte);
+
+Write St at Row,Col without changing the underlying video attribute. Row and
+Col are relative to the top left corner of the frame.
+
+See also:  0372OpCrt.FastText  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3003 fFastVert
+!NOINDEX
+procedure 2923RawWindow.fFastVert(St : string; Row, Col, Attr : Byte);
+
+Write a string vertically. Row and Col are relative to the top left corner of
+the frame.
+
+See also:  0373OpCrt.FastVert  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3004 fFastFill
+!NOINDEX
+procedure 2923RawWindow.fFastFill(Number : Word; Ch : Char;
+                              Row, Col, Attr : Byte);
+
+Fill Number chars at Row,Col in Attr. Row and Col are relative to the top left
+corner of the frame.
+
+See also:  0374OpCrt.FastFill  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3005 fChangeAttribute
+!NOINDEX
+procedure 2923RawWindow.fChangeAttribute(Number : Word; Row, Col : Byte;
+                                     Attr : Byte);
+
+Change Number video attributes to Attr starting at Row,Col. Row and Col are
+relative to the top left corner of the frame.
+
+See also:  0381OpCrt.ChangeAttribute  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3006 fFastCenter
+!NOINDEX
+procedure 2923RawWindow.fFastCenter(St : string; Row, Attr : Byte);
+
+Write St centered on Row in Attr. Row is relative to the top left corner of
+the frame.
+
+See also:  0376OpCrt.FastCenter  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3007 fFastFlush
+!NOINDEX
+procedure 2923RawWindow.fFastFlush(St : string; Row, Attr : Byte);
+
+Write St flush right on Row in Attr. Row is relative to the top left corner of
+the frame.
+
+See also:  0377OpCrt.FastFlush  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3008 fFastRead
+!NOINDEX
+procedure 2923RawWindow.fFastRead(Number, Row, Col : Byte; var St : string);
+
+Read Number characters from the screen into St starting at Row,Col. Row and
+Col are relative to the top left corner of the frame.
+
+See also:  0378OpCrt.FastRead  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3009 fReadAttribute
+!NOINDEX
+procedure 2923RawWindow.fReadAttribute(Number, Row, Col : Byte;
+                                   var St : string);
+
+Read Number attributes from the screen into St starting at Row,Col. Row and
+Col are relative to the top left corner of the frame.
+
+See also:  0379OpCrt.ReadAttribute  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3010 fWriteAttribute
+!NOINDEX
+procedure 2923RawWindow.fWriteAttribute(St : String; Row, Col : Byte);
+
+Write string of attributes St at Row,Col without changing characters. Row and
+Col are relative to the top left corner of the frame.
+
+See also:  3132Screen writing  0380OpCrt.WriteAttribute
+;
+;------------------------------------------------------------
+!TOPIC 3011 fFlexWrite
+!NOINDEX
+procedure 2923RawWindow.fFlexWrite(St : string; Row, Col : Byte;
+                               var FAttrs : FlexAttrs);
+
+Write a string flexibly using window-relative coordinates. Row and Col are
+relative to the top left corner of the frame.
+
+See also:  0384OpCrt.FlexWrite  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3012 fFastWriteCtrl
+!NOINDEX
+procedure 2923RawWindow.fFastWriteCtrl(St : String; Row, Col : Byte;
+                                   Attr, Ctrl : Byte);
+
+Write St at Row,Col in Attr (video attribute) without snow. Control characters
+displayed in Ctrl as upper-case letters. Row and Col are relative to the top
+left corner of the frame.
+
+See also:  0386OpCrt.FastWriteCtrl  3132Screen writing
+;
+;------------------------------------------------------------
+!TOPIC 3013 Load,RawWindow
+!NOINDEX
+constructor 2923RawWindow.Load(var S : IdStream);
+
+Load from stream. The registration routine for a RawWindow is RawWindowStream.
+Note that, if the window explodes, the registration routine
+ExplodingWindowStream needs to be called as well.
+
+See also:  3014Store
+;
+;------------------------------------------------------------
+!TOPIC 3014 Store,RawWindow
+!NOINDEX
+procedure 2923RawWindow.Store(var S : IdStream);
+
+Store to stream. The registration routine for a RawWindow is RawWindowStream.
+Note that, if the window explodes, the registration routine
+ExplodingWindowStream needs to be called as well.
+
+See also:  3013Load
+;
+;------------------------------------------------------------
+!TOPIC 3015 StackWindow
+!NOINDEX
+2918OpWindow.StackWindow = object(2923RawWindow)
+!LINE
+StackWindowPtr = ^StackWindow;
+
+Whenever a StackWindow is drawn, a pointer to it is pushed onto a stack. By
+referring to these pointers, the StackWindow methods can act more
+intelligently than the same routines in a RawWindow. The major advantages are
+the ability to write to a window that is partially obscured by other windows
+and to select such a window and pull it to the top of the stack.
+
+StackWindow's methods fall into the following categories:
+
+  3140Child windows           3136Declarations              3137Display
+  3138General                 3139Stacking
+;
+;------------------------------------------------------------
+!TOPIC 3016 Init,StackWindow
+!NOINDEX
+constructor 3015StackWindow.Init(X1, Y1, X2, Y2 : Byte);
+
+Create a stacked window with default options and colors.
+
+See also:
+    0472OpCrt.DefaultColorSet        3115RawWindow.DefWindowOptions
+    3017InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 3017 InitCustom,StackWindow
+!NOINDEX
+constructor 3015StackWindow.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                   var Colors : ColorSet;
+                                   Options : LongInt);
+
+Create a window with custom options and colors.
+
+See also:  3016Init  0219CommandProcessor.Init  3114RawWindow.Options
+;
+;------------------------------------------------------------
+!TOPIC 3018 Done,StackWindow
+!NOINDEX
+destructor 3015StackWindow.Done; virtual;
+
+Destroy child list (including the children themselves) and then window itself.
+
+See also: 2927RawWindow.Done
+;
+;------------------------------------------------------------
+!TOPIC 3019 UpdateContents,StackWindow
+!NOINDEX
+procedure 3015StackWindow.UpdateContents; virtual;
+
+Update the contents of any child windows. Application programs should not
+call this method directly.
+
+See also:  2969RawWindow.UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 3020 IsCurrent,StackWindow
+!NOINDEX
+function 3015StackWindow.IsCurrent : Boolean; virtual;
+
+Return True if window or its parent is the current one.
+
+See also:  2961RawWindow.IsCurrent
+;
+;------------------------------------------------------------
+!TOPIC 3021 wCopy,StackWindow
+!NOINDEX
+constructor 3015StackWindow.wCopy(var S : StackWindow);
+
+Initialize a window from another one, making a unique copy of all dynamic
+structures.
+
+See also:  2926RawWindow.wCopy
+;
+;------------------------------------------------------------
+!TOPIC 3022 SetStackProc
+!NOINDEX
+procedure 3015StackWindow.SetStackProc(SP : StackWindowProc);
+
+Set window's stack proc. The stack proc is called by the Draw and DrawHidden
+methods just prior to actually stacking and drawing a given window. The main
+justification for using a custom stack proc is to use window's number as part
+of a header. The window number is assigned just prior to calling the stack
+proc.
+
+See also:
+    3024AssignNumber              3025Draw
+    3118StackWindowProc           3023WindowNumber
+;
+;------------------------------------------------------------
+!TOPIC 3023 WindowNumber
+!NOINDEX
+function 3015StackWindow.WindowNumber : Word;
+
+Return window number. 0 if inactive, else 1 or greater.
+
+See also:  3024AssignNumber  3025Draw  3022SetStackProc
+;
+;------------------------------------------------------------
+!TOPIC 3024 AssignNumber
+!NOINDEX
+procedure 3015StackWindow.AssignNumber; virtual;
+
+Called to assign a window number.
+
+See also:  3022SetStackProc  3023WindowNumber
+;
+;------------------------------------------------------------
+!TOPIC 3025 Draw,StackWindow
+!NOINDEX
+procedure 3015StackWindow.Draw; virtual;
+
+Draw or update a window and push it on stack.
+
+See also:  3024AssignNumber  3028DrawHidden  3027Select
+;
+;------------------------------------------------------------
+!TOPIC 3026 Erase,StackWindow
+!NOINDEX
+procedure 3015StackWindow.Erase; virtual;
+
+Erase a window and pop it off the stack.
+
+See also:  3029EraseHidden  3093WindowStack.TopWindow
+;
+;------------------------------------------------------------
+!TOPIC 3027 Select,StackWindow
+!NOINDEX
+procedure 3015StackWindow.Select; virtual;
+
+Make a window the current one by pulling it to the top of the stack.
+
+See also:  3025Draw
+;
+;------------------------------------------------------------
+!TOPIC 3028 DrawHidden
+!NOINDEX
+procedure 3015StackWindow.DrawHidden(var Under : StackWindow);
+
+Draw a window, inserting it in the stack underneath the specified window
+(Under).
+
+See also:  3025Draw
+;
+;------------------------------------------------------------
+!TOPIC 3029 EraseHidden
+!NOINDEX
+procedure 3015StackWindow.EraseHidden;
+
+Erase a window even if it's hidden on the window stack.
+
+See also:  3026Erase
+;
+;------------------------------------------------------------
+!TOPIC 3030 OnStack
+!NOINDEX
+function 3015StackWindow.OnStack : Boolean;
+
+Return True if window is displayed on the window stack.
+
+See also:  2960RawWindow.IsActive  3027Select
+;
+;------------------------------------------------------------
+!TOPIC 3031 ActivateWrite
+!NOINDEX
+procedure 3015StackWindow.ActivateWrite;
+
+Activate screen writes to a hidden window.
+
+See also:  3032DeactivateWrite
+;
+;------------------------------------------------------------
+!TOPIC 3032 DeactivateWrite
+!NOINDEX
+procedure 3015StackWindow.DeactivateWrite;
+
+Deactivate screen writes to a hidden window and display the changes.
+
+See also:  3031ActivateWrite
+;
+;------------------------------------------------------------
+!TOPIC 3033 AddChild
+!NOINDEX
+procedure 3015StackWindow.AddChild(W : WindowPtr);
+
+Validate window W as child and add to child list.
+
+See also:  3036ActiveChild  3034RemoveChild  3035SetActiveChild
+;
+;------------------------------------------------------------
+!TOPIC 3034 RemoveChild
+!NOINDEX
+procedure 3015StackWindow.RemoveChild(W : WindowPtr);
+
+Remove window W from the child list.
+
+See also:  3033AddChild
+;
+;------------------------------------------------------------
+!TOPIC 3035 SetActiveChild
+!NOINDEX
+procedure 3015StackWindow.SetActiveChild(W : WindowPtr);
+
+Make W the active child window. If W is nil, Self becomes active.
+
+See also:  3033AddChild  3036ActiveChild
+;
+;------------------------------------------------------------
+!TOPIC 3036 ActiveChild
+!NOINDEX
+function 3015StackWindow.ActiveChild : WindowPtr;
+
+Return the address of the current child window, nil if none.
+
+See also:  3033AddChild  3035SetActiveChild
+;
+;------------------------------------------------------------
+!TOPIC 3037 IsChild
+!NOINDEX
+function 3015StackWindow.IsChild : Boolean;
+
+Return True if window is a child of another.
+
+See also:  3038IsParent  3039ParentPtr
+;
+;------------------------------------------------------------
+!TOPIC 3038 IsParent
+!NOINDEX
+function 3015StackWindow.IsParent : Boolean;
+
+Return True if window is a parent of at least one other window.
+
+See also:  3040ChildListPtr  3037IsChild
+;
+;------------------------------------------------------------
+!TOPIC 3039 ParentPtr
+!NOINDEX
+function 3015StackWindow.ParentPtr : WindowPtr;
+
+Return address of parent window, nil if none.
+
+See also:  3037IsChild
+;
+;------------------------------------------------------------
+!TOPIC 3040 ChildListPtr
+!NOINDEX
+function 3015StackWindow.ChildListPtr : SingleListPtr;
+
+Return the address of the list of child windows.
+
+See also:  3041ChildIndex  3042ChildPtr
+;
+;------------------------------------------------------------
+!TOPIC 3041 ChildIndex
+!NOINDEX
+function 3015StackWindow.ChildIndex(W : WindowPtr) : Word;
+
+Return the index of child W. 0=Self, 1=first child, $FFFF=no match.
+
+See also:  3040ChildListPtr  3042ChildPtr
+;
+;------------------------------------------------------------
+!TOPIC 3042 ChildPtr
+!NOINDEX
+function 3015StackWindow.ChildPtr(Index : Word) : WindowPtr;
+
+Return the address of the child with specified Index, nil if none.
+
+See also:  3041ChildIndex  3040ChildListPtr
+;
+;------------------------------------------------------------
+!TOPIC 3043 Load,StackWindow
+!NOINDEX
+constructor 3015StackWindow.Load(var S : IdStream);
+
+Load from a stream. The registration routine for a StackWindow is
+StackWindowStream. Note that, if the window explodes, the registration routine
+ExplodingWindowStream needs to be called as well.
+
+See also:  3013RawWindow.Load  3044Store
+;
+;------------------------------------------------------------
+!TOPIC 3044 Store,StackWindow
+!NOINDEX
+procedure 3015StackWindow.Store(var S : IdStream);
+
+Store to a stream. The registration routine for a StackWindow is
+StackWindowStream. Note that, if the window explodes, the registration routine
+ExplodingWindowStream needs to be called as well.
+
+See also:  3043Load  3014RawWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 3045 CommandWindow
+!NOINDEX
+2918OpWindow.CommandWindow = object(3015StackWindow)
+!LINE
+CommandWindowPtr = ^CommandWindow;
+
+The CommandWindow is the first object in the window hierarchy to integrate
+keyboard and mouse input with the display of text. Most useful windows require
+some form of interaction with the user, even if it's only the requirement to
+"Press <Esc> to continue." To support this capability, CommandWindow
+incorporates a pointer to a 0218CommandProcessor object, which maps
+keystrokes to logical commands.
+
+CommandWindow's methods fall into the following categories:
+
+  3141Command processing        3144Error handling          3142General
+  3143Help
+;
+;------------------------------------------------------------
+!TOPIC 3046 Init,CommandWindow
+!NOINDEX
+constructor 3045CommandWindow.Init(X1, Y1, X2, Y2 : Byte;
+                               var CP : CommandProcessor;
+                               UnitCode : Byte);
+
+Create a command window with default options and colors. CP is an initialized
+CommandProcessor which will be used by the window's Process method. UnitCode
+is a value that will identify the unit where the object resides.
+
+See also:
+    0472OpCrt.DefaultColorSet        3115RawWindow.DefWindowOptions
+    3047InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 3047 InitCustom,CommandWindow
+!NOINDEX
+constructor 3045CommandWindow.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                     var Colors : ColorSet;
+                                     Options : LongInt;
+                                     var CP : CommandProcessor;
+                                     UnitCode : Byte);
+
+Create a command window with custom options. CP is an initialized
+CommandProcessor which will be used by the window's Process method. UnitCode
+is a value that will identify the unit where the object resides.
+
+See also:
+    0219CommandProcessor.Init      3017StackWindow.InitCustom
+    3114RawWindow.Options
+;
+;------------------------------------------------------------
+!TOPIC 3048 Process,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.Process; virtual;
+
+Process commands of Self or active child.
+
+See also:  3050ProcessAutoPilot  0107ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 3049 ProcessSelf,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.ProcessSelf; virtual;
+
+Process commands.
+
+See also:  3048Process
+;
+;------------------------------------------------------------
+!TOPIC 3050 ProcessAutoPilot
+!NOINDEX
+procedure 3045CommandWindow.ProcessAutoPilot(var CmdList; NumCmds : Word);
+
+Process commands, starting with those in CmdList (an array of bytes or words).
+NumCmds specifies how many commands are in the array.
+
+See also:  3048Process  0107ProcessSelf  0245CommandProcessor.SetCommandList
+;
+;------------------------------------------------------------
+!TOPIC 3051 GetNextCommand
+!NOINDEX
+procedure 3045CommandWindow.GetNextCommand; virtual;
+
+Called by Process to get the next command from the user.
+
+See also:  3055GetLastCommand  3057GetLastKey
+;
+;------------------------------------------------------------
+!TOPIC 3052 RequestHelp
+!NOINDEX
+procedure 3045CommandWindow.RequestHelp(HelpIndex : Word); virtual;
+
+Called by Process to request context-sensitive help.
+
+See also:  3143Help
+;
+;------------------------------------------------------------
+!TOPIC 3053 SetCommandProcessor,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.SetCommandProcessor(var CP : CommandProcessor);
+
+Set the command processor to use.
+
+See also:  3054GetCommandProcessor  3047InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 3054 GetCommandProcessor
+!NOINDEX
+function 3045CommandWindow.GetCommandProcessor : CommandProcessorPtr;
+
+Return pointer to window's command processor.
+
+See also:  3053SetCommandProcessor
+;
+;------------------------------------------------------------
+!TOPIC 3055 GetLastCommand,CommandWindow
+!NOINDEX
+function 3045CommandWindow.GetLastCommand : Word;
+
+Return last command entered by user.
+
+See also:  3057GetLastKey  3056SetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 3056 SetLastCommand
+!NOINDEX
+procedure 3045CommandWindow.SetLastCommand(Cmd : Word);
+
+Change last command.
+
+See also:  3055GetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 3057 GetLastKey,CommandWindow
+!NOINDEX
+function 3045CommandWindow.GetLastKey : Word;
+
+Return last keystroke entered by the user.
+
+See also:  3055GetLastCommand  0406OpCrt.ReadKeyWord
+;
+;------------------------------------------------------------
+!TOPIC 3058 SetHelpIndex,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.SetHelpIndex(Index : Word);
+
+Set help topic number for this window.
+
+See also:  3059GetHelpIndex  3052RequestHelp
+;
+;------------------------------------------------------------
+!TOPIC 3059 GetHelpIndex,CommandWindow
+!NOINDEX
+function 3045CommandWindow.GetHelpIndex : Word;
+
+Return the help topic number for this window.
+
+See also:  3058SetHelpIndex
+;
+;------------------------------------------------------------
+!TOPIC 3060 SetErrorProc,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.SetErrorProc(EP : ErrorProc);
+
+Set error handler.
+
+See also:  3061GotError
+;
+;------------------------------------------------------------
+!TOPIC 3061 GotError
+!NOINDEX
+procedure 3045CommandWindow.GotError(ErrorCode : Word;
+                                 ErrorMsg : string); virtual
+
+Called when an error occurs.
+
+See also:  3062GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 3062 GetLastError,CommandWindow
+!NOINDEX
+function 3045CommandWindow.GetLastError : Word; virtual;
+
+Return last I/O error code; resets internal variable that stores the code.
+
+See also:  2922AbstractWindow.ClearErrors  3061GotError
+           2959RawWindow.RawError
+;
+;------------------------------------------------------------
+!TOPIC 3063 PeekLastError,CommandWindow
+!NOINDEX
+function 3045CommandWindow.PeekLastError : Word;
+
+Return last I/O error code without resetting internal variable that stores the
+code.
+
+See also:  3062GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 3064 ClassifyError
+!NOINDEX
+function 3045CommandWindow.ClassifyError(ErrorCode : Word) : Byte;
+
+Return the class of the specified error code.
+
+See also:  3062GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 3065 ClearErrors,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.ClearErrors; virtual;
+
+Clear all pending errors.
+
+See also:  2922AbstractWindow.ClearErrors
+;
+;------------------------------------------------------------
+!TOPIC 3066 SetExitCommands
+!NOINDEX
+procedure 3045CommandWindow.SetExitCommands(ExitSetPtr : ByteSetPtr);
+
+Specify a set of special exit commands.
+
+See also:  3067GetExitCommandPtr
+;
+;------------------------------------------------------------
+!TOPIC 3067 GetExitCommandPtr
+!NOINDEX
+function 3045CommandWindow.GetExitCommandPtr : ByteSetPtr;
+
+Return a pointer to the set of special exit commands.
+
+See also:  3066SetExitCommands
+;
+;------------------------------------------------------------
+!TOPIC 3068 Load,CommandWindow
+!NOINDEX
+constructor 3045CommandWindow.Load(var S : IdStream);
+
+Load from stream. The registration routine for a CommandWindow is
+CommandWindowStream. Note that, if the window explodes, the registration
+routine ExplodingWindowStream needs to be called as well.
+
+See also:  3043StackWindow.Load  3069Store
+;
+;------------------------------------------------------------
+!TOPIC 3069 Store,CommandWindow
+!NOINDEX
+procedure 3045CommandWindow.Store(var S : IdStream);
+
+Store to stream. The registration routine for a CommandWindow is
+CommandWindowStream. Note that, if the window explodes, the registration
+routine ExplodingWindowStream needs to be called as well.
+
+See also:  3068Load  3044StackWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 3070 VirtScreen
+!NOINDEX
+2918OpWindow.VirtScreen = object(2306Root)
+!LINE
+VirtScreenPtr = ^VirtScreen;
+
+VirtScreen is short for virtual screen. This object provides a collection of
+methods for treating a region of memory as if it were the physical display
+screen. VirtScreen's methods fall into the following categories:
+
+  3146Display                   3145General
+;
+;------------------------------------------------------------
+!TOPIC 3071 Alloc,VirtScreen
+!NOINDEX
+constructor 3070VirtScreen.Alloc(Height, Width : Word);
+
+Create a virtual screen of the specified dimensions.
+
+See also:  3076Clear  3072Init
+;
+;------------------------------------------------------------
+!TOPIC 3072 Init,VirtScreen
+!NOINDEX
+constructor 3070VirtScreen.Init(Height, Width : Word; BufSeg : Word);
+
+Initialize a virtual screen with a preallocated buffer.
+
+See also:  3071Alloc
+;
+;------------------------------------------------------------
+!TOPIC 3073 Done,VirtScreen
+!NOINDEX
+destructor 3070VirtScreen.Done; virtual;
+
+Deallocate a virtual screen.
+
+See also:  3071Alloc  3072Init
+;
+;------------------------------------------------------------
+!TOPIC 3074 Activate
+!NOINDEX
+procedure 3070VirtScreen.Activate;
+
+Activate screen writing on the virtual screen.
+
+See also:  3075Deactivate  3077WriteTo
+;
+;------------------------------------------------------------
+!TOPIC 3075 Deactivate
+!NOINDEX
+procedure 3070VirtScreen.Deactivate;
+
+Deactivate screen writing on the virtual screen.
+
+See also:  3074Activate
+;
+;------------------------------------------------------------
+!TOPIC 3076 Clear,VirtScreen
+!NOINDEX
+procedure 3070VirtScreen.Clear(Attr : Byte; Fill : Char);
+
+Clear the virtual screen using the specified attribute and fill character.
+
+See also:  3083CopyFromScreen  3072Init
+;
+;------------------------------------------------------------
+!TOPIC 3077 WriteTo
+!NOINDEX
+procedure 3070VirtScreen.WriteTo(S : string; Row, Col : Word; Attr : Byte);
+
+Write a string to the virtual screen.
+
+See also:  0371OpCrt.FastWrite  3078ReadFrom
+;
+;------------------------------------------------------------
+!TOPIC 3078 ReadFrom
+!NOINDEX
+procedure 3070VirtScreen.ReadFrom(Number : Byte; Row, Col : Word;
+                              var S : string);
+
+Read number characters from the virtual screen starting at Row,Col.
+
+See also:  0378OpCrt.FastRead  3077WriteTo
+;
+;------------------------------------------------------------
+!TOPIC 3079 ScrollHoriz,VirtScreen
+!NOINDEX
+procedure 3070VirtScreen.ScrollHoriz(Cols : Integer; Attr : Byte;
+                                 Fill : Char);
+
+Scroll the contents of the virtual screen horizontally.
+
+See also:  3080ScrollVert
+;
+;------------------------------------------------------------
+!TOPIC 3080 ScrollVert,VirtScreen
+!NOINDEX
+procedure 3070VirtScreen.ScrollVert(Rows : Integer; Attr : Byte; Fill : Char);
+
+Scroll the contents of the virtual screen vertically.
+
+See also:  3079ScrollHoriz
+;
+;------------------------------------------------------------
+!TOPIC 3081 CopyFromWindow
+!NOINDEX
+procedure 3070VirtScreen.CopyFromWindow(Row, Col : Word);
+
+Copy the contents of the current window to position Row,Col on the virtual
+screen.
+
+See also:  3083CopyFromScreen  3082CopyToWindow
+;
+;------------------------------------------------------------
+!TOPIC 3082 CopyToWindow
+!NOINDEX
+procedure 3070VirtScreen.CopyToWindow(Row, Col : Word);
+
+Copy from position Row,Col on the virtual screen to the current window.
+
+See also:  3081CopyFromWindow  3084CopyToScreen
+;
+;------------------------------------------------------------
+!TOPIC 3083 CopyFromScreen,VirtScreen
+!NOINDEX
+procedure 3070VirtScreen.CopyFromScreen(Row, Col : Word);
+
+Copy the physical screen to position Row,Col on the virtual screen.
+
+See also:  3081CopyFromWindow  3084CopyToScreen
+;
+;------------------------------------------------------------
+!TOPIC 3084 CopyToScreen,VirtScreen
+!NOINDEX
+procedure 3070VirtScreen.CopyToScreen(Row, Col : Word);
+
+Copy from position Row,Col on the virtual screen to the physical screen.
+
+See also:  3083CopyFromScreen  3082CopyToWindow
+;
+;------------------------------------------------------------
+!TOPIC 3085 vRows
+!NOINDEX
+function 3070VirtScreen.vRows : Word;
+
+Return number of rows in virtual screen.
+
+See also:  3071Alloc  3086vCols
+;
+;------------------------------------------------------------
+!TOPIC 3086 vCols
+!NOINDEX
+function 3070VirtScreen.vCols : Word;
+
+Return number of columns in virtual screen.
+
+See also:  3071Alloc  3085vRows
+;
+;------------------------------------------------------------
+!TOPIC 3087 Load,VirtScreen
+!NOINDEX
+constructor 3070VirtScreen.Load(var S : IdStream);
+
+Load from stream. The registration routine for a VirtScreen is
+VirtScreenStream.
+
+See also:  3088Store
+;
+;------------------------------------------------------------
+!TOPIC 3088 Store,VirtScreen
+!NOINDEX
+procedure 3070VirtScreen.Store(var S : IdStream);
+
+Store to stream. The registration routine for a VirtScreen is
+VirtScreenStream.
+
+See also:  3087Load
+;
+;------------------------------------------------------------
+!TOPIC 3089 WindowStack
+!NOINDEX
+2918OpWindow.WindowStack = object(2394PointerStack)
+!LINE
+WindowStackPtr = ^WindowStack;
+
+The WindowStack works in concert with the StackWindow to manage window
+relationships. It provides the following methods:
+
+  3091Done                      3095EvaluateStackMousePos   3094EvaluateStackPos
+  3090Init                      3097Load                    3096OptimizeTiled
+  3098Store                     3093TopWindow               3092UnstackTop
+;
+;------------------------------------------------------------
+!TOPIC 3090 Init,WindowStack
+!NOINDEX
+constructor 3089WindowStack.Init(Max : Word);
+
+Allocates space to manage Max active windows. (Like PointerStack, the
+WindowStack will automatically increase its size on demand.)
+
+See also:  3091Done
+;
+;------------------------------------------------------------
+!TOPIC 3091 Done,WindowStack
+!NOINDEX
+destructor 3089WindowStack.Done; virtual;
+
+Calls the Done methods of both the embedded virtual screen and PointerStack
+from which WindowStack is derived. The effect is to release all the heap space
+allocated by the WindowStack.
+
+See also:  2396PointerStack.Done  3073VirtScreen.Done
+;
+;------------------------------------------------------------
+!TOPIC 3092 UnstackTop
+!NOINDEX
+function 3089WindowStack.UnstackTop : WindowPtr;
+
+Erase and unstack the window at the top of the stack.
+
+See also:  3026StackWindow.Erase  2399PointerStack.Pop
+;
+;------------------------------------------------------------
+!TOPIC 3093 TopWindow
+!NOINDEX
+function 3089WindowStack.TopWindow : WindowPtr;
+
+Return a pointer to the window at the top of the stack.
+
+See also:  2401PointerStack.Peek  2402PointerStack.PeekTop
+;
+;------------------------------------------------------------
+!TOPIC 3094 EvaluateStackPos
+!NOINDEX
+function 3089WindowStack.EvaluateStackPos(X, Y : Byte) : WindowPtr;
+
+EvaluateStackPos scans from the topmost active StackWindow to the lowest one,
+calling each window's EvaluatePos method to determine whether the specified
+absolute (X, Y) position falls within the window. It returns a pointer to the
+first such window it finds.
+
+See also:
+    2953RawWindow.EvaluatePos      3095EvaluateStackMousePos
+    2955RawWindow.PosResults
+;
+;------------------------------------------------------------
+!TOPIC 3095 EvaluateStackMousePos
+!NOINDEX
+function 3089WindowStack.EvaluateStackMousePos : WindowPtr;
+
+Evaluate mouse position using EvaluateStackPos.
+
+See also:  3094EvaluateStackPos  2955RawWindow.PosResults
+;
+;------------------------------------------------------------
+!TOPIC 3096 OptimizeTiled
+!NOINDEX
+procedure 3089WindowStack.OptimizeTiled(On : Boolean);
+
+Turn tiled window optimization on or off.
+;
+;------------------------------------------------------------
+!TOPIC 3097 Load,WindowStack
+!NOINDEX
+constructor 3089WindowStack.Load(var S : IdStream);
+
+Load from stream. The registration routine for a WindowStack is
+WindowStackStream.
+
+See also:  3098Store
+;
+;------------------------------------------------------------
+!TOPIC 3098 Store,WindowStack
+!NOINDEX
+procedure 3089WindowStack.Store(var S : IdStream);
+
+Store to stream. Stores all currently stacked windows. The registration
+routine for a WindowStack is WindowStackStream.
+
+See also:  3097Load
+;
+;------------------------------------------------------------
+!TOPIC 3099 LoadableColorSet
+!NOINDEX
+2918OpWindow.LoadableColorSet = object(2306Root)
+!LINE
+LoadableColorSetPtr = ^LoadableColorSet;
+
+The LoadableColorSet is a straightforward extension of the ColorSet that
+allows reading and writing ColorSets in streams. It provides the following
+methods:
+
+  3100Init                      3101Load                    3102Store
+;
+;------------------------------------------------------------
+!TOPIC 3100 Init,LoadableColorSet
+!NOINDEX
+constructor 3099LoadableColorSet.Init(var Colors : ColorSet);
+
+Initialize this color set from another one.
+
+See also:  0291ColorSet
+;
+;------------------------------------------------------------
+!TOPIC 3101 Load,LoadableColorSet
+!NOINDEX
+constructor 3099LoadableColorSet.Load(var S : IdStream);
+
+Load a color set from a stream. The registration routine for a
+LoadableColorSet is LoadableColorSetStream.
+
+See also:  3102Store
+;
+;------------------------------------------------------------
+!TOPIC 3102 Store,LoadableColorSet
+!NOINDEX
+procedure 3099LoadableColorSet.Store(var S : IdStream);
+
+Store a color set in a stream. The registration routine for a LoadableColorSet
+is LoadableColorSetStream.
+
+See also:  3101Load
+;
+;------------------------------------------------------------
+!TOPIC 3103 PackedWindow
+!NOINDEX
+2918OpWindow.PackedWindow = object(2306Root)
+!LINE
+PackedWindowPtr = ^PackedWindow;
+
+The PackedWindow object serves a function somewhat similar to the ScreenRect
+object, except that it stores the contents of the designated screen rectangle
+in a "packed" format. Space savings due to compression will typically range
+from 30 to 90%.
+
+PackedWindow's methods fall into one of the following categories:
+
+  3147Declarations              3149Displaying              3148General
+;
+;------------------------------------------------------------
+!TOPIC 3104 Init,PackedWindow
+!NOINDEX
+constructor 3103PackedWindow.Init(XL, YL, XH, YH : Byte);
+
+Create a packed window containing the contents of the specified region of the
+screen.
+
+See also:  3105InitFromMemory  3109Load  3107Read
+;
+;------------------------------------------------------------
+!TOPIC 3105 InitFromMemory
+!NOINDEX
+constructor 3103PackedWindow.InitFromMemory(P : Pointer);
+
+Initialize a packed window from one stored to disk with Write and bound into
+the EXE file with BINOBJ.
+
+See also:  3108Write
+;
+;------------------------------------------------------------
+!TOPIC 3106 Done,PackedWindow
+!NOINDEX
+destructor 3103PackedWindow.Done; virtual;
+
+Deallocate the packed window.
+
+See also:  3104Init  3105InitFromMemory
+;
+;------------------------------------------------------------
+!TOPIC 3107 Read,PackedWindow
+!NOINDEX
+constructor 3103PackedWindow.Read(FName : string);
+
+Read the packed window stored in FName into memory.
+
+See also:  3105InitFromMemory  3109Load  3108Write
+;
+;------------------------------------------------------------
+!TOPIC 3108 Write,PackedWindow
+!NOINDEX
+function 3103PackedWindow.Write(FName : string) : Word;
+
+Store the packed window in FName.
+
+See also:  3107Read
+;
+;------------------------------------------------------------
+!TOPIC 3109 Load,PackedWindow
+!NOINDEX
+constructor 3103PackedWindow.Load(var S : IdStream);
+
+Load a packed window from a stream. The registration routine for a
+PackedWindow is PackedWindowStream.
+
+See also:  3110Store
+;
+;------------------------------------------------------------
+!TOPIC 3110 Store,PackedWindow
+!NOINDEX
+procedure 3103PackedWindow.Store(var S : IdStream);
+
+Store a packed window in a stream. The registration routine for a PackedWindow
+is PackedWindowStream.
+
+See also:  3109Load
+;
+;------------------------------------------------------------
+!TOPIC 3111 Display,PackedWindow
+!NOINDEX
+procedure 3103PackedWindow.Display;
+
+Display the packed window.
+
+See also:  3112DisplayAt  3113MapColors
+;
+;------------------------------------------------------------
+!TOPIC 3112 DisplayAt
+!NOINDEX
+procedure 3103PackedWindow.DisplayAt(Row, Col : Word);
+
+Display the packed window at Row,Col. If necessary, the coordinates are
+adjusted to allow it to fit on the screen.
+
+See also:  3111Display  3113MapColors
+;
+;------------------------------------------------------------
+!TOPIC 3113 MapColors
+!NOINDEX
+procedure 3103PackedWindow.MapColors;
+
+Map the colors of the packed window for improved appearance on mono/B&W
+displays. Note that the effects of this operation are permanent.
+
+See also:  0469OpCrt.ColorMap  0394OpCrt.UseColor
+;
+;------------------------------------------------------------
+!TOPIC 3114 Options,OpWindow
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+const
+  wBordered         = $00000001;
+  wClear            = $00000002;
+  wSaveContents     = $00000004;
+  wUserContents     = $00000008;
+  wSoundEffects     = $00000010;
+  wAltFrame         = $00000020;
+  wSetMouse         = $00000040;
+  wFullMouseWindow  = $00000080;
+  wResizeable       = $00000100;
+  wAllMouseEvents   = $00000200;
+  wStoreContents    = $00000400;
+  wNoCoversBuffer   = $00000800;
+  wCoversOnDemand   = $00001000;
+  wHasChildren      = $10000000;
+  wIsChild          = $20000000;
+  wZoomed           = $40000000;
+  wActive           = $80000000;
+!WRAP
+
+wBordered selects a bordered window.
+
+When wClear is set, the window will be cleared automatically the first time it
+is displayed.
+
+wSaveContents causes the window's constructor to allocate an additional screen
+buffer, large enough to hold the entire window out to (but not including) the
+border. The window's Erase method will then save the window's contents to this
+buffer just before restoring the underlying screen.
+
+wUserContents indicates that the object is capable of restoring its own
+contents. This typically occurs when an object derived from RawWindow
+overrides the UpdateContents method. When wUserContents is set, it is usually
+a waste of heap space to also set wSaveContents.
+
+wSoundEffects enables sound effects during window explosions.
+
+wAltFrame specifies that the window will manage two independent frames: one
+(referred to as wFrame) when the window is current, and another (aFrame) when
+the window is active but not current.
+
+wSetMouse indicates that the mouse window, cursor position, and cursor
+visibility should be updated when the window is drawn. In this case, the mouse
+will be restricted to movements within the window (including the frame edge)
+and the mouse cursor will regain the state it had when the window was last
+current. wFullMouseWindow overrules wSetMouse: it forces the mouse window to
+full screen when the window is drawn, but does not change the mouse cursor
+position or visibility.
+
+wResizeable determines whether the window can be resized and zoomed.
+
+When wAllMouseEvents is set, pressing any combination of mouse buttons will
+cause the Process method of a CommandWindow to exit immediately, no matter
+where the mouse cursor happens to be at the time. When clear, the Process
+method will ignore all mouse clicks outside of the window.
+
+wStoreContents specifies that the contents of a window should be written to a
+stream along with the specification for the window. This is possible only if
+the wSaveContents flag is also set.
+
+If wNoCoversBuffer is set, OpWindow will never allocate and use the wCovers
+buffer. Erasing such a window therefore will not restore the underlying screen
+contents, unless a user-defined close routine does so independently. If
+wCoversOnDemand is set, OpWindow doesn't allocate the wCovers buffer until
+the window is activated, and deallocates it as soon as the window is erased.
+
+wHasChildren, wIsChild, wZoomed, and wActive are internal flags.
+
+See also:  3115DefWindowOptions  3131Options and effects
+;
+;------------------------------------------------------------
+!TOPIC 3115 DefWindowOptions
+!NOINDEX
+const
+  DefWindowOptions : LongInt =
+    wClear+wSaveContents+wResizeable+wStoreContents;
+
+Default window options when no others are specified.
+
+See also:  3114Options  3131Options and effects
+;
+;------------------------------------------------------------
+!TOPIC 3116 RawWindowProc
+!NOINDEX
+type
+  RawWindowProc = procedure(WPtr : RawWindowPtr);
+
+A procedure type used for user-defined window open and close routines.
+
+See also:  2935EnableAlternateOpen
+;
+;------------------------------------------------------------
+!TOPIC 3117 WindowPtr
+!NOINDEX
+type
+  WindowPtr = ^StackWindow;
+
+Pointer to a StackWindow or a descendant of a StackWindow.
+;
+;------------------------------------------------------------
+!TOPIC 3118 StackWindowProc
+!NOINDEX
+type
+  StackWindowProc = procedure (WPtr : WindowPtr);
+
+StackWindow's Draw and DrawHidden methods call a procedure of this type just
+before actually drawing the specified window.
+
+See also:  3022SetStackProc
+;
+;------------------------------------------------------------
+!TOPIC 3119 ByteSet
+!NOINDEX
+type
+  ByteSet = set of Byte;
+  ByteSetPtr = ^ByteSet;
+
+Each CommandWindow contains a field that points to a ByteSet. Members of this
+set are valid OpCmd command codes.
+
+See also:  3066SetExitCommands
+;
+;------------------------------------------------------------
+!TOPIC 3120 PackRec
+!NOINDEX
+type
+  PackRec =
+    record
+      Link : Word;
+      FillVal : Byte;
+      FillCnt : Word;
+    end;
+
+Records like this specify runs of repeated bytes in the compressed screen.
+Because assembly language routines access the records, you should not change
+the PackRec definition without also changing the assembly code.
+
+See also:  3103PackedWindow
+;
+;------------------------------------------------------------
+!TOPIC 3121 PackedScreen
+!NOINDEX
+type
+  PackedScreen = array[1..4000] of Byte;
+
+A mask for the packed array that PackedWindow writes and reads. The actual
+size varies depending on the window coordinates and compression ratio.
+
+See also:  3103PackedWindow
+;
+;------------------------------------------------------------
+!TOPIC 3122 DefCursor
+!NOINDEX
+const
+  DefCursor : CursorType = cuNormal;
+
+Default cursor shape for a newly initialized window. After a window has been
+initialized, change its cursor shape using the SetCursor method.
+
+See also:  0467OpCrt.CursorType
+;
+;------------------------------------------------------------
+!TOPIC 3123 DefBackChar
+!NOINDEX
+const
+  DefBackChar : Char = ' ';
+
+Default background character (used when clearing a window or scrolling it).
+
+See also:  2941RawWindow.SetBackChar
+;
+;------------------------------------------------------------
+!TOPIC 3124 CurrentWindow
+!NOINDEX
+const
+  CurrentWindow : RawWindowPtr = nil;
+
+A pointer to the current window. If no window is visible, the pointer is Nil.
+
+See also:  2923RawWindow
+;
+;------------------------------------------------------------
+!TOPIC 3125 wStack
+!NOINDEX
+const
+  wStack : WindowStack =
+    (psTop:0; psSize:0; psStatus:0; psBase:nil;
+     wsScreen:(vsWidth:0; vsHeight:0; vsVideoSeg:0;
+               vsSize:0; vsBufPtr:nil; vsAllocated:False);
+     wsLevel:0; wsFlags:wsOptimizeTile);
+
+The default WindowStack, which all StackWindow objects use.
+
+See also:  3089WindowStack
+;
+;------------------------------------------------------------
+!TOPIC 3126 Cursor type/position
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for getting and setting the position
+and shape of the cursor, etc.:
+
+  2952CursorInWindow            2954EvaluateMousePos        2953EvaluatePos
+  2946GetCursor                 2949InExtent                2950InFrame
+  2948InWindow                  2955PosResults              2945SetCursor
+  2942wGotoXY                   2943wWhereXY                2944wWhereXYAbs
+;
+;------------------------------------------------------------
+!TOPIC 3127 Declarations,RawWindow
+!NOINDEX
+!NOSEARCH
+The following type and constant declarations pertain to RawWindow and its
+descendants:
+
+  3115DefWindowOptions          3114Options                 3116RawWindowProc
+;
+;------------------------------------------------------------
+!TOPIC 3128 Display,RawWindow
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for displaying windows:
+
+  2978Clear                     2979ClearContents           2968Draw
+  2970Erase                     2971SaveContents            2985ScrollHoriz
+  2986ScrollVert                2969UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 3129 Frames and headers
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for working with frames and headers:
+
+  2965ActiveFramePtr            2928AdjustFrameCoords       2964AltFramePtr
+  2947ChangeHeader              2929DeltaAdjustFrame        2963MainFramePtr
+;
+;------------------------------------------------------------
+!TOPIC 3130 General,RawWindow
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following general purpose methods:
+
+  2927Done                      2956Error                   2924Init
+  2925InitCustom                2951Intersects              3013Load
+  2987MarkCurrent               2988MarkNotCurrent          3014Store
+  2926wCopy
+;
+;------------------------------------------------------------
+!TOPIC 3131 Options and effects
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for setting options and activating
+special effects:
+
+  2935EnableAlternateOpen       2934EnableExplosions        2936EnableNormalOpen
+  2941SetBackChar               2940SetTextAttr             2939wOptionsAreOn
+  2938wOptionsOff               2937wOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 3132 Screen writing
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for performing fast screen writes:
+
+  3005fChangeAttribute          3006fFastCenter             3004fFastFill
+  3007fFastFlush                3008fFastRead               3002fFastText
+  3003fFastVert                 3001fFastWrite              3012fFastWriteCtrl
+  3011fFlexWrite                3009fReadAttribute          3010fWriteAttribute
+  2993wChangeAttribute          2994wFastCenter             2992wFastFill
+  2995wFastFlush                2996wFastRead               2990wFastText
+  2991wFastVert                 2989wFastWrite              3000wFastWriteCtrl
+  2999wFlexWrite                2997wReadAttribute          2998wWriteAttribute
+;
+;------------------------------------------------------------
+!TOPIC 3133 Scroll bars
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for working with scroll bars:
+
+  2976ChangeAllScrollBars       2975ChangeScrollBar         2977DrawAllSliders
+  2972DrawSlider                2973EraseSlider             2974TweakSlider
+;
+;------------------------------------------------------------
+!TOPIC 3134 Size and position
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for getting and setting the size and
+position of a window:
+
+  2982AdjustWindow              2980MoveWindow              2981ResizeWindow
+  2932SetFrameLimits            2931SetPosLimits            2930SetSizeLimits
+  2984Unzoom                    2933UpdateScreenSize        2983Zoom
+;
+;------------------------------------------------------------
+!TOPIC 3135 Status,RawWindow
+!NOINDEX
+!NOSEARCH
+RawWindow provides the following methods for obtaining status information:
+
+  2966Coordinates               2967Extent                  2957GetLastError
+  2958PeekLastError             2960IsActive                2961IsCurrent
+  2962IsZoomed                  2959RawError
+;
+;------------------------------------------------------------
+!TOPIC 3136 Declarations,StackWindow
+!NOINDEX
+!NOSEARCH
+The following type declarations pertain to StackWindow and its descendants:
+
+  3118StackWindowProc           3117WindowPtr
+;
+;------------------------------------------------------------
+!TOPIC 3137 Display,StackWindow
+!NOINDEX
+!NOSEARCH
+StackWindow provides the following methods for displaying windows:
+
+  3031ActivateWrite             3032DeactivateWrite         3025Draw
+  3028DrawHidden                3026Erase                   3029EraseHidden
+  3027Select
+;
+;------------------------------------------------------------
+!TOPIC 3138 General,StackWindow
+!NOINDEX
+!NOSEARCH
+StackWindow provides the following general purpose methods:
+
+  3018Done                      3016Init                    3017InitCustom
+  3020IsCurrent                 3043Load                    3044Store
+  3019UpdateContents            3021wCopy
+;
+;------------------------------------------------------------
+!TOPIC 3139 Stacking
+!NOINDEX
+!NOSEARCH
+StackWindow provides the following methods for working with window stacks:
+
+  3024AssignNumber              3030OnStack                 3022SetStackProc
+  3118StackWindowProc           3023WindowNumber
+;
+;------------------------------------------------------------
+!TOPIC 3140 Child windows
+!NOINDEX
+!NOSEARCH
+StackWindow provides the following methods for working with child windows:
+
+  3036ActiveChild               3033AddChild                3041ChildIndex
+  3040ChildListPtr              3042ChildPtr                3037IsChild
+  3038IsParent                  3039ParentPtr               3034RemoveChild
+  3035SetActiveChild
+;
+;------------------------------------------------------------
+!TOPIC 3141 Command processing
+!NOINDEX
+!NOSEARCH
+CommandWindow provides the following methods for command processing:
+
+  3119ByteSet                   3054GetCommandProcessor     3067GetExitCommandPtr
+  3055GetLastCommand            3057GetLastKey              3051GetNextCommand
+  3048Process                   3050ProcessAutoPilot        3049ProcessSelf
+  3053SetCommandProcessor       3066SetExitCommands         3056SetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 3142 General,CommandWindow
+!NOINDEX
+!NOSEARCH
+CommandWindow provides the following general purpose methods:
+
+  3046Init                      3047InitCustom              3068Load
+  3069Store
+;
+;------------------------------------------------------------
+!TOPIC 3143 Help
+!NOINDEX
+!NOSEARCH
+CommandWindow provides the following methods for implementing help systems:
+
+  3059GetHelpIndex              3052RequestHelp             3058SetHelpIndex
+;
+;------------------------------------------------------------
+!TOPIC 3144 Error handling
+!NOINDEX
+!NOSEARCH
+CommandWindow provides the following methods for dealing with errors:
+
+  3064ClassifyError             3065ClearErrors             3062GetLastError
+  3061GotError                  3063PeekLastError           3060SetErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 3145 General,VirtScreen
+!NOINDEX
+!NOSEARCH
+VirtScreen provides the following general purpose methods:
+
+  3071Alloc                     3073Done                    3072Init
+  3087Load                      3088Store                   3086vCols
+  3085vRows
+;
+;------------------------------------------------------------
+!TOPIC 3146 Display,VirtScreen
+!NOINDEX
+!NOSEARCH
+VirtScreen provides the following methods for displaying, writing to, and
+reading from virtual screens:
+
+  3074Activate                  3076Clear                   3083CopyFromScreen
+  3081CopyFromWindow            3084CopyToScreen            3082CopyToWindow
+  3075Deactivate                3078ReadFrom                3079ScrollHoriz
+  3080ScrollVert                3077WriteTo
+;
+;------------------------------------------------------------
+!TOPIC 3147 Declarations,PackedWindow
+!NOINDEX
+!NOSEARCH
+The following type declarations pertain to PackedWindows:
+
+  3121PackedScreen              3120PackRec
+;
+;------------------------------------------------------------
+!TOPIC 3148 General
+!NOINDEX
+!NOSEARCH
+PackedWindow provides the following general purpose methods:
+
+  3106Done                      3104Init                    3105InitFromMemory
+  3109Load                      3107Read                    3110Store
+  3108Write
+;
+;------------------------------------------------------------
+!TOPIC 3149 Displaying
+!NOINDEX
+!NOSEARCH
+PackedWindow provides the following methods for displaying packed screens:
+
+  3111Display                   3112DisplayAt               3113MapColors
+;
+;------------------------------------------------------------
+!TOPIC 3150 Declarations,OpWindow
+!NOINDEX
+!NOSEARCH
+OpWindow declares the following constants:
+
+  3124CurrentWindow             3123DefBackChar             3122DefCursor
+  3125wStack

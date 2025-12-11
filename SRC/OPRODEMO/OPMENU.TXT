@@ -1,0 +1,1481 @@
+;
+;------------------------------------------------------------
+!TOPIC 1840 OpMenu
+OpMenu is a powerful collection of objects to reduce the time and
+drudgery of developing a sophisticated menu system.
+
+OpMenu implements a group of four cooperating objects, shown in the
+following hierarchy chart along with their ancestor types.
+
+[2306Root]
+  [2446DoubleListNode]
+    1841MenuItemNode
+  [2448DoubleList]
+    [2468CircularList]
+      MenuItemList
+  [2919AbstractWindow]
+    [2923RawWindow]
+      SubMenu
+      [3015StackWindow]
+        [3045CommandWindow]
+          1859Menu
+
+The Menu object is the only one of the four that you'll usually need to
+declare and use.
+
+  1940Commands
+;
+;------------------------------------------------------------
+!TOPIC 1841 MenuItemNode
+!NOINDEX
+1840OpMenu.MenuItemNode = object(2446DoubleListNode)
+!LINE
+MenuItemNodePtr = ^MenuItemNode;
+
+Each item in a menu system is managed by a MenuItemNode instance. You
+probably won't need to access the MenuItemNodes directly. The primary need
+for such direct access is for dynamic modification of menu systems:
+changing item name, position, or protection. The other common need to
+access a MenuItemNode directly is to read its help string in order to feed
+it to a current item procedure.
+
+The following are the only methods of MenuItemNode that you're at all
+likely to need:
+
+  1849ChangeDisplayPos          1847ChangeHelp              1846ChangeKey
+  1845ChangeName                1848ChangeSelectPos         1850ChangeSubPtr
+  1955Declarations              1851DisplayInfo             1858GetDisplayPos
+  1852HelpString                1855IsProtected             1856IsSemiProtected
+  1853ItemKey                   1842Protect                 1857SelectChar
+  1854SubPtr                    1844Unprotect               1843SemiProtect
+;
+;------------------------------------------------------------
+!TOPIC 1842 Protect
+!NOINDEX
+procedure 1841MenuItemNode.Protect;
+
+Protect the item.
+
+See also:  1922Menu.ProtectItem  1844Unprotect
+;
+;------------------------------------------------------------
+!TOPIC 1843 SemiProtect
+!NOINDEX
+procedure 1841MenuItemNode.SemiProtect;
+
+Semi-protect the item.
+
+See also:  1923Menu.SemiProtectItem  1844Unprotect
+;
+;------------------------------------------------------------
+!TOPIC 1844 Unprotect
+!NOINDEX
+procedure 1841MenuItemNode.Unprotect;
+
+Unprotect the item.
+
+See also:  1855IsProtected  1842Protect  1924Menu.UnprotectItem
+;
+;------------------------------------------------------------
+!TOPIC 1845 ChangeName
+!NOINDEX
+function 1841MenuItemNode.ChangeName(Name : String) : Boolean;
+
+Change the name of the item.
+
+See also:  1865Menu.AddItem  1846ChangeKey  1851DisplayInfo
+;
+;------------------------------------------------------------
+!TOPIC 1846 ChangeKey
+!NOINDEX
+procedure 1841MenuItemNode.ChangeKey(Key : LongInt);
+
+Change the item's key.
+
+See also:  1865Menu.AddItem  1845ChangeName  1853ItemKey
+;
+;------------------------------------------------------------
+!TOPIC 1847 ChangeHelp
+!NOINDEX
+function 1841MenuItemNode.ChangeHelp(Help : String) : Boolean;
+
+Change the help string for the item.
+
+See also:  1867Menu.AddItemHelp  1852HelpString
+;
+;------------------------------------------------------------
+!TOPIC 1848 ChangeSelectPos
+!NOINDEX
+procedure 1841MenuItemNode.ChangeSelectPos(SelectPos : Byte);
+
+Change the select character offset for the item. If SelectPos is 0, the
+selection feature is disabled. A SelectPos of 1 indicates the first
+character in the name (independent of padding).
+
+See also:  1865Menu.AddItem  1857SelectChar
+;
+;------------------------------------------------------------
+!TOPIC 1849 ChangeDisplayPos
+!NOINDEX
+procedure 1841MenuItemNode.ChangeDisplayPos(DisplayPos : Byte);
+
+Change the display offset for the item. The display offset is the distance
+from the left/top edge of the MenuItemList's associated window to the start
+of the (padded) item, for horizontal/vertical lists, respectively. Position
+1 is at the far left/top of the active window.
+
+See also:  1865Menu.AddItem  1858GetDisplayPos
+;
+;------------------------------------------------------------
+!TOPIC 1850 ChangeSubPtr
+!NOINDEX
+procedure 1841MenuItemNode.ChangeSubPtr(SPtr : SubMenuPtr);
+
+Change submenu pointer of the item.
+
+See also:  1871Menu.AddSubMenu
+;
+;------------------------------------------------------------
+!TOPIC 1851 DisplayInfo
+!NOINDEX
+procedure 1841MenuItemNode.DisplayInfo(var DisplayPos, SelectPos : Byte;
+                                   var S : String);
+
+Return string and display offsets for the item.
+
+See also:  1858GetDisplayPos  1852HelpString
+;
+;------------------------------------------------------------
+!TOPIC 1852 HelpString
+!NOINDEX
+function 1841MenuItemNode.HelpString : String;
+
+Return help string for the item.
+
+See also:  1867Menu.AddItemHelp  1847ChangeHelp
+;
+;------------------------------------------------------------
+!TOPIC 1853 ItemKey
+!NOINDEX
+function 1841MenuItemNode.ItemKey : LongInt;
+
+Return menu key for the item.
+
+See also:  1865Menu.AddItem  1846ChangeKey  1914Menu.MenuChoice
+;
+;------------------------------------------------------------
+!TOPIC 1854 SubPtr
+!NOINDEX
+function 1841MenuItemNode.SubPtr : SubMenuPtr;
+
+Return submenu pointer for the item.
+
+See also:  1850ChangeSubPtr
+;
+;------------------------------------------------------------
+!TOPIC 1855 IsProtected,MenuItemNode
+!NOINDEX
+function 1841MenuItemNode.IsProtected : Boolean;
+
+Return True if the item is protected.
+
+See also:  1842Protect  1922Menu.ProtectItem
+;
+;------------------------------------------------------------
+!TOPIC 1856 IsSemiProtected,MenuItemNode
+!NOINDEX
+function 1841MenuItemNode.IsSemiProtected : Boolean;
+
+Return True if the item is semi-protected.
+
+See also:  1843SemiProtect  1923Menu.SemiProtectItem
+;
+;------------------------------------------------------------
+!TOPIC 1857 SelectChar
+!NOINDEX
+function 1841MenuItemNode.SelectChar : Char;
+
+Return the alpha selection char (uppercase) for the item.
+
+See also:  1865Menu.AddItem  1848ChangeSelectPos
+;
+;------------------------------------------------------------
+!TOPIC 1858 GetDisplayPos
+!NOINDEX
+function 1841MenuItemNode.GetDisplayPos : Byte;
+
+Return the display offset for the item.
+
+See also:  1849ChangeDisplayPos  1851DisplayInfo
+;
+;------------------------------------------------------------
+!TOPIC 1859 Menu
+!NOINDEX
+1840OpMenu.Menu = object(3045CommandWindow)
+!LINE
+MenuPtr = ^Menu;
+
+The Menu object. Because the Menu is derived from the CommandWindow object,
+it gains all the functionality of that window type. Inherited features
+relevant to the Menu include:
+
+!NOWRAP
+- adjustable colors and position
+- frame decorations such as headers and shadows
+- ability to work in a window stack or on a virtual screen
+- CommandProcessor hooks such as keyboard remapping, user exit commands,
+  dynamic exit commands, and background tasks
+- context sensitive help hook
+- error handling hook
+!WRAP
+
+Menu's methods generally fall into one of the following categories:
+
+    1941Declarations                      1959General
+    1960Headers, shadows, effects         1961Items and item lists
+    1962Setting colors                    1963Setting options
+    1964SubMenus
+;
+;------------------------------------------------------------
+!TOPIC 1860 Init,Menu
+!NOINDEX
+constructor 1859Menu.Init(X1, Y1, X2, Y2 : Byte; Orient : mnOrientation);
+
+Instantiate a menu with default window options and colors.
+
+See also:
+    0472OpCrt.DefaultColorSet             1944DefMenuOptions
+    3115OpWindow.DefWindowOptions         1861InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1861 InitCustom,Menu
+!NOINDEX
+constructor 1859Menu.InitCustom(X1, Y1, X2, Y2 : Byte;
+                            var Colors : ColorSet;
+                            Options : LongInt;
+                            Orient : mnOrientation);
+
+Instantiate a menu with custom window options and colors. Orient is the
+orientation of the top level menu's item list. It can be either Horizontal
+or Vertical.
+
+See also:
+     1944DefMenuOptions               1860Init
+     3047CommandWindow.InitCustom     3114RawWindow.Options
+;
+;------------------------------------------------------------
+!TOPIC 1862 mnOptionsOn
+!NOINDEX
+procedure 1859Menu.mnOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  1945BadMenuOptions  1943Options  1963Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1863 mnOptionsOff
+!NOINDEX
+procedure 1859Menu.mnOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  1945BadMenuOptions  1943Options  1963Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1864 mnOptionsAreOn
+!NOINDEX
+function 1859Menu.mnOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  1945BadMenuOptions  1943Options  1963Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1865 AddItem
+!NOINDEX
+procedure 1859Menu.AddItem(Name : String; DisplayPos, SelectPos : Byte;
+                       Key : LongInt);
+
+Add item to current item list, allocating string space on heap.
+
+See also:  1867AddItemHelp  1866AddItemPtr
+;
+;------------------------------------------------------------
+!TOPIC 1866 AddItemPtr
+!NOINDEX
+procedure 1859Menu.AddItemPtr(var Name : String; DisplayPos, SelectPos : Byte;
+                          Key : LongInt);
+
+Add item to current item list, not allocating string space on heap.
+
+See also:  1865AddItem  1868AddItemHelpPtr
+;
+;------------------------------------------------------------
+!TOPIC 1867 AddItemHelp
+!NOINDEX
+procedure 1859Menu.AddItemHelp(Name : String; DisplayPos, SelectPos : Byte;
+                           Key : LongInt; Help : String);
+
+Add item to current item list, allocating string space on heap. Works just
+like AddItem, except that a copy of the Help string is also stored on the
+heap.
+
+See also:  1865AddItem  1868AddItemHelpPtr  1910SetCurrentItemProc
+;
+;------------------------------------------------------------
+!TOPIC 1868 AddItemHelpPtr
+!NOINDEX
+procedure 1859Menu.AddItemHelpPtr(var Name : String;
+                              DisplayPos, SelectPos : Byte;
+                              Key : LongInt; var Help : String);
+
+Add item to current item list, not allocating string space on heap. Works
+just like AddItemPtr, except that the address of the Help string is also
+stored.
+
+See also:  1867AddItemHelp  1866AddItemPtr
+;
+;------------------------------------------------------------
+!TOPIC 1869 AddSeparator
+!NOINDEX
+procedure 1859Menu.AddSeparator(FirstChar, SpanChar, LastChar : Char;
+                            DisplayPos : Byte);
+
+Add a separator bar at offset DisplayPos within the window.
+
+See also:  1870AddSeparatorColor
+;
+;------------------------------------------------------------
+!TOPIC 1870 AddSeparatorColor
+!NOINDEX
+procedure 1859Menu.AddSeparatorColor(FirstChar, SpanChar, LastChar : Char;
+                                 DisplayPos : Byte;
+                                 AttrColor, AttrMono : Byte);
+
+Add a separator bar at offset DisplayPos within the window with specified
+colors.
+
+See also:  1869AddSeparator
+;
+;------------------------------------------------------------
+!TOPIC 1871 AddSubMenu
+!NOINDEX
+procedure 1859Menu.AddSubMenu(X1, Y1, X2, Y2 : Byte; Orient : mnOrientation);
+
+Add an unframed submenu with options and colors cloned from the main menu.
+
+See also:  1872AddFramedSubMenu  1873AddSubMenuCustom  1951mnOrientation
+;
+;------------------------------------------------------------
+!TOPIC 1872 AddFramedSubMenu
+!NOINDEX
+procedure 1859Menu.AddFramedSubMenu(X1, Y1, X2, Y2 : Byte;
+                                Orient : mnOrientation;
+                                FA : FrameArray);
+
+Add a framed submenu with options and colors cloned from main menu. FA
+specifies the characters to be used for the border.
+
+See also:  1871AddSubMenu  1873AddSubMenuCustom  1951mnOrientation
+;
+;------------------------------------------------------------
+!TOPIC 1873 AddSubMenuCustom
+!NOINDEX
+procedure 1859Menu.AddSubMenuCustom(X1, Y1, X2, Y2 : Byte;
+                                var Colors : ColorSet;
+                                Options : LongInt;
+                                Orient : mnOrientation;
+                                FA : FrameArray);
+
+Add a submenu with custom window options.
+
+See also:  1872AddFramedSubMenu  1871AddSubMenu  1951mnOrientation
+;
+;------------------------------------------------------------
+!TOPIC 1874 ItemsDone
+!NOINDEX
+procedure 1859Menu.ItemsDone;
+
+Terminate the current item list. Makes the first item the default.
+
+See also:  1875ItemsDoneCustom
+;
+;------------------------------------------------------------
+!TOPIC 1875 ItemsDoneCustom
+!NOINDEX
+procedure 1859Menu.ItemsDoneCustom(OptimizeSize : Boolean;
+                               DefaultKey : LongInt);
+
+Terminate the current item list and customize size and default key.
+
+See also:
+  1925DefaultItem               1874ItemsDone               1948mnNotAKey
+  1883SetLeftPad                1884SetSelectHighlight      1885SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 1876 SetNormAttr
+!NOINDEX
+procedure 1859Menu.SetNormAttr(Color, Mono : Byte);
+
+Set attributes for normal item text.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1877 SetSelectAttr
+!NOINDEX
+procedure 1859Menu.SetSelectAttr(Color, Mono : Byte);
+
+Set attributes for selected item text.
+
+See also:  1962Setting colors  1884SetSelectHighlight
+;
+;------------------------------------------------------------
+!TOPIC 1878 SetHighAttr
+!NOINDEX
+procedure 1859Menu.SetHighAttr(Color, Mono : Byte);
+
+Set attributes for pick highlight text.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1879 SetProtectAttr
+!NOINDEX
+procedure 1859Menu.SetProtectAttr(Color, Mono : Byte);
+
+Set attributes for protected item text.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1880 SetFrameAttr,Menu
+!NOINDEX
+procedure 1859Menu.SetFrameAttr(Color, Mono : Byte);
+
+Set frame attributes of all windows in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1881 SetHeaderAttr,Menu
+!NOINDEX
+procedure 1859Menu.SetHeaderAttr(Color, Mono : Byte);
+
+Set header attributes of all windows in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1882 SetShadowAttr,Menu
+!NOINDEX
+procedure 1859Menu.SetShadowAttr(Color, Mono : Byte);
+
+Set shadow attributes of all windows in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1883 SetLeftPad
+!NOINDEX
+procedure 1859Menu.SetLeftPad(LeftPad : Byte);
+
+Set the number of characters to left pad each item when it is displayed.
+
+See also:  1885SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 1884 SetSelectHighlight
+!NOINDEX
+procedure 1859Menu.SetSelectHighlight(On : Boolean);
+
+Turn on/off display of the select char in the highlighted item.
+
+See also:  1877SetSelectAttr
+;
+;------------------------------------------------------------
+!TOPIC 1885 SetSelectMarker,Menu
+!NOINDEX
+procedure 1859Menu.SetSelectMarker(Left, Right : String);
+
+Define strings used to mark selected items.
+
+See also:  1904SetAllSelectMarker  1883SetLeftPad
+;
+;------------------------------------------------------------
+!TOPIC 1886 AddHeader,Menu
+!NOINDEX
+procedure 1859Menu.AddHeader(S : string; Posn : HeaderPosType);
+
+Add a standard header at the specified position.
+
+See also:  1888AddCustomHeader  1461Frame.AddHeader  1887AddHeaderColor
+;
+;------------------------------------------------------------
+!TOPIC 1887 AddHeaderColor,Menu
+!NOINDEX
+procedure 1859Menu.AddHeaderColor(S : string; Posn : HeaderPosType;
+                              AttrColor, AttrMono : Byte);
+
+Add a standard header at the specified position with custom colors.
+
+See also:  1888AddCustomHeader  1886AddHeader  1462Frame.AddHeaderColor
+;
+;------------------------------------------------------------
+!TOPIC 1888 AddCustomHeader,Menu
+!NOINDEX
+procedure 1859Menu.AddCustomHeader(S : string; Posn : FrameCornerType;
+                               DX, DY : Integer;
+                               AttrColor, AttrMono : Byte);
+
+Add a custom header. DX,DY defines its location relative to the specified
+position.
+
+See also:  1463Frame.AddCustomHeader  1886AddHeader  1887AddHeaderColor
+;
+;------------------------------------------------------------
+!TOPIC 1889 AddShadow,Menu
+!NOINDEX
+procedure 1859Menu.AddShadow(Posn : ShadowPosType; DrawType : ShadowDrawType);
+
+Add a standard shadow.
+
+See also:  1472Frame.AddShadow  1890AddShadowColor
+;
+;------------------------------------------------------------
+!TOPIC 1890 AddShadowColor,Menu
+!NOINDEX
+procedure 1859Menu.AddShadowColor(Posn : ShadowPosType;
+                              DrawType : ShadowDrawType;
+                              AttrColor, AttrMono : Byte);
+
+Add a standard shadow with custom colors.
+
+See also:  1889AddShadow  1473Frame.AddShadowColor
+;
+;------------------------------------------------------------
+!TOPIC 1891 EnableExplosions,Menu
+!NOINDEX
+procedure 1859Menu.EnableExplosions(StageDelay : Word);
+
+Enable exploding windows with StageDelay milliseconds per stage.
+
+See also:  1901EnableAllExplosions  2934RawWindow.EnableExplosions  1892EnableNormalOpen
+;
+;------------------------------------------------------------
+!TOPIC 1892 EnableNormalOpen,Menu
+!NOINDEX
+procedure 1859Menu.EnableNormalOpen;
+
+Disable exploding windows or alternate draw routines.
+
+See also:
+    1903EnableAllNormalOpen      1891EnableExplosions
+    2936RawWindow.EnableNormalOpen
+;
+;------------------------------------------------------------
+!TOPIC 1893 SetAllNormAttr
+!NOINDEX
+procedure 1859Menu.SetAllNormAttr(Color, Mono : Byte);
+
+Set normal attributes of all items in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1894 SetAllSelectAttr
+!NOINDEX
+procedure 1859Menu.SetAllSelectAttr(Color, Mono : Byte);
+
+Set select attributes of all items in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1895 SetAllHighAttr
+!NOINDEX
+procedure 1859Menu.SetAllHighAttr(Color, Mono : Byte);
+
+Set highlight attributes of all items in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1896 SetAllProtectAttr
+!NOINDEX
+procedure 1859Menu.SetAllProtectAttr(Color, Mono : Byte);
+
+Set protect attributes of all items in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1897 SetAllFrameAttr
+!NOINDEX
+procedure 1859Menu.SetAllFrameAttr(Color, Mono : Byte);
+
+Set frame attributes of all windows in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1898 SetAllHeaderAttr
+!NOINDEX
+procedure 1859Menu.SetAllHeaderAttr(Color, Mono : Byte);
+
+Set header attributes of all windows in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1899 SetAllShadowAttr
+!NOINDEX
+procedure 1859Menu.SetAllShadowAttr(Color, Mono : Byte);
+
+Set shadow attributes of all windows in the menu system.
+
+See also:  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1900 AddShadows
+!NOINDEX
+procedure 1859Menu.AddShadows(MainMenu : Boolean; Posn : ShadowPosType;
+                          DrawType : ShadowDrawType);
+
+Add shadows to all submenus.
+
+See also:  1889Frame.AddShadow  1889AddShadow  1890AddShadowColor
+;
+;------------------------------------------------------------
+!TOPIC 1901 EnableAllExplosions
+!NOINDEX
+procedure 1859Menu.EnableAllExplosions(StageDelay : Word);
+
+Enable exploding windows with StageDelay milliseconds per stage for all
+submenus.
+
+See also:
+    1902EnableAllAlternateOpen       1903EnableAllNormalOpen
+    1891EnableExplosions
+;
+;------------------------------------------------------------
+!TOPIC 1902 EnableAllAlternateOpen
+!NOINDEX
+procedure 1859Menu.EnableAllAlternateOpen(OpenProc, CloseProc : RawWindowProc;
+                                      StageDelay : Word);
+
+Enable alternate draw and erase routines for all submenus.
+
+See also:  1901EnableAllExplosions  1903EnableAllNormalOpen
+;
+;------------------------------------------------------------
+!TOPIC 1903 EnableAllNormalOpen
+!NOINDEX
+procedure 1859Menu.EnableAllNormalOpen;
+
+Disable exploding windows or alternate draw routines for all submenus.
+
+See also:
+    1902EnableAllAlternateOpen       1901EnableAllExplosions
+    1892EnableNormalOpen
+;
+;------------------------------------------------------------
+!TOPIC 1904 SetAllSelectMarker
+!NOINDEX
+procedure 1859Menu.SetAllSelectMarker(Left, Right : String);
+
+Define strings to mark selected items in all submenus.
+
+See also:  1885SetSelectMarker
+;
+;------------------------------------------------------------
+!TOPIC 1905 SetHelpAttr
+!NOINDEX
+procedure 1859Menu.SetHelpAttr(Color, Mono : Byte);
+
+Set the colors for the help line.
+
+See also:  1906GetHelpAttr  1962Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 1906 GetHelpAttr
+!NOINDEX
+procedure 1859Menu.GetHelpAttr(var Color, Mono : Byte);
+
+Get the colors stored for the help line.
+
+See also:  1910SetCurrentItemProc  1905SetHelpAttr
+;
+;------------------------------------------------------------
+!TOPIC 1907 VisitAllItems
+!NOINDEX
+procedure 1859Menu.VisitAllItems(IProc : mnItemProc; var D);
+
+Call the specified procedure for all items in the menu system.
+
+See also:  1952mnItemProc  1909VisitAllItemLists  1908VisitAllWindows
+;
+;------------------------------------------------------------
+!TOPIC 1908 VisitAllWindows
+!NOINDEX
+procedure 1859Menu.VisitAllWindows(WProc : mnWindowProc; var D);
+
+Call the specified procedure for all submenus in the menu system.
+
+See also:  1953mnWindowProc  1909VisitAllItemLists  1907VisitAllItems
+;
+;------------------------------------------------------------
+!TOPIC 1909 VisitAllItemLists
+!NOINDEX
+procedure 1859Menu.VisitAllItemLists(LProc : mnListProc; var D);
+
+Call the specified procedure for all item lists in the menu system.
+
+See also:  1954mnListProc  1907VisitAllItems  1908VisitAllWindows
+;
+;------------------------------------------------------------
+!TOPIC 1910 SetCurrentItemProc
+!NOINDEX
+procedure 1859Menu.SetCurrentItemProc(IP : mnCurrentItemProc);
+
+Set the procedure to be called whenever the active item is drawn.
+
+See also:  1912CurrentItem  1950mnCurrentItemProc  1911SetCustomStringProc
+;
+;------------------------------------------------------------
+!TOPIC 1911 SetCustomStringProc
+!NOINDEX
+procedure 1859Menu.SetCustomStringProc(CP : mnCustomProc);
+
+Set the item string customization procedure.
+
+See also:  1949mnCustomProc  1910SetCurrentItemProc
+;
+;------------------------------------------------------------
+!TOPIC 1912 CurrentItem
+!NOINDEX
+procedure 1859Menu.CurrentItem(IPtr : MenuItemNodePtr); virtual;
+
+Called just after the currently selected item is drawn.
+
+See also:  1910SetCurrentItemProc
+;
+;------------------------------------------------------------
+!TOPIC 1913 ProcessSelf,Menu
+!NOINDEX
+procedure 1859Menu.ProcessSelf; virtual;
+
+Process menu commands leading to a choice.
+
+See also:  1914MenuChoice  3048CommandWindow.Process
+;
+;------------------------------------------------------------
+!TOPIC 1914 MenuChoice
+!NOINDEX
+function 1859Menu.MenuChoice : LongInt;
+
+Return the last menu choice.
+
+See also:  1913ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 1915 EraseCurrentSubMenu
+!NOINDEX
+procedure 1859Menu.EraseCurrentSubMenu;
+
+Erase the current submenu.
+
+See also:  1916EraseAllSubMenus
+;
+;------------------------------------------------------------
+!TOPIC 1916 EraseAllSubMenus
+!NOINDEX
+procedure 1859Menu.EraseAllSubMenus(ShowSelect, ShowHighlight : Boolean);
+
+Erase all submenus, leaving the main menu showing in the specified state
+(with or without the selected item highlighted).
+
+See also:  1936Erase  1917EraseClear  1915EraseCurrentSubMenu
+;
+;------------------------------------------------------------
+!TOPIC 1917 EraseClear
+!NOINDEX
+procedure 1859Menu.EraseClear;
+
+Erase menu and clear active submenus for next draw.
+
+See also:  1936Erase  1916EraseAllSubMenus
+;
+;------------------------------------------------------------
+!TOPIC 1918 SelectItem,Menu
+!NOINDEX
+procedure 1859Menu.SelectItem(Key : LongInt);
+
+Select specified item and update screen.
+
+See also:  1925DefaultItem  1919SelectSubMenu
+;
+;------------------------------------------------------------
+!TOPIC 1919 SelectSubMenu
+!NOINDEX
+procedure 1859Menu.SelectSubMenu(Key : LongInt);
+
+Select current item of submenu containing Key and update the screen.
+
+See also:  1925DefaultItem  1918SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 1920 SelectItemByPos
+!NOINDEX
+function 1859Menu.SelectItemByPos(X, Y : Byte) : Boolean;
+
+Select visible item (if any) at absolute position and update the screen.
+
+See also:  3094WindowStack.EvaluateStackPos  1918SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 1921 Redraw
+!NOINDEX
+procedure 1859Menu.Redraw;
+
+Erase and redraw the menu system, presumably after changing an item.
+
+See also:  1936Erase
+;
+;------------------------------------------------------------
+!TOPIC 1922 ProtectItem
+!NOINDEX
+procedure 1859Menu.ProtectItem(Key : LongInt);
+
+Protect the specified item. No screen update.
+
+See also:  1924UnprotectItem
+;
+;------------------------------------------------------------
+!TOPIC 1923 SemiProtectItem
+!NOINDEX
+procedure 1859Menu.SemiProtectItem(Key : LongInt);
+
+Semi-protect the specified item. No screen update.
+
+See also:  1924UnprotectItem
+;
+;------------------------------------------------------------
+!TOPIC 1924 UnprotectItem
+!NOINDEX
+procedure 1859Menu.UnprotectItem(Key : LongInt);
+
+Unprotect the specified item. No screen update.
+
+See also:  1922ProtectItem  1923SemiProtectItem
+;
+;------------------------------------------------------------
+!TOPIC 1925 DefaultItem
+!NOINDEX
+procedure 1859Menu.DefaultItem(Key : LongInt);
+
+Make item Key the default of its submenu. No screen update.
+
+See also:  1926DefaultPath  1918SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 1926 DefaultPath
+!NOINDEX
+procedure 1859Menu.DefaultPath(Key : LongInt);
+
+Select path to specified item. No screen update.
+
+See also:  1925DefaultItem  1918SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 1927 ActiveListPtr
+!NOINDEX
+function 1859Menu.ActiveListPtr : MenuItemListPtr;
+
+Return a pointer to the active item list.
+
+See also:  1930ActiveItemPtr  1928ActiveWinPtr
+;
+;------------------------------------------------------------
+!TOPIC 1928 ActiveWinPtr
+!NOINDEX
+function 1859Menu.ActiveWinPtr : RawWindowPtr;
+
+Return a pointer to the active raw window.
+
+See also:  1930ActiveItemPtr
+;
+;------------------------------------------------------------
+!TOPIC 1929 ActiveSubPtr
+!NOINDEX
+function 1859Menu.ActiveSubPtr : SubMenuPtr;
+
+Return a pointer to the active submenu.
+
+See also:  1850MenuItemNode.ChangeSubPtr
+;
+;------------------------------------------------------------
+!TOPIC 1930 ActiveItemPtr
+!NOINDEX
+function 1859Menu.ActiveItemPtr : MenuItemNodePtr;
+
+Return a pointer to the currently active item.
+
+See also:  1927ActiveListPtr  1928ActiveWinPtr  1931FindItem
+;
+;------------------------------------------------------------
+!TOPIC 1931 FindItem,Menu
+!NOINDEX
+function 1859Menu.FindItem(Key : LongInt) : MenuItemNodePtr;
+
+Return a pointer to the item node corresponding to Key.
+
+See also:  1930ActiveItemPtr
+;
+;------------------------------------------------------------
+!TOPIC 1932 Load,Menu
+!NOINDEX
+constructor 1859Menu.Load(var S : IdStream);
+
+Load a list from a stream. The registration routine for a menu is MenuStream.
+
+See also:  3068CommandWindow.Load  1933Store
+;
+;------------------------------------------------------------
+!TOPIC 1933 Store,Menu
+!NOINDEX
+procedure 1859Menu.Store(var S : IdStream);
+
+Store a list in a stream.  The registration routine for a menu is MenuStream.
+
+See also:  1932Load  3069CommandWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 1934 Done,Menu
+!NOINDEX
+destructor 1859Menu.Done; virtual;
+
+Destroy a menu.
+
+See also:  2927CommandWindow.Done
+;
+;------------------------------------------------------------
+!TOPIC 1935 UpdateContents,Menu
+!NOINDEX
+procedure 1859Menu.UpdateContents; virtual;
+
+Update the contents of the menu. This method should not be called directly.
+Use Draw instead.
+
+See also:  2968RawWindow.Draw  1921Redraw
+;
+;------------------------------------------------------------
+!TOPIC 1936 Erase,Menu
+!NOINDEX
+procedure 1859Menu.Erase; virtual;
+
+Erase the entire menu system. Remembers previous submenus for the next draw.
+
+See also:  3026StackWindow.Erase  1916EraseAllSubMenus  1917EraseClear
+;
+;------------------------------------------------------------
+!TOPIC 1937 IsCurrent,Menu
+!NOINDEX
+function 1859Menu.IsCurrent : Boolean; virtual;
+
+Return True if the menu system is the current window.
+
+See also:  2961RawWindow.IsCurrent
+;
+;------------------------------------------------------------
+!TOPIC 1938 MoveWindow,Menu
+!NOINDEX
+procedure 1859Menu.MoveWindow(DX, DY : Integer); virtual;
+
+Move a menu. This method overrides StackWindow.MoveWindow so that it
+simultaneously shifts all windows (active and inactive) that comprise a
+menu system. The menu system must either be inactive or contain the current
+window for MoveWindow to work.
+
+See also:  2980StackWindow.MoveWindow
+;
+;------------------------------------------------------------
+!TOPIC 1939 UpdateScreenSize,Menu
+!NOINDEX
+procedure 1859Menu.UpdateScreenSize;
+
+Update window size, position, and limits for current screen size. This method
+works just like RawWindow.UpdateScreenSize, except that it is applied to all
+windows in the menu system.
+
+See also:  2933RawWindow.UpdateScreenSize
+;
+;------------------------------------------------------------
+!TOPIC 1940 Commands,Menu
+!NOINDEX
+!NOSEARCH
+Menu's Process method offers appropriate commands to navigate the items and
+submenus. The list below arranges them by category. In each case the first
+line gives the name of the command, followed by the key(s) to which it is
+normally assigned. The second and following lines give a brief description
+of the command.
+
+!NOWRAP
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+!WRAP
+Highlight bar moves left one item on a horizontal submenu. If the bar is on
+the leftmost item of the submenu, it wraps to the rightmost item. If A) the
+active submenu has a vertical orientation, B) the mnArrowSelect option is
+enabled, C) the menu's parent submenu has a horizontal orientation, and D)
+the parent has additional unprotected items, then the current submenu is
+erased and the parent's highlight bar is moved left to the next item there.
+If that item has a submenu, the submenu is selected and its default item
+becomes active. If the parent item has no submenu and the mnAllowPending
+option is enabled, OpMenu sets an internal flag that reminds it to select
+the next available submenu if the ccLeft (or ccRight, ccHome, or ccEnd)
+command is executed again.
+
+!NOWRAP
+ccRight       <Right>, <CtrlD>
+!WRAP
+Highlight bar moves right one item on a horizontal submenu. Additional
+behavior is analogous to that of ccLeft (with right replacing left).
+
+!NOWRAP
+ccHome        <Home>, <CtrlQ><S>
+!WRAP
+Highlight moves to first item of horizontal or vertical submenu. If a submenu
+is pending (see ccLeft), it is selected.
+
+!NOWRAP
+ccEnd         <End>, <CtrlQ><D>
+!WRAP
+Highlight moves to last item of horizontal or vertical submenu. If a submenu
+is pending (see ccLeft), it is selected.
+
+!NOWRAP
+ccUp          <Up>, <CtrlE>, <CtrlW>
+!WRAP
+Highlight moves up one row on a vertical submenu. Additional behavior is
+analogous to that of ccLeft (with up replacing left and vertical replacing
+horizontal).
+
+!NOWRAP
+ccDown        <Down>, <CtrlX>, <CtrlZ>
+!WRAP
+Highlight moves down one row on a vertical submenu. Additional behavior is
+analogous to that of ccLeft (with down replacing left and vertical
+replacing horizontal).
+
+!NOWRAP
+Other
+
+ccSelect      <Enter>
+!WRAP
+If the current item has no submenu, Process exits and MenuChoice returns the
+key of the current item. If the current item has a submenu, display the
+submenu and make its default item current.
+
+!NOWRAP
+ccMouseSel    <ClickLeft>
+!WRAP
+Process scans the stack of active submenus (from the most recently selected
+submenu back to the top level menu). If the mouse position corresponds to a
+hot spot of the current submenu or to a hot spot of another active submenu
+and the mnAllHotSpots option is enabled, Process exits, leaving the last
+command code set to ccMouseSel. If the mouse position corresponds to an
+unprotected item in the current submenu, the highlight bar is moved to that
+item. If the item was already highlighted or if the mnSelectOnClick option
+is enabled, Process changes the command code to ccSelect and exits. If the
+mouse position corresponds to an unprotected item in another active
+submenu, submenus are erased until the indicated item in that submenu is
+current. If the mnSelectOnClick option is on, Process changes the command
+code to ccSelect and exits.
+
+!NOWRAP
+ccQuit        <Esc>, <ClickRight>
+!WRAP
+If the current submenu is the top level menu, Process exits with the ccQuit
+command code (without erasing the top level menu). Otherwise, the current
+submenu is erased and its parent's active item becomes current.
+
+!NOWRAP
+ccHelp        <F1>, <ClickBoth>
+Request help.
+
+ccChar        any alphanumeric character
+!WRAP
+If the mnAlphaMatch option is enabled, the current item list is searched
+for an item whose SelectChar method matches the character
+(case-insensitive). Searching starts on the next item beyond the current
+one. If a match is found, the selection bar is moved to that item. If the
+matching item has a submenu, the submenu is displayed. If the
+mnSelectOnMatch option is enabled and the item has no submenu, Process
+changes the command code to ccSelect and exits.
+
+See also:  1913Menu.ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 1941 Declarations,OpMenu
+!NOINDEX
+!NOSEARCH
+The following type, constant, and variable declarations pertain to Menus:
+
+  1945BadMenuOptions            1942Configuration data      1944DefMenuOptions
+  1946MenuCommands              1947MenuDepth               1950mnCurrentItemProc
+  1949mnCustomProc              1952mnItemProc              1954mnListProc
+  1948mnNotAKey                 1951mnOrientation           1953mnWindowProc
+  1943Options
+;
+;------------------------------------------------------------
+!TOPIC 1942 Configuration data,OpMenu
+!NOINDEX
+!NOSEARCH
+const
+  MenuKeyMax = 110;
+  MenuKeyID  : string[16] = 'opmenu key array';
+  MenuKeySet : array[0..MenuKeyMax] of Byte = (...);
+  MenuCfgEnd : Byte = 0;
+
+MenuKeyId is an ID string used to mark the beginning of the configuration data
+area for OpMenu; MenuCfgEnd marks the end of the configuration data area. In
+between them is MenuKeySet, the command table used by MenuCommands. MenuKeyMax
+is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 1943 Options,Menu
+!NOINDEX
+!NOSEARCH
+The following options are available for Menus:
+
+!NOWRAP
+mnAlphaMatch      = $0001;
+mnSelectOnMatch   = $0002;
+mnAllowPending    = $0004;
+mnArrowSelect     = $0008;
+mnPopOnSelect     = $0010;
+mnAllHotSpots     = $0020;
+mnUseItemForTopic = $0040;
+mnSelectOnClick   = $0080;
+mnMouseSupport    = $0100;
+mnMainSelect      = $0200;
+mnMainHighlight   = $0400;
+mnAltMatch        = $0800;
+mnCurrItemActive  = $4000;
+mnSubPending      = $8000;
+!WRAP
+
+If mnAlphaMatch is set, Menu's Process method will search the current item
+list for an item whose SelectChar method matches any alphanumeric character
+entered. If mnSelectOnMatch is enabled, the matching item will be selected.
+
+When mnAllowPending is enabled, Process "remembers" that a submenu was
+pulled down when an arrow key movement causes it to temporarily select an
+item with no submenu.
+
+mnArrowSelect determines whether the arrow keys will have an effect when a
+key is pressed whose direction is perpendicular to the orientation of the
+current item list. If mnArrowSelect is not enabled, arrow keys produce
+action only when their direction is parallel to the current list
+orientation.
+
+When mnPopOnSelect is enabled, Process automatically erases the current
+submenu whenever the user makes a selection (exiting with ccSelect). This
+option will not cause Process to erase the top level menu, however.
+
+mnAllHotSpots controls the response of the Process method to mouse clicks
+over hot spots. When mnAllHotSpots is disabled, Process reacts to hot spots
+defined for the current submenu only. When it is enabled, Process reacts to
+hot spots in all active submenus. When Process does react, it exits with
+the ccMouseSel command code. Note that, by default, no submenus will have
+hot spots.
+
+If mnUseItemForTopic is set, Process passes the low word of the current
+item key as the topic number to the user help routine. Otherwise, the help
+topic is the value designated as the window's help index, which defaults to
+0.
+
+mnSelectOnClick determines whether a mouse click causes immediate selection
+of a menu item, or whether a second click over the same item will be
+required to select it.
+
+mnMouseSupport is used by MAKEMENU to flag a menu stream that has requested
+mouse support. The OpMenu unit ignores this option.
+
+mnMainSelect controls whether Menu.Draw displays the selection bar on the
+top level menu. mnMainHighlight controls whether Menu.Draw highlights the
+alpha search characters on the top level menu. Menu constructors, Process,
+SelectItem, and SelectSubMenu force both of these options on.
+EraseAllSubMenus forces them on or off depending on the parameters passed
+to it.
+
+If the top level menu of a Menu object has alphanumeric selection
+characters, the mnAltMatch option allows access to the top level menu items
+from any level of the menu system by pressing <Alt> plus the alphanumeric
+character.
+
+mnCurrItemActive and mnSubPending are intended solely for internal use.
+
+See also:  1945BadMenuOptions  1944DefMenuOptions  1963Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1944 DefMenuOptions
+!NOINDEX
+const
+  DefMenuOptions : Word = mnAlphaMatch+mnSelectOnMatch+mnArrowSelect+
+                          mnAllHotSpots;
+
+The default options for a Menu.
+
+See also:  1861InitCustom  1943Options
+;
+;------------------------------------------------------------
+!TOPIC 1945 BadMenuOptions
+!NOINDEX
+const
+  BadMenuOptions : Word = mnSubPending+mnCurrItemActive;
+
+Options used internally by Menu. The mnOptionsOn and mnOptionsOff methods
+will not change these bits of a Menu option word.
+
+See also:  1943Options  1963Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1946 MenuCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  MenuCommands : DragProcessor;
+  {$ELSE}
+  MenuCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a Menu.
+
+See also:  0218CommandProcessor  1940Commands  1913ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 1947 MenuDepth
+!NOINDEX
+const
+  MenuDepth : Word = 8;
+
+The initial size of the PointerStack objects allocated by the Menu object
+to manage nested submenus. If more levels than this are activated
+simultaneously, the PointerStacks will automatically resize
+themselves--growing by a factor of two--but will probably fragment the
+heap. Each menu object consumes 8 bytes of heap space for each increment in
+MenuDepth.
+;
+;------------------------------------------------------------
+!TOPIC 1948 mnNotAKey
+!NOINDEX
+const
+  mnNotAKey = $FFFFFFFF;
+
+This item key value, which is equivalent to -1, is reserved by OpMenu to
+mean "no particular key." If you pass this value to ItemsDoneCustom,
+OpMenu will select the first item on the submenu as the default. If you
+call MenuChoice before calling Process, it will return mnNotAKey.
+
+See also:  1875ItemsDoneCustom
+;
+;------------------------------------------------------------
+!TOPIC 1949 mnCustomProc
+!NOINDEX
+type
+  mnCustomProc = procedure (var Name : String; Key : LongInt;
+                            Selected, Highlighted : Boolean;
+                            WPtr : RawWindowPtr);
+
+Procedural type that defines the parameters of a user-supplied custom
+string procedure.
+
+See also:  1911SetCustomStringProc
+;
+;------------------------------------------------------------
+!TOPIC 1950 mnCurrentItemProc
+!NOINDEX
+type
+  mnCurrentItemProc = procedure (CurrentItem : MenuItemNodePtr;
+                                 MPtr : MenuPtr);
+
+Procedural type that defines the parameters of a user-supplied current item
+procedure.
+
+See also:  1910SetCurrentItemProc
+;
+;------------------------------------------------------------
+!TOPIC 1951 mnOrientation
+!NOINDEX
+type
+  mnOrientation = (Vertical, Horizontal, NoOrient);
+
+Possible orientations for a MenuItemList. The value NoOrient indicates an
+improperly initialized list.
+
+See also:  1872AddFramedSubMenu  1871AddSubMenu  1873AddSubMenuCustom
+;
+;------------------------------------------------------------
+!TOPIC 1952 mnItemProc
+!NOINDEX
+type
+  mnItemProc = procedure (IPtr : MenuItemNodePtr; var D; MPtr : MenuPtr);
+
+Procedural type for a routine called by VisitAllItems. The first parameter
+gives the current item. The second, untyped parameter is available to pass
+user-defined data to each routine. The third parameter is the address of
+the menu system.
+
+See also:  1907VisitAllItems
+;
+;------------------------------------------------------------
+!TOPIC 1953 mnWindowProc
+!NOINDEX
+type
+  mnWindowProc = procedure (WPtr : RawWindowPtr; var D; MPtr : MenuPtr);
+
+Procedural type for a routine called by VisitAllWindows. The first
+parameter gives the current window. The second, untyped parameter is
+available to pass user-defined data to each routine. The third parameter is
+the address of the menu system.
+
+See also:  1908VisitAllWindows
+;
+;------------------------------------------------------------
+!TOPIC 1954 mnListProc
+!NOINDEX
+type
+  mnListProc = procedure (LPtr : MenuItemListPtr; var D; MPtr : MenuPtr);
+
+Procedural type for a routine called by VisitAllItemLists. The first
+parameter gives the current item list. The second, untyped parameter is
+available to pass user-defined data to each routine. The third parameter is
+the address of the menu system.
+
+See also:  1909VisitAllItemLists
+;
+;------------------------------------------------------------
+!TOPIC 1955 Declarations,MenuItemNode
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to MenuItemNodes:
+
+  1957DefItemOptions            1958inAllocConsPtr          1956Options
+;
+;------------------------------------------------------------
+!TOPIC 1956 Options,MenuItemNode
+!NOINDEX
+!NOSEARCH
+MenuItemNode offers the following options:
+
+!NOWRAP
+inProtected    = $01;
+inSemiProtected = $02;
+!WRAP
+
+inProtected is set in the MenuItemNode option byte to indicate that the
+item is protected. inSemiProtected indicates that the item is
+semi-protected.
+
+See also:
+  1957DefItemOptions            1855IsProtected             1856IsSemiProtected
+  1842Protect                   1843SemiProtect             1844Unprotect
+;
+;------------------------------------------------------------
+!TOPIC 1957 DefItemOptions
+!NOINDEX
+const
+  DefItemOptions : Byte = 0;
+
+The default options for a MenuItemNode.
+
+See also:  1956Options
+;
+;------------------------------------------------------------
+!TOPIC 1958 inAllocConsPtr
+!NOINDEX
+const
+  inAllocConsPtr : Boolean = False;
+
+When this constant is True, MenuItemNode.Load allocates space for an
+additional string, the "constant name" of the item. This string is read and
+written by MAKEMENU, and is used to generate user-selected constant names
+in source code. MAKEMENU sets inAllocConsPtr True; you shouldn't do so.
+;
+;------------------------------------------------------------
+!TOPIC 1959 General,Menu
+!NOINDEX
+!NOSEARCH
+Menu provides the following general purpose methods:
+
+  1928ActiveWinPtr              1934Done                    1936Erase
+  1917EraseClear                1860Init                    1861InitCustom
+  1937IsCurrent                 1932Load                    1914MenuChoice
+  1938MoveWindow                1913ProcessSelf             1921Redraw
+  1933Store                     1935UpdateContents          1939UpdateScreenSize
+  1908VisitAllWindows
+;
+;------------------------------------------------------------
+!TOPIC 1960 Headers, shadows, effects
+!NOINDEX
+!NOSEARCH
+Menu provides the following methods for activating headers, separators,
+shadows, and special effects:
+
+    1888AddCustomHeader                   1886AddHeader
+    1887AddHeaderColor                    1869AddSeparator
+    1870AddSeparatorColor                 1889AddShadow
+    1890AddShadowColor                    1900AddShadows
+    1902EnableAllAlternateOpen            1901EnableAllExplosions
+    1903EnableAllNormalOpen               1891EnableExplosions
+    1892EnableNormalOpen
+;
+;------------------------------------------------------------
+!TOPIC 1961 Items and item lists
+!NOINDEX
+!NOSEARCH
+Menu provides the following methods for working with menu items and item
+lists:
+
+  1930ActiveItemPtr             1927ActiveListPtr           1865AddItem
+  1867AddItemHelp               1868AddItemHelpPtr          1866AddItemPtr
+  1912CurrentItem               1925DefaultItem             1926DefaultPath
+  1931FindItem                  1874ItemsDone               1875ItemsDoneCustom
+  1922ProtectItem               1918SelectItem              1920SelectItemByPos
+  1904SetAllSelectMarker        1910SetCurrentItemProc      1911SetCustomStringProc
+  1883SetLeftPad                1884SetSelectHighlight      1885SetSelectMarker
+  1924UnprotectItem             1909VisitAllItemLists       1907VisitAllItems
+;
+;------------------------------------------------------------
+!TOPIC 1962 Setting colors,Menu
+!NOINDEX
+!NOSEARCH
+Menu provides the following methods for setting menu colors:
+
+  1906GetHelpAttr               1897SetAllFrameAttr         1898SetAllHeaderAttr
+  1895SetAllHighAttr            1893SetAllNormAttr          1896SetAllProtectAttr
+  1894SetAllSelectAttr          1899SetAllShadowAttr        1880SetFrameAttr
+  1881SetHeaderAttr             1905SetHelpAttr             1878SetHighAttr
+  1876SetNormAttr               1879SetProtectAttr          1877SetSelectAttr
+  1882SetShadowAttr
+;
+;------------------------------------------------------------
+!TOPIC 1963 Setting options,Menu
+!NOINDEX
+!NOSEARCH
+Menu provides the following methods for setting options:
+
+  1864mnOptionsAreOn            1863mnOptionsOff            1862mnOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1964 SubMenus
+!NOINDEX
+!NOSEARCH
+Menu provides the following methods for working with submenus:
+
+  1929ActiveSubPtr              1872AddFramedSubMenu        1871AddSubMenu
+  1873AddSubMenuCustom          1916EraseAllSubMenus        1915EraseCurrentSubMenu
+  1919SelectSubMenu

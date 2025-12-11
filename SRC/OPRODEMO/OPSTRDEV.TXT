@@ -1,0 +1,50 @@
+;
+;------------------------------------------------------------
+!TOPIC 2722 OpStrDev
+OpStrDev takes advantage of one of the most powerful features of Turbo
+Pascal, the "text file device driver," to allow you to use all the
+formatting capabilities of the Write statement without sending output to a
+file or device.
+
+OpStrDev interfaces the following:
+
+  2723ReadStr                   2724ReturnStr               2725TpStr
+;
+;------------------------------------------------------------
+!TOPIC 2723 ReadStr
+!NOINDEX
+procedure 2722OpStrDev.ReadStr(var S : string);
+
+ReadStr loads the current contents of the string buffer associated with
+TpStr into a string variable and empties the buffer. In cases where the
+result is not needed immediately, it is faster and more efficient than
+ReturnStr.
+
+See also:  2724ReturnStr  2725TpStr
+;
+;------------------------------------------------------------
+!TOPIC 2724 ReturnStr
+!NOINDEX
+function 2722OpStrDev.ReturnStr : string;
+
+ReturnStr returns the current contents of the string buffer associated with
+TpStr and empties the buffer. Unlike ReadStr, it can be used to pass the
+contents of the string buffer to another procedure or function without
+using an intermediate string variable.
+
+See also:  2723ReadStr  2725TpStr
+;
+;------------------------------------------------------------
+!TOPIC 2725 TpStr
+!NOINDEX
+var
+  TpStr : Text;
+
+This is the 'device' that you write to to create formatted strings using
+OpStrDev. For example
+
+  Write(TpStr, Pi:0:2);
+
+would create a string containing '3.14'.
+
+See also:  2723ReadStr  2724ReturnStr

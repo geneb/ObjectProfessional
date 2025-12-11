@@ -1,0 +1,346 @@
+ÍÍ Browser ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>           <^W>          
+Cursor down                  <Down>         <^X>           <^Z>          
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Cursor to start of line      <Home>         <^Q><^S>                     
+Cursor to end of line        <End>          <^Q><^D>                     
+Cursor left 10 cols          <^Left>        <^A>                         
+Cursor right 10 cols         <^Right>       <^F>                         
+Scroll up one page           <PgUp>         <^R>                         
+Scroll down one page         <PgDn>         <^C>                         
+Top of file                  <^PgUp>        <^Q><^R>                     
+End of file                  <^PgDn>        <^Q><^C>                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Close window                 <^Break>       <Esc>          <ClkRight>    
+Mouse select                 <ClkLeft>                                   
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Set marker 0                 <^K><0>                                     
+Set marker 1                 <^K><1>                                     
+Set marker 2                 <^K><2>                                     
+Set marker 3                 <^K><3>                                     
+Jump to marker 0             <^Q><0>                                     
+Jump to marker 1             <^Q><1>                                     
+Jump to marker 2             <^Q><2>                                     
+Jump to marker 3             <^Q><3>                                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mark start of block          <F7>           <^K><^B>                     
+Mark end of block            <F8>           <^K><^K>                     
+Mark end of block (bottom)   <^B><^K>                                    
+Toggle block display         <^K><^H>                                    
+Write block                  <^K><^W>                                    
+Print block                  <^K><^P>                                    
+Jump to block begin          <^Q><^B>                                    
+Jump to block end            <^Q><^K>                                    
+Jump to line                 <^J><^L>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Search                       <^Q><^F>                                    
+Search again                 <^L>                                        
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Read new file                <F3>           <^K><^N>                     
+Toggle hex mode              <BkSp>                                      
+Toggle high bit stripping    <^Q><^H>                                    
+Toggle tab expansion         <^Q><^T>                                    
+
+ÍÍ Calculator ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Delete previous char         <BkSp>                                      
+Decimal point                <.>                                         
+Clear all                    <C>                                         
+Clear entry                  <E>                                         
+Save value                   <S>                                         
+Insert saved value           <I>                                         
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mouse select                 <ClkLeft>                                   
+Close window                 <^Break>       <Esc>          <ClkRight>    
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Accept number                <Enter>        <=>                          
+Multiply                     <*>                                         
+Add                          <+>                                         
+Subtract                     <->                                         
+Divide                       </>                                         
+And                          <A>                                         
+Shl                          <L>                                         
+Mod                          <M>                                         
+Not                          <N>                                         
+Or                           <O>                                         
+Shr                          <R>                                         
+Xor                          <X>                                         
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Binary mode                  <B>                                         
+Decimal mode                 <D>                                         
+Exponential mode             <P>                                         
+Floating point mode          <F>                                         
+Toggle hex mode              <H>                                         
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Hex $A                       <^A>                                        
+Hex $B                       <^B>                                        
+Hex $C                       <^C>                                        
+Hex $D                       <^D>                                        
+Hex $E                       <^E>                                        
+Hex $F                       <^F>                                        
+
+ÍÍ Calendar ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>           <^W>          
+Cursor down                  <Down>         <^X>           <^Z>          
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Beginning of month           <Home>                                      
+End of month                 <End>                                       
+Next month                   <PgDn>         <^C>                         
+Previous month               <PgUp>         <^R>                         
+Next year                    <^PgDn>        <^Q><^C>                     
+Previous year                <^PgUp>        <^Q><^R>                     
+Move cursor to today         <^Home>                                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mouse select                 <ClkLeft>                                   
+Close window                 <Esc>          <ClkRight>                   
+Request help                 <F1>           <ClkBoth>                    
+
+ÍÍ Editor ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>                         
+Cursor down                  <Down>         <^X>                         
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Cursor to start of line      <Home>         <^Q><^S>                     
+Cursor to end of line        <End>          <^Q><^D>                     
+Cursor left one word         <^Left>        <^A>                         
+Cursor right one word        <^Right>       <^F>                         
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Scroll up one page           <PgUp>         <^R>                         
+Scroll down one page         <PgDn>         <^C>                         
+Scroll window up             <^W>                                        
+Scroll window down           <^Z>                                        
+Top of file                  <^PgUp>        <^Q><^R>                     
+End of file                  <^PgDn>        <^Q><^C>                     
+Top of screen                <^Home>        <^Q><^E>                     
+Bottom of screen             <^End>         <^Q><^X>                     
+Cursor to prev position      <^Q><^P>                                    
+Jump to line                 <^J><^L>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+New line                     <Enter>                                     
+Insert line                  <^N>                                        
+Toggle insert mode           <Ins>          <^V>                         
+Insert control character     <^P>                                        
+Insert tab                   <Tab>                                       
+Restore line                 <^Q><^L>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Delete char at cursor        <Del>          <^G>                         
+Delete previous char         <BkSp>         <^BkSp>                      
+Delete word                  <^T>                                        
+Delete line                  <^Y>                                        
+Delete to end of line        <^Q><^Y>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mouse select                 <ClkLeft>                                   
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Save file                    <F2>           <^K><^S>                     
+Read new file                <F3>                                        
+Save file under new name     <^K><^N>                                    
+Save file and exit           <^K><^X>                                    
+Abandon file                 <^K><^Q>                                    
+Save and switch files        <^K><^D>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Search                       <^Q><^F>                                    
+Search and replace           <^Q><^A>                                    
+Search again                 <^L>                                        
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mark start of block          <F7>           <^K><^B>                     
+Mark end of block            <F8>           <^K><^K>                     
+Mark current word as block   <^K><^T>                                    
+Toggle block display         <^K><^H>                                    
+Jump to block begin          <^Q><^B>                                    
+Jump to block end            <^Q><^K>                                    
+Copy block                   <^K><^C>                                    
+Delete block                 <^K><^Y>                                    
+Move block                   <^K><^V>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Read block                   <^K><^R>                                    
+Write block                  <^K><^W>                                    
+Print block                  <^K><^P>                                    
+Change block to upper case   <^O><^U>                                    
+Change block to lower case   <^O><^V>                                    
+Toggle case of block         <^O><^O>                                    
+Indent marked block          <^K><^I>                                    
+Unindent marked block        <^K><^U>                                    
+Set level for block indent   <^O><^B>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Set marker 0                 <^K><0>                                     
+Set marker 1                 <^K><1>                                     
+Set marker 2                 <^K><2>                                     
+Set marker 3                 <^K><3>                                     
+Jump to marker 0             <^Q><0>                                     
+Jump to marker 1             <^Q><1>                                     
+Jump to marker 2             <^Q><2>                                     
+Jump to marker 3             <^Q><3>                                     
+Toggle marker display        <^K><^M>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Reformat paragraph           <^B>                                        
+Global reformat              <^K><^G>                                    
+Center line                  <^O><^C>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Toggle smart/fixed tabs      <^O><^F>                                    
+Set size of fixed tabs       <^O><^T>                                    
+Set right margin             <^O><^R>                                    
+Toggle indent mode           <^O><^I>                                    
+Toggle word wrap             <^O><^W>                                    
+
+ÍÍ File Manager ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>           <^W>          
+Cursor down                  <Down>         <^X>           <^Z>          
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Cursor to first file         <Home>         <^Q><^R>                     
+Cursor to last file          <End>          <^Q><^C>                     
+Scroll up one page           <PgUp>         <^R>                         
+Scroll down one page         <PgDn>         <^C>                         
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Toggle file selection        <+>                                         
+Deselect file                <Del>          <->                          
+Clear file markers           <^K><^H>                                    
+Mark start of block          <F7>           <^K><^B>                     
+Mark end of block            <F8>           <^K><^K>                     
+Mark/unmark all files        <^Enter>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Select directory             <Enter>                                     
+Mouse select                 <ClkLeft>                                   
+Close window                 <Esc>          <ClkRight>                   
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Rename file                  <^K><^N>                                    
+Delete file                  <^Y>                                        
+Delete marked files          <^K><^Y>                                    
+Copy marked files            <^K><^C>                                    
+Move marked files            <^K><^V>                                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Toggle display mode          <Space>                                     
+New file mask                <F3>                                        
+Load file into editor        <AltE>                                      
+Load file into browser       <AltB>                                      
+
+ÍÍ Menus ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>           <^W>          
+Cursor down                  <Down>         <^X>           <^Z>          
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Cursor to start of line      <Home>         <^Q><^R>                     
+Cursor to end of line        <End>          <^Q><^C>                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Select                       <Enter>                                     
+Mouse select                 <ClkLeft>                                   
+Exit menu                    <Esc>          <ClkRight>                   
+Request help                 <F1>           <ClkBoth>                    
+
+ÍÍ Quick Reference Chart ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>           <^W>          
+Cursor down                  <Down>         <^X>           <^Z>          
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Cursor to start of line      <Home>         <^Q><^S>                     
+Cursor to end of line        <End>          <^Q><^D>                     
+Cursor left 10 cols          <^Left>        <^A>                         
+Cursor right 10 cols         <^Right>       <^F>                         
+Scroll up one page           <PgUp>         <^R>                         
+Scroll down one page         <PgDn>         <^C>                         
+End of chart                 <^PgDn>        <^Q><^C>                     
+Top of chart                 <^PgUp>        <^Q><^R>                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mouse select                 <ClkLeft>                                   
+Close window                 <^Break>       <Esc>          <ClkRight>    
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Toggle attribute blinking    <^B>                                        
+
+ÍÍ Phone Book ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>           <^W>          
+Cursor down                  <Down>         <^X>           <^Z>          
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+First entry                  <Home>         <^Q><^R>                     
+Last entry                   <End>          <^Q><^C>                     
+Scroll up one page           <PgUp>         <^R>                         
+Scroll down one page         <PgDn>         <^C>                         
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Mouse select                 <ClkLeft>                                   
+Close window                 <Esc>          <ClkRight>                   
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Edit entry                   <Enter>                                     
+Insert entry                 <^N>                                        
+Delete entry                 <^Y>                                        
+New phone book               <F3>                                        
+Dial phone number            <AltD>                                      
+Hang up modem                <AltH>                                      
+
+ÍÍ Phone Editor ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Cursor up                    <Up>           <^E>                         
+Cursor down                  <Down>         <^X>                         
+Cursor left                  <Left>         <^S>                         
+Cursor right                 <Right>        <^D>                         
+Cursor to start of line      <Home>         <^Q><^S>                     
+Cursor to end of line        <End>          <^Q><^D>                     
+Cursor left one word         <^Left>        <^A>                         
+Cursor right one word        <^Right>       <^F>                         
+Scroll up one page           <PgUp>                                      
+Scroll down one page         <PgDn>                                      
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Accept field                 <Enter>        <ClkCenter>                  
+Next field                   <Tab>                                       
+Previous field               <ShTab>                                     
+Cursor to first field        <^PgUp>        <^Q><^R>                     
+Cursor to last field         <^PgDn>        <^Q><^C>                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Done editing                 <^Enter>       <^K><^D>       <^K><^Q>      
+Mouse select                 <ClkLeft>                                   
+Cancel edits                 <^Break>       <Esc>          <ClkRight>    
+Request help                 <F1>           <ClkBoth>                    
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Toggle insert mode           <Ins>          <^V>                         
+Insert control character     <^P>                                        
+Restore default              <^R>           <^Q><^L>                     
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Delete char at cursor        <Del>          <^G>                         
+Delete previous char         <BkSp>         <^BkSp>                      
+Delete word                  <^T>                                        
+Delete line                  <^Y>                                        
+Delete to end of line        <^End>         <^Q><^Y>                     
+Delete from start of line    <^Home>                                     
+
+ÍÍ Hotkeys ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+Close window                 <Esc>          <ClkRight>                   
+Exit TSR                     <AltX>                                      
+Unload TSR                   <AltU><AltU>                                
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Invoke local menu            <F9>                                        
+Invoke main menu             <F10>                                       
+Show available memory        <AltS>                                      
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Move window                  <AltM>                                      
+Resize window                <AltR>                                      
+Zoom window                  <AltZ>         <F5>                         
+Next window                  <F6>                                        
+Previous window              <^F6>                                       
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Select window 1              <Alt1>                                      
+Select window 2              <Alt2>                                      
+Select window 3              <Alt3>                                      
+Select window 4              <Alt4>                                      
+Select window 5              <Alt5>                                      
+Select window 6              <Alt6>                                      
+Select window 7              <Alt7>                                      
+Select window 8              <Alt8>                                      
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Insert number in editor      <AltI>                                      
+Toggle hex mode              <AltH>                                      
+

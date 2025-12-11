@@ -1,0 +1,1097 @@
+;
+;------------------------------------------------------------
+!TOPIC 941 OpEdit
+OpEdit contains one object, 0942LineEditor, for reading/editing single
+variables.
+;
+;------------------------------------------------------------
+!TOPIC 942 LineEditor
+!NOINDEX
+!NOWRAP
+0941OpEdit.LineEditor = object(2306Root)
+  ...
+  leInsertMode  : Boolean;    {True if insert mode; False for overtype}
+  leColors      : ColorSet;   {colors}
+  ...
+end;
+LineEditorPtr = ^LineEditor;
+!WRAP
+
+Like the EntryScreen, the LineEditor object supplied in OpEdit works with
+the various field objects derived from EntryField. The similarities end
+there, however. A LineEditor is not descended from a CommandWindow, nor
+does it work with multiple data entry fields. Its purpose is simply to
+provide a high-level interface to the low-level field objects in OpField,
+allowing them to be used to edit individual variables, as opposed to groups
+of variables.
+
+Two of LineEditor's fields are shown above: leInsertMode indicates whether
+or not the LineEditor is currently in insert mode. leColors is a copy of
+the ColorSet passed to the Init constructor.
+
+  1008Simple editing            1009Normal editing          1010Number editing
+  1011General methods           1021Commands                1012Declarations
+;
+;------------------------------------------------------------
+!TOPIC 943 Init,LineEditor
+!NOINDEX
+constructor 0942LineEditor.Init(var Colors : ColorSet);
+
+Sets default values for attributes, etc.
+
+See also:  0291ColorSet
+;
+;------------------------------------------------------------
+!TOPIC 944 GetLastCommand,LineEditor
+!NOINDEX
+function 0942LineEditor.GetLastCommand : Word;
+
+Return last command entered by user.
+
+See also:  0945GetLastKey
+;
+;------------------------------------------------------------
+!TOPIC 945 GetLastKey,LineEditor
+!NOINDEX
+function 0942LineEditor.GetLastKey : Word;
+
+Return last keystroke entered by user.
+
+See also:  0944GetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 946 GetLastError,LineEditor
+!NOINDEX
+function 0942LineEditor.GetLastError : Word;
+
+Get last error code.
+
+See also:  0944GetLastCommand  0957SetErrorProc
+;
+;------------------------------------------------------------
+!TOPIC 947 leEditOptionsOn
+!NOINDEX
+procedure 0942LineEditor.leEditOptionsOn(OptionFlags : LongInt);
+
+Activate multiple options.
+
+See also:  0948leEditOptionsAreOn  0949leEditOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 948 leEditOptionsAreOn
+!NOINDEX
+function 0942LineEditor.leEditOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return true if all specified options are on.
+
+See also:  0949leEditOptionsOff  0947leEditOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 949 leEditOptionsOff
+!NOINDEX
+procedure 0942LineEditor.leEditOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple options.
+
+See also:  0948leEditOptionsAreOn  0947leEditOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 950 leSecEditOptionsOn
+!NOINDEX
+procedure 0942LineEditor.leSecEditOptionsOn(OptionFlags : LongInt);
+
+Activate multiple options.
+
+See also:  0951leSecEditOptionsAreOn  0952leSecEditOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 951 leSecEditOptionsAreOn
+!NOINDEX
+function 0942LineEditor.leSecEditOptionsAreOn(OptionFlags : LongInt) :
+                                                          Boolean;
+
+Return true if all specified options are on.
+
+See also:  0952leSecEditOptionsOff  0950leSecEditOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 952 leSecEditOptionsOff
+!NOINDEX
+procedure 0942LineEditor.leSecEditOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple options.
+
+See also:  0951leSecEditOptionsAreOn  0950leSecEditOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 953 SetPadChar,LineEditor
+!NOINDEX
+procedure 0942LineEditor.SetPadChar(Ch : Char);
+
+Set character used to pad strings being edited.
+;
+;------------------------------------------------------------
+!TOPIC 954 SetPasswordChar,LineEditor
+!NOINDEX
+procedure 0942LineEditor.SetPasswordChar(Ch : Char);
+
+Set character used to represent text in password mode.
+;
+;------------------------------------------------------------
+!TOPIC 955 SetHelpIndex,LineEditor
+!NOINDEX
+procedure 0942LineEditor.SetHelpIndex(Index : Word);
+
+Set the help index.
+;
+;------------------------------------------------------------
+!TOPIC 956 SetCommandProcessor,LineEditor
+!NOINDEX
+procedure 0942LineEditor.SetCommandProcessor(var CP : CommandProcessor);
+
+Set command processor to use.
+
+See also:  0219CommandProcessor.Init
+;
+;------------------------------------------------------------
+!TOPIC 957 SetErrorProc,LineEditor
+!NOINDEX
+procedure 0942LineEditor.SetErrorProc(EEP : ErrorProc);
+
+Set procedure to call on error.
+
+See also:  0946GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 958 SetClearFirstFilter,LineEditor
+!NOINDEX
+procedure 0942LineEditor.SetClearFirstFilter(CFF : ClearFirstFunc);
+
+Set function to call for ClearFirstChar test.
+;
+;------------------------------------------------------------
+!TOPIC 959 Load,LineEditor
+!NOINDEX
+constructor 0942LineEditor.Load(var S : IdStream);
+
+Load a line editor from a stream.
+
+See also:  0960Store
+;
+;------------------------------------------------------------
+!TOPIC 960 Store,LineEditor
+!NOINDEX
+procedure 0942LineEditor.Store(var S : IdStream);
+
+Store a line editor in a stream.
+
+See also:  0959Load
+;
+;------------------------------------------------------------
+!TOPIC 961 ReadString,LineEditor
+!NOINDEX
+procedure 0942LineEditor.ReadString(Prompt : string;
+                                Row, Col, MaxLen, Width : Byte;
+                                var St : string);
+
+Edit a string.
+;
+;------------------------------------------------------------
+!TOPIC 962 ReadSpecial
+!NOINDEX
+procedure 0942LineEditor.ReadSpecial(Prompt : string;
+                                 Row, Col, MaxLen, Width : Byte;
+                                 PictureChar : Char;
+                                 var St : string);
+
+Edit a string using a simple picture mask.
+;
+;------------------------------------------------------------
+!TOPIC 963 ReadChar
+!NOINDEX
+procedure 0942LineEditor.ReadChar(Prompt : string;
+                              Row, Col : Byte;
+                              ValidChars : CharSet; var Ch : Char);
+
+Display a prompt and wait for a key in ValidChars.
+;
+;------------------------------------------------------------
+!TOPIC 964 YesOrNo
+!NOINDEX
+function 0942LineEditor.YesOrNo(Prompt : string;
+                            Row, Col : Byte; Default : Char) : Boolean;
+
+Return true for yes, false for no.
+;
+;------------------------------------------------------------
+!TOPIC 965 ReadLongInt
+!NOINDEX
+procedure 0942LineEditor.ReadLongInt(Prompt : string;
+                                 Row, Col, Width : Byte;
+                                 LLo, LHi : LongInt;
+                                 var L : LongInt);
+
+Edit a long integer.
+;
+;------------------------------------------------------------
+!TOPIC 966 ReadInteger
+!NOINDEX
+procedure 0942LineEditor.ReadInteger(Prompt : string;
+                                 Row, Col, Width : Byte;
+                                 NLo, NHi : Integer;
+                                 var N : Integer);
+
+Edit an integer.
+;
+;------------------------------------------------------------
+!TOPIC 967 ReadWord
+!NOINDEX
+procedure 0942LineEditor.ReadWord(Prompt : string;
+                              Row, Col, Width : Byte;
+                              WLo, WHi : Word; var W : Word);
+
+Edit a word.
+;
+;------------------------------------------------------------
+!TOPIC 968 ReadByte
+!NOINDEX
+procedure 0942LineEditor.ReadByte(Prompt : string;
+                              Row, Col, Width : Byte;
+                              BLo, BHi : Byte; var B : Byte);
+
+Edit a byte.
+;
+;------------------------------------------------------------
+!TOPIC 969 ReadShortInt
+!NOINDEX
+procedure 0942LineEditor.ReadShortInt(Prompt : string;
+                                  Row, Col, Width : Byte;
+                                  SLo, SHi : ShortInt;
+                                  var SI : Shortint);
+
+Edit a ShortInt.
+;
+;------------------------------------------------------------
+!TOPIC 970 ReadReal
+!NOINDEX
+procedure 0942LineEditor.ReadReal(Prompt : string;
+                              Row, Col, Width, Places : Byte;
+                              RLo, RHi : Real; var R : Real);
+
+Edit a real.
+;
+;------------------------------------------------------------
+!TOPIC 971 ReadBcd
+!NOINDEX
+procedure 0942LineEditor.ReadBcd(Prompt : string;
+                             Row, Col, Width, Places : Byte;
+                             BLo, BHi : Bcd; var B : BCD);
+
+Edit a BCD real.
+;
+;------------------------------------------------------------
+!TOPIC 972 ReadExt
+!NOINDEX
+procedure 0942LineEditor.ReadExt(Prompt : string;
+                             Row, Col, Width, Places : Byte;
+                             ELo, EHi : Extended; var E : Extended);
+
+Edit an extended.
+;
+;------------------------------------------------------------
+!TOPIC 973 ReadDbl
+!NOINDEX
+procedure 0942LineEditor.ReadDbl(Prompt : string;
+                             Row, Col, Width, Places : Byte;
+                             DLo, DHi : Double; var D : Double);
+
+Edit a double.
+;
+;------------------------------------------------------------
+!TOPIC 974 ReadSgl
+!NOINDEX
+procedure 0942LineEditor.ReadSgl(Prompt : string;
+                             Row, Col, Width, Places : Byte;
+                             SLo, SHi : Single; var S : Single);
+
+Edit a single.
+;
+;------------------------------------------------------------
+!TOPIC 975 ReadComp
+!NOINDEX
+procedure 0942LineEditor.ReadComp(Prompt : string;
+                              Row, Col, Width : Byte;
+                              CLo, CHi : Comp; var C : Comp);
+
+Edit a comp.
+;
+;------------------------------------------------------------
+!TOPIC 976 EditString
+!NOINDEX
+procedure 0942LineEditor.EditString(Prompt : string;
+                                Row, Col : Byte; Picture : string;
+                                Width : Byte; var St : string);
+
+Edit a string.
+;
+;------------------------------------------------------------
+!TOPIC 977 EditArray
+!NOINDEX
+procedure 0942LineEditor.EditArray(Prompt : string;
+                               Row, Col : Byte; Picture : string;
+                               Width : Byte; var A);
+
+Edit an array of char.
+;
+;------------------------------------------------------------
+!TOPIC 978 EditChar
+!NOINDEX
+procedure 0942LineEditor.EditChar(Prompt : string;
+                              Row, Col : Byte; Picture : string;
+                              ChLo, ChHi : Char; var Ch : Char);
+
+Edit a character.
+;
+;------------------------------------------------------------
+!TOPIC 979 EditBoolean
+!NOINDEX
+procedure 0942LineEditor.EditBoolean(Prompt : string;
+                                 Row, Col : Byte;
+                                 Picture : string; var B : Boolean);
+
+Edit a boolean variable.
+;
+;------------------------------------------------------------
+!TOPIC 980 EditYesNo
+!NOINDEX
+procedure 0942LineEditor.EditYesNo(Prompt : string;
+                               Row, Col : Byte; Picture : string;
+                               var YN : Boolean);
+
+Edit a yes-no variable.
+;
+;------------------------------------------------------------
+!TOPIC 981 EditLongInt
+!NOINDEX
+procedure 0942LineEditor.EditLongInt(Prompt : string;
+                                 Row, Col : Byte;
+                                 Picture : string;
+                                 LLo, LHi : LongInt;
+                                 var L : LongInt);
+
+Edit a long integer.
+;
+;------------------------------------------------------------
+!TOPIC 982 EditInteger
+!NOINDEX
+procedure 0942LineEditor.EditInteger(Prompt : string;
+                                 Row, Col : Byte;
+                                 Picture : string;
+                                 NLo, NHi : Integer;
+                                 var N : Integer);
+
+Edit an integer.
+;
+;------------------------------------------------------------
+!TOPIC 983 EditWord
+!NOINDEX
+procedure 0942LineEditor.EditWord(Prompt : string;
+                              Row, Col : Byte; Picture : string;
+                              WLo, WHi : Word; var W : Word);
+
+Edit a word.
+;
+;------------------------------------------------------------
+!TOPIC 984 EditByte
+!NOINDEX
+procedure 0942LineEditor.EditByte(Prompt : string;
+                              Row, Col : Byte; Picture : string;
+                              BLo, BHi : Byte; var B : Byte);
+
+Edit a byte.
+;
+;------------------------------------------------------------
+!TOPIC 985 EditShortInt
+!NOINDEX
+procedure 0942LineEditor.EditShortInt(Prompt : string;
+                                  Row, Col : Byte;
+                                  Picture : string;
+                                  SLo, SHi : ShortInt;
+                                  var SI : Shortint);
+
+Edit a ShortInt.
+;
+;------------------------------------------------------------
+!TOPIC 986 EditReal
+!NOINDEX
+procedure 0942LineEditor.EditReal(Prompt : string;
+                              Row, Col : Byte; Picture : string;
+                              Places : Byte; RLo, RHi : Real;
+                              var R : Real);
+
+Edit a real.
+;
+;------------------------------------------------------------
+!TOPIC 987 EditBcd
+!NOINDEX
+procedure 0942LineEditor.EditBcd(Prompt : string;
+                             Row, Col : Byte; Picture : string;
+                             Places : Byte; BLo, BHi : Bcd;
+                             var B : BCD);
+
+Edit a BCD real.
+;
+;------------------------------------------------------------
+!TOPIC 988 EditExt
+!NOINDEX
+procedure 0942LineEditor.EditExt(Prompt : string;
+                             Row, Col : Byte; Picture : string;
+                             Places : Byte; ELo, EHi : Extended;
+                             var E : Extended);
+
+Edit an extended.
+;
+;------------------------------------------------------------
+!TOPIC 989 EditDbl
+!NOINDEX
+procedure 0942LineEditor.EditDbl(Prompt : string;
+                             Row, Col : Byte; Picture : string;
+                             Places : Byte; DLo, DHi : Double;
+                             var D : Double);
+
+Edit a double.
+;
+;------------------------------------------------------------
+!TOPIC 990 EditSgl
+!NOINDEX
+procedure 0942LineEditor.EditSgl(Prompt : string;
+                             Row, Col : Byte; Picture : string;
+                             Places : Byte; SLo, SHi : Single;
+                             var S : Single);
+
+Edit a single.
+;
+;------------------------------------------------------------
+!TOPIC 991 EditComp
+!NOINDEX
+procedure 0942LineEditor.EditComp(Prompt : string;
+                              Row, Col : Byte; Picture : string;
+                              CLo, CHi : Comp; var C : Comp);
+
+Edit a comp.
+;
+;------------------------------------------------------------
+!TOPIC 992 EditDate
+!NOINDEX
+procedure 0942LineEditor.EditDate(Prompt : string;
+                              Row, Col : Byte; Picture : string;
+                              DLo, DHi : Date; var D : Date);
+
+Edit a date variable.
+;
+;------------------------------------------------------------
+!TOPIC 993 EditDateSt
+!NOINDEX
+procedure 0942LineEditor.EditDateSt(Prompt : string;
+                                Row, Col : Byte;
+                                Picture : DateString;
+                                var DS : DateString);
+
+Edit a date string.
+;
+;------------------------------------------------------------
+!TOPIC 994 EditTime
+!NOINDEX
+procedure 0942LineEditor.EditTime(Prompt : string;
+                              Row, Col : Byte;
+                              Picture : DateString;
+                              TLo, THi : Time; var T : Time);
+
+Edit a time variable.
+;
+;------------------------------------------------------------
+!TOPIC 995 EditNumericLongInt
+!NOINDEX
+procedure 0942LineEditor.EditNumericLongInt(Prompt : string;
+                                        Row, Col : Byte;
+                                        Picture : string;
+                                        LLo, LHi : LongInt;
+                                        var L : LongInt);
+
+Edit a long integer (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 996 EditNumericInteger
+!NOINDEX
+procedure 0942LineEditor.EditNumericInteger(Prompt : string;
+                                        Row, Col : Byte;
+                                        Picture : string;
+                                        NLo, NHi : Integer;
+                                        var N : Integer);
+
+Edit an integer (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 997 EditNumericWord
+!NOINDEX
+procedure 0942LineEditor.EditNumericWord(Prompt : string;
+                                     Row, Col : Byte;
+                                     Picture : string;
+                                     WLo, WHi : Word; var W : Word);
+
+Edit a word (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 998 EditNumericByte
+!NOINDEX
+procedure 0942LineEditor.EditNumericByte(Prompt : string;
+                                     Row, Col : Byte;
+                                     Picture : string;
+                                     BLo, BHi : Byte; var B : Byte);
+
+Edit a byte (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 999 EditNumericShortInt
+!NOINDEX
+procedure 0942LineEditor.EditNumericShortInt(Prompt : string;
+                                         Row, Col : Byte;
+                                         Picture : string;
+                                         SLo, SHi : ShortInt;
+                                         var SI : Shortint);
+
+Edit a ShortInt (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1000 EditNumericReal
+!NOINDEX
+procedure 0942LineEditor.EditNumericReal(Prompt : string;
+                                     Row, Col : Byte;
+                                     Picture : string;
+                                     Places : Byte;
+                                     RLo, RHi : Real; var R : Real);
+
+Edit a real (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1001 EditNumericBcd
+!NOINDEX
+procedure 0942LineEditor.EditNumericBcd(Prompt : string;
+                                    Row, Col : Byte;
+                                    Picture : string;
+                                    Places : Byte; BLo, BHi : Bcd;
+                                    var B : BCD);
+
+Edit a BCD real (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1002 EditNumericExt
+!NOINDEX
+procedure 0942LineEditor.EditNumericExt(Prompt : string;
+                                    Row, Col : Byte;
+                                    Picture : string;
+                                    Places : Byte;
+                                    ELo, EHi : Extended;
+                                    var E : Extended);
+
+Edit an extended (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1003 EditNumericDbl
+!NOINDEX
+procedure 0942LineEditor.EditNumericDbl(Prompt : string;
+                                    Row, Col : Byte;
+                                    Picture : string;
+                                    Places : Byte;
+                                    DLo, DHi : Double;
+                                    var D : Double);
+
+Edit a double (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1004 EditNumericSgl
+!NOINDEX
+procedure 0942LineEditor.EditNumericSgl(Prompt : string;
+                                    Row, Col : Byte;
+                                    Picture : string;
+                                    Places : Byte;
+                                    SLo, SHi : Single;
+                                    var S : Single);
+
+Edit a single (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1005 EditNumericComp
+!NOINDEX
+procedure 0942LineEditor.EditNumericComp(Prompt : string;
+                                     Row, Col : Byte;
+                                     Picture : string;
+                                     CLo, CHi : Comp; var C : Comp);
+
+Edit a comp (numeric).
+;
+;------------------------------------------------------------
+!TOPIC 1006 EditChoice
+!NOINDEX
+procedure 0942LineEditor.EditChoice(Prompt : string;
+                                Row, Col : Byte; Picture : string;
+                                DataSize : Byte;
+                                Increment : IncChoiceProc; var MC);
+
+Edit a multiple choice variable.
+;
+;------------------------------------------------------------
+!TOPIC 1007 EditMultiLine
+!NOINDEX
+procedure 0942LineEditor.EditMultiLine(Prompt : string;
+                                   Row, Col : Byte;
+                                   Width, Height : Byte;
+                                   var StArray);
+
+Edit a multiline field.
+;
+;------------------------------------------------------------
+!TOPIC 1008 Simple editing
+!NOINDEX
+!NOSEARCH
+Simple editing refers to methods that invoke either the
+SimpleStringEditor or the SimpleCharEditor. That is, field editors that do
+not use a true picture mask (character input behavior is determined by
+option bits rather than picture masks). The following methods fall into
+this category:
+
+    0971ReadBcd                           0968ReadByte
+    0963ReadChar                          0975ReadComp
+    0973ReadDbl                           0972ReadExt
+    0966ReadInteger                       0965ReadLongInt
+    0970ReadReal                          0974ReadSgl
+    0969ReadShortInt                      0962ReadSpecial
+    0961ReadString                        0967ReadWord
+    0964YesOrNo
+;
+;------------------------------------------------------------
+!TOPIC 1009 Normal editing
+!NOINDEX
+!NOSEARCH
+Normal editing refers to methods that invoke either the StringEditor or
+the CharEditor. That is, field editors that can use true picture masks (see
+OpField for a discussion of picture masks). The following methods fall
+into this category:
+
+    0977EditArray                         0987EditBcd
+    0979EditBoolean                       0984EditByte
+    0978EditChar                          0991EditComp
+    0992EditDate                          0993EditDateSt
+    0989EditDbl                           0988EditExt
+    0982EditInteger                       0981EditLongInt
+    0986EditReal                          0990EditSgl
+    0985EditShortInt                      0976EditString
+    0994EditTime                          0983EditWord
+    0980EditYesNo
+;
+;------------------------------------------------------------
+!TOPIC 1010 Number editing
+!NOINDEX
+!NOSEARCH
+Number editing refers to methods that use the NumberEditor. The
+NumberEditor provides calculator style input/editing of numeric fields (see
+OpFedit for a discussion of field editors). The following methods fall
+into this category:
+
+    1007EditMultiLine                     1001EditNumericBcd
+    0998EditNumericByte                   1005EditNumericComp
+    1003EditNumericDbl                    1002EditNumericExt
+    0996EditNumericInteger                0995EditNumericLongInt
+    1000EditNumericReal                   1004EditNumericSgl
+    0999EditNumericShortInt               0997EditNumericWord
+;
+;------------------------------------------------------------
+!TOPIC 1011 General methods,LineEditor
+!NOINDEX
+!NOSEARCH
+The General methods category includes all LineEditor methods that don't
+fall into simple, normal, or number editing categories. This includes some
+special editors (like choice fields) as well as non-editing related
+methods.
+
+    1006EditChoice                        0944GetLastCommand
+    0946GetLastError                      0945GetLastKey
+    0943Init                              0948leEditOptionsAreOn
+    0949leEditOptionsOff                  0947leEditOptionsOn
+    0951leSecEditOptionsAreOn             0952leSecEditOptionsOff
+    0950leSecEditOptionsOn                0959Load
+    0958SetClearFirstFilter               0956SetCommandProcessor
+    0957SetErrorProc                      0955SetHelpIndex
+    0953SetPadChar                        0954SetPasswordChar
+    0960Store
+;
+;------------------------------------------------------------
+!TOPIC 1012 Declarations,OpEdit
+!NOINDEX
+!NOSEARCH
+OpEdit provides the following types, constants, and variables for line
+editing:
+
+    1015BadEditOptions                    1016BadSecEditOptions
+    1019Configuration data                1017DefEditOptions
+    1018DefSecEditOptions                 1020EditCommands
+    1013Primary options                   1014Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1013 Primary options,LineEditor
+!NOINDEX
+!NOSEARCH
+Most of the primary edit options recognized by the LineEditor correspond
+directly to the primary field options documented previously in the
+OpField section. 'lePasswordMode', for example, means the same thing as
+'efPasswordMode'. There are, however, several field options that are
+inappropriate for a LineEditor, and there are also a couple (of secondary
+options) that have meaning only for a LineEditor. These are the issues
+addressed below.
+
+!NOWRAP
+leProtected        = $00000001;
+leHidden           = $00000002;
+leMapCtrls         = $00000004;
+leMultChoice       = $00000008;
+leInvisible        = $00000010;
+!WRAP
+
+With the exception of leMapCtrls, these field options are inappropriate for
+line editing. leMapCtrls is equivalent to the efMapCtrls option in
+OpField.
+
+!NOWRAP
+leAutoAdvCharBegin = $00000020;
+leAutoAdvCharEnd   = $00000040;
+leAutoAdvCurBegin  = $00000080;
+leAutoAdvCurEnd    = $00000100;
+leAutoAdvanceChar  = leAutoAdvCharBegin+leAutoAdvCharEnd;
+leAutoAdvanceCursor= leAutoAdvCurBegin+leAutoAdvCurEnd;
+leAutoAdvanceBegin = leAutoAdvCharBegin+leAutoAdvCurBegin;
+leAutoAdvanceEnd   = leAutoAdvCharEnd+leAutoAdvCurEnd;
+leAutoAdvance      = leAutoAdvanceBegin+leAutoAdvanceEnd;
+leInsertPushes     = $00000200;
+leRightJustify     = $00000400;
+lePasswordMode     = $00000800;
+leCursorToEnd      = $00001000;
+leTrimBlanks       = $00002000;
+leClearFirstChar   = $00004000;
+leForceOvertype    = $00008000;
+leForceMode        = $00010000;
+leClickExit        = $00020000;
+leBeepOnError      = $00040000;
+leAutoNumLock      = $00080000;
+leParensForMinus   = $00100000;
+!WRAP
+
+These options all have the same meaning as their counterparts in OpField
+(which have a prefix of 'ef' rather than 'le').
+
+!NOWRAP
+leReadOnly         = $00800000;
+leHouseCursorAtEnd = $01000000;
+leForceUpper       = $02000000;
+leForceLower       = $04000000;
+!WRAP
+
+If leReadOnly is set, the user may move the cursor around in the edit field,
+but may not modify its contents. The other options apply only to the ReadXxx
+and YesOrNo methods. See the earlier section on read methods that use
+SimpleStringEditor.
+
+!NOWRAP
+leAllowEscape      = $08000000;
+leShowReadChar     = $10000000;
+leHideCursor       = $20000000;
+leDefaultAccepted  = $40000000;
+leMapExtended      = $80000000;
+!WRAP
+
+These options apply only to the ReadChar and YesOrNo methods.
+
+See also:  0947LineEditor.leEditOptionsOn  1014Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1014 Secondary options,LineEditor
+!NOINDEX
+!NOSEARCH
+The secondary edit options shown below correspond to the secondary field
+options documented in the OpField section ('sef' prefix). Unlike most of
+the primary options, however, most of the secondary options have particular
+significance for a LineEditor.
+
+!NOWRAP
+sleSmartExponents  = $02000000;
+sleSwitchCommands  = $04000000;
+slePadCurrentOnly  = $08000000;
+sleSuppressZero    = $10000000;
+!WRAP
+
+sleSmartExponents selects alternate behavior for fields using the 'E'
+picture mask character: rather than always using scientific notation,
+decimal notation will be used if possible. See the entry in the manual for
+the SetPadChar method for a discussion of slePadCurrentOnly. The
+sleSwitchCommands and sleSuppressZero options, which have the same meanings
+as their counterparts in OpField, are inappropriate for line editing.
+
+!NOWRAP
+sleNoFieldMovement = $20000000;
+sleWindowRelative  = $40000000;
+sleInsertByDefault = $80000000;
+!WRAP
+
+See also:  0950LineEditor.leSecEditOptionsOn  1013Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1015 BadEditOptions
+!NOINDEX
+const
+  BadEditOptions     : LongInt = leProtected+leHidden+leMultChoice+
+                                 leInvisible+leClickExit+leExitAtEdges+
+                                 leRequired;
+
+Primary options that exist for internal use, or are inappropriate while
+using a LineEditor, and may not be altered by calling leEditOptionsOn or
+leEditOptionsOff.
+
+See also:  1016BadSecEditOptions  1013Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1016 BadSecEditOptions
+!NOINDEX
+const
+  BadSecEditOptions  : LongInt = ifBoolean+ifNumeric+ifSimple+ifNested+
+                                 ifMultiLine+ifModified+ifNotNext+
+                                 ifNotPrev+ifNoMouseExit+ifSuppressFirst+
+                                 ifNoLiterals+ifEditing+ifSemiHidden+
+                                 ifRealVar;
+
+Secondary options that exist for internal use, or are inappropriate while
+using a LineEditor, and may not be altered by calling leSecEditOptionsOn or
+leSecEditOptionsOff.
+
+See also:  1015BadEditOptions  1014Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1017 DefEditOptions
+!NOINDEX
+const
+  DefEditOptions     : LongInt = leCursorToEnd+leTrimBlanks+
+                                 leClearFirstChar+leMapCtrls+
+                                 leHouseCursorAtEnd;
+
+The default primary options for a LineEditor.
+
+See also:  1018DefSecEditOptions  1013Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1018 DefSecEditOptions
+!NOINDEX
+const
+  DefSecEditOptions  : LongInt = sleNoFieldMovement+sleInsertByDefault+
+                                 ifNoMouseExit;
+
+The default secondary options for a LineEditor.
+
+See also:  1017DefEditOptions  1014Secondary options
+;
+;---------------------------------------------------------
+!TOPIC 1019 Configuration data,OpEdit
+!NOINDEX
+!NOSEARCH
+const
+  EditKeyMax = 180;
+  EditKeyID  : string[15] = 'OpEdit keys 1.0';
+  EditKeySet : array[0..EditKeyMax] of Byte = (...);
+  EditCfgEnd : Byte = 0;
+
+EditKeyId is an ID string used to mark the the beginning of the
+configuration data area for OpEdit; EditCfgEnd marks the end of the
+configuration data area. In between them is EditKeySet, the command table
+used by EditCommands. EditKeyMax is the last valid index into the table.
+
+See also:  1021Commands  1020EditCommands
+;
+;------------------------------------------------------------
+!TOPIC 1020 EditCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  EditCommands : DragProcessor;
+  {$ELSE}
+  EditCommands : CommandProcessor;
+  {$ENDIF}
+
+The default command processor for a LineEditor.
+
+See also:  1021Commands  1019Configuration data
+;
+;------------------------------------------------------------
+!TOPIC 1021 Commands,LineEditor
+!NOINDEX
+!NOSEARCH
+The editing commands supported by the LineEditor are arranged by category
+in the list below. In each case the first line gives the name of the
+command, followed by the key(s) to which it is normally assigned. The
+second and following lines give a brief description of the command. Because
+most of the commands behave differently depending on the field editor in
+use, the descriptions are generally preceded by one or more abbreviations,
+indicating the field editor being described. These are the abbreviations
+used, followed by the complete name of the field editor, and the
+corresponding LineEditor methods:
+
+!NOWRAP
+SS  SimpleStringEditor  ReadXxx
+SC  SimpleCharEditor    ReadChar, YesOrNo
+SE  StringEditor        EditXxx
+CE  CharEditor          EditChar, EditBoolean, EditYesNo
+NE  NumberEditor        EditNumericXxx
+MC  ChoiceField.Edit    EditChoice
+ML  MultiLine.Edit      EditMultiLine
+!WRAP
+
+The behavior of most of the cursor movement commands further depends on the
+state of the sleNoFieldMovement, which is on by default. If the option is
+in effect, no field movement command (ccLeft, ccRight, ccWordLeft,
+ccWordRight, ccUp, ccDown) can produce an exit. If the option is turned
+off, these commands will be treated just as they would if the field was
+part of an EntryScreen.
+
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+!LINE
+SS, SE, ML: Cursor left one character.
+
+ccRight       <Right>, <CtrlD>
+!LINE
+SS, SE, ML: Cursor right one character.
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+!LINE
+SS, SE, ML: Cursor left one word.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+!LINE
+SS, SE, ML: Cursor right one word.
+
+ccHome        <Home>, <CtrlQ><S>
+!LINE
+SS, SE: Cursor to beginning of field.
+!LINE
+ML: Cursor to beginning of line.
+
+ccEnd         <End>, <CtrlQ><D>
+!LINE
+SS, SE: Cursor to end of field.
+!LINE
+ML: Cursor to end of line.
+
+ccUp          <Up>, <CtrlE>
+!LINE
+ML: If cursor is not on top line of edit field, moves cursor up one line.
+
+ccDown        <Down>, <CtrlX>
+!LINE
+ML: If cursor not on bottom line of edit field, moves cursor down one line.
+
+Insertion and Deletion
+
+ccDel         <Del>, <CtrlG>
+!LINE
+SS, SE, NE, ML: Delete character at cursor.
+
+ccBack        <Bksp>, <CtrlH>, <CtrlBksp>
+!LINE
+SS, SE, ML: Delete character to left of cursor.
+!LINE
+NE: Delete character at cursor.
+
+ccDelLine     <CtrlY>
+!LINE
+SS, SE, NE: Clear entire field.
+!LINE
+ML: Delete current line.
+
+ccDelEol      <CtrlEnd>, <CtrlQ><Y>
+SS, SE: Delete from cursor to end of subfield.
+!LINE
+ML: Delete from cursor to end of line.
+
+ccDelBol      <CtrlHome>
+!LINE
+SS, SE: Delete from beginning of subfield to cursor.
+!LINE
+ML: Delete from beginning of line to cursor.
+
+ccDelWord     <CtrlT>
+!LINE
+SS, SE: Delete word to right of cursor.
+!LINE
+ML: Delete word to right of cursor. If cursor is beyond end of line, and
+following line will fit at end of current line, the following line is joined
+with the current line.
+
+ccCtrlChar    <CtrlP>
+!LINE
+SS, SE, ML: Insert control character. For example, to insert a ^G, you
+would enter <CtrlP><CtrlG>. This command is not available if the video
+attribute for control characters is the same as that for ordinary text and
+the leMapCtrls option is on.
+
+ccIns         <Ins>, <CtrlV>
+!LINE
+SS, SE, ML: Toggle insert mode on and off. A fat cursor indicates insert
+mode; a thin cursor indicates overtype mode.
+
+Other
+
+ccSelect      <Enter>, <CtrlM>, <ClickCenter>
+!LINE
+SS, SC, SE, CE, NE, MC: Accept contents of field.
+!LINE
+ML: If in overtype mode, moves cursor to beginning of next line. If in
+insert mode, inserts new line at position of cursor and moves cursor to
+beginning of new line (if possible).
+
+ccDone        <^Enter>, <CtrlJ>
+!LINE
+Accept contents of field.
+
+ccMouseSel    <ClickLeft>
+!LINE
+SS, SC, SE, CE, NE, MC: Accept contents of field.
+!LINE
+ML: If mouse within field, moves cursor to position of mouse.
+
+ccRestore     <CtrlR>, <CtrlQ><L>
+!LINE
+SS, SC, SE, CE, NE, MC: Restore original contents of the field.
+!LINE
+ML: Restore original contents of current line.
+
+ccIncChoice   <+>, <Space>
+!LINE
+MC: Increment a multiple choice field. This command is meaningful only if
+EditChoice was called. In all other cases, <+> and <Space> will be treated
+as ordinary characters.
+
+ccDecChoice   <->
+!LINE
+MC: Decrement a multiple choice field. This command is meaningful only if
+EditChoice was called. In all other cases, <-> will be treated as an
+ordinary character.
+
+ccHelp        <F1>, <ClickBoth>
+!LINE
+Help. If a user-written help routine has been established by calling
+EditCommands.SetHelpProc, pressing <F1> will call that routine; otherwise
+this command does nothing. If there is a GetHelpProc, the line editor will
+pass it the following three parameters: ucEdit, nil, and the value
+designated as the line editor's help index (see LineEditor.SetHelpIndex),
+which defaults to 0.
+
+ccQuit        <Esc>, <CtrlBreak>, <ClickRight>
+!LINE
+Quit editing.

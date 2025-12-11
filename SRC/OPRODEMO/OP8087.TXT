@@ -1,0 +1,113 @@
+;
+;------------------------------------------------------------
+!TOPIC 6 Op8087
+Op8087 is intended primarily for TSR's that use 8087 reals (Single,
+Double, Extended, Comp) for floating point calculations. It also includes
+routines to control the error handling behavior of the 8087 or numeric
+emulator.
+
+  0011Error8087                 0010Exceptions8087          0009Installed8087
+  0012Reinit8087                0013ReinitEmulator          0008Restore8087
+  0007Save8087                  0015SaveBuffer8087          0014UseEmulator
+;
+;------------------------------------------------------------
+!TOPIC 7 Save8087
+!NOINDEX
+procedure 0006Op8087.Save8087(var SaveBuf : SaveBuffer8087);
+
+Saves the 80x87 registers in the save buffer.
+
+See also:  0008Restore8087
+;
+;------------------------------------------------------------
+!TOPIC 8 Restore8087
+!NOINDEX
+procedure 0006Op8087.Restore8087(var SaveBuf : SaveBuffer8087);
+
+Restores the 80x87 registers from the save buffer.
+
+See also:  0007Save8087
+;
+;------------------------------------------------------------
+!TOPIC 9 Installed8087
+!NOINDEX
+function 0006Op8087.Installed8087 : Boolean;
+
+Returns true if an 80x87 coprocessor is installed. Note that if Op8087
+has been compiled with {$N+}, this function simply refers to the variable
+Test8087 in the SYSTEM unit, which is initialized by the runtime library
+system to indicate whether a math coprocessor is installed and active. Note
+too that if Op8087 was compiled with {$N-}, calling Installed8087 has the
+side effect of enabling numeric exceptions.
+
+See also:  0010Exceptions8087
+;
+;------------------------------------------------------------
+!TOPIC 10 Exceptions8087
+!NOINDEX
+procedure 0006Op8087.Exceptions8087(On : Boolean);
+
+Turn coprocessor exception interrupts on or off. When interrupts are off,
+011Error8087 is used to check the status of the coprocessor.
+;
+;------------------------------------------------------------
+!TOPIC 11 Error8087
+!NOINDEX
+function 0006Op8087.Error8087 : Word;
+
+Return (and clear) the error status of the 80x87. Zero indicates no error.
+Otherwise the bits of the result can be interpreted as follows:
+
+  Bit  Val  Meaning
+  5    32   Precision lost (result is not exact--had to be rounded)
+  4    16   Underflow error
+  3     8   Overflow error
+  2     4   Divide by zero error
+  1     2   Denormalized operand (result is so small the significand
+              has leading zeros)
+  0     1   Invalid operation (e.g., SQRT or LN of negative number)
+
+See also:  0010Exceptions8087
+;
+;------------------------------------------------------------
+!TOPIC 12 Reinit8087
+!NOINDEX
+procedure 0006Op8087.Reinit8087;
+
+Reinitialize the 8087 chip.
+
+See also:  0010Exceptions8087
+;
+;------------------------------------------------------------
+!TOPIC 13 ReinitEmulator
+!NOINDEX
+procedure 0006Op8087.ReinitEmulator;
+
+Reinitialize the 8087 chip when the numeric emulator is in use. Restores all
+default modes, including exception generation for errors.
+
+See also:  0010Exceptions8087
+;
+;------------------------------------------------------------
+!TOPIC 14 UseEmulator
+!NOINDEX
+function 0006Op8087.UseEmulator : Boolean;
+
+Return True if 013ReinitEmulator should be used rather than 012Reinit8087.
+;
+;---------------------------------------------------------------------------
+!TOPIC 15 SaveBuffer8087
+!NOINDEX
+type
+  006Op8087.SaveBuffer8087 =
+    record
+      Control  : Word;                    {control word}
+      Status   : Word;                    {status word}
+      Tag      : Word;                    {tags for stack}
+      InstPtr  : LongInt;                 {instruction pointer}
+      OpPtr    : LongInt;                 {data pointer}
+      Regs8087 : array[0..7] of Extended; {stack}
+    end;
+
+Used to store data needed to save and later restore the state of the math
+coprocessor with 007Save8087 and 008Restore8087.

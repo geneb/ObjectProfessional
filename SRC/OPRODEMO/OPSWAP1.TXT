@@ -1,0 +1,637 @@
+;
+;------------------------------------------------------------
+!TOPIC 2817 OpSwap1
+2815OpSwap and OpSwap1 implement a powerful swapping system for TSR
+programs. This allows the TSR to load itself into a little less than 6K of
+RAM, and swap itself in and out as needed. The swapping can be done to disk
+or EMS memory.
+
+Whereas OpSwap is to be used only in the main program, OpSwap1 is to be used
+only in the one unit that precedes OpSwap in the main program's USES list,
+like so:
+
+!NOWRAP
+{$S-,I-,R-}
+unit HWmain;
+
+interface
+
+uses
+  OpInline, OpSwap1;
+
+  procedure HelloWorldMain;
+
+implementation
+
+const
+  HotKey = $080F;       {code for Alt-Tab}
+  Swap1 = 'HELLO1.SWP';
+  Swap2 = 'HELLO2.SWP';
+
+  {$F+}
+  procedure PopupEntryPoint;
+  begin
+    WriteLn('Hello world!');
+  end;
+  {$F-}
+
+  procedure HelloWorldMain;
+  begin
+    SetSwapMsgOn( not WillSwapUseEms(ParagraphsToKeep) );
+    if DefinePop(HotKey, PopupEntryPoint, Ptr(SSeg,SPtr)) then begin
+      WriteLn('Pop up loaded, press <Alt><Tab> to activate.');
+      PopupsOn;
+      StayResSwap(ParagraphsToKeep, 0, Swap1, Swap2, True);
+    end;
+    WriteLn('Unable to go resident');
+  end;
+
+end.
+!WRAP
+
+The routines in OpSwap1 generally fall into one of the following categories:
+
+  2852Declarations              2864Disabling TSRs          2865Going resident
+  2866Interrupts and ISRs       2867Miscellaneous           2868Modules
+  2869Popups                    2870Swap messages
+;
+;------------------------------------------------------------
+!TOPIC 2818 AllocateStack,OpSwap1
+!NOINDEX
+function 2817OpSwap1.AllocateStack(var P : Pointer;
+                               SizeInBytes : Word) : Boolean;
+
+Allocates a stack of size SizeInBytes and returns a pointer to the end of the
+stack in P.
+
+See also:  1674OpInt.AllocateStack
+;
+;------------------------------------------------------------
+!TOPIC 2819 DeallocateStack,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.DeallocateStack(P : Pointer);
+
+Frees a stack allocated by a call to AllocateStack.
+
+See also:  1675OpInt.DeallocateStack
+;
+;------------------------------------------------------------
+!TOPIC 2820 PopupsOn,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.PopupsOn;
+
+Turns popups on. Should be called just prior to going resident.
+
+See also:  2821PopupsOff
+;
+;------------------------------------------------------------
+!TOPIC 2821 PopupsOff,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.PopupsOff;
+
+Turns popups off.
+
+See also:  2820PopupsOn
+;
+;------------------------------------------------------------
+!TOPIC 2822 ChangeHotKey,OpSwap1
+!NOINDEX
+function 2817OpSwap1.ChangeHotKey(OldHotKey, NewHotKey : Word) : Boolean;
+
+Change a popup's hotkey from OldHotKey to NewHotKey. The scan code portion
+of the new hotkey must not conflict with the hotkey for any other popup.
+
+See also:  2823AddHotKey  2881OpTsr.ChangeHotKey  2914OpTsr.Hotkeys
+;
+;------------------------------------------------------------
+!TOPIC 2823 AddHotKey,OpSwap1
+!NOINDEX
+function 2817OpSwap1.AddHotKey(PrimaryHotKey,
+                           SecondaryHotKey : Word) : Boolean;
+
+Add a second hot key for the popup with the specified primary hot key.
+
+See also:  2882OpTsr.AddHotKey  2822ChangeHotKey  2914OpTsr.Hotkeys
+;
+;------------------------------------------------------------
+!TOPIC 2824 DefinePop,OpSwap1
+!NOINDEX
+function 2817OpSwap1.DefinePop(HotKey : Word; Routine : PopupProc;
+                           StackPtr : Pointer) : Boolean;
+
+Defines a popup routine associated with a particular hotkey. Routine is a
+pointer to the popup. StackPtr points to the end of the stack to be used by
+the popup. Returns False if no more Popup handles are available.
+
+See also:  2879OpTsr.DefinePop  2914OpTsr.Hotkeys  2863PopupProc
+;
+;------------------------------------------------------------
+!TOPIC 2825 RestoreAllVectors,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.RestoreAllVectors;
+
+Restores all captured interrupt vectors.
+
+See also:  1673OpInt.RestoreAllVectors
+;
+;------------------------------------------------------------
+!TOPIC 2826 WillSwapUseEms
+!NOINDEX
+function 2817OpSwap1.WillSwapUseEms(ParasToKeep : Word) : Boolean;
+
+Returns True if OpSwap will use EMS memory for swapping. The ParasToKeep
+parameter must exactly match the ParasToKeep parameter to be passed to
+StayResSwap.
+
+See also:  2830StayResSwap  2827WillSwapUseXms
+;
+;------------------------------------------------------------
+!TOPIC 2827 WillSwapUseXms
+!NOINDEX
+{$IFDEF SupportXms}
+function 2817OpSwap1.WillSwapUseXms(ParasToKeep : Word) : Boolean;
+{$ENDIF}
+
+Returns True if there is sufficient XMS memory available for swapping. It
+can thus be used--in conjunction with SwapUseXms, EmsOverXms, and
+WillSwapUseEms--to determine whether OpSwap will use EMS, XMS, or disk
+for swapping. The ParasToKeep parameter must exactly match the ParasToKeep
+parameter to be passed to StayResSwap.
+
+See also:  2830StayResSwap  2826WillSwapUseEms
+;
+;------------------------------------------------------------
+!TOPIC 2828 ParagraphsToKeep,OpSwap1
+!NOINDEX
+function 2817OpSwap1.ParagraphsToKeep : Word;
+
+Returns the number of paragraphs currently being used for code, data, stack,
+and heap. Its main use is to help you calculate the value to be passed as
+the ParasToKeep parameter to StayResSwap.
+
+See also:  2829MaxParagraphsToKeep  2830StayResSwap
+;
+;------------------------------------------------------------
+!TOPIC 2829 MaxParagraphsToKeep,OpSwap1
+!NOINDEX
+function 2817OpSwap1.MaxParagraphsToKeep : Word;
+
+Maximum number of paragraphs to keep when going resident. This function is
+used internally to determine the maximum legal value of the ParasToKeep
+parameter passed to StayResSwap.
+
+See also:  2828ParagraphsToKeep  2830StayResSwap
+;
+;------------------------------------------------------------
+!TOPIC 2830 StayResSwap
+!NOINDEX
+procedure 2817OpSwap1.StayResSwap(ParasToKeep : Word; ExitCode : Byte;
+                              SwapFileName1, SwapFileName2 : string;
+                              UseSwapping : Boolean);
+
+Terminate and stay resident with optional TSR swapping. If UseSwapping is
+False, then the TSR does not use swapping and behaves like a normal TSR
+written with OpTsr (meaning that all but ParasToKeep memory is released).
+SwapFileName1 and SwapFileName2 must refer to complete DOS file specifications
+including the drive, pathname, and filename. Returns only if unable to go
+resident.
+
+See also:  2829MaxParagraphsToKeep  2828ParagraphsToKeep  2857SwapUseEMS
+;
+;------------------------------------------------------------
+!TOPIC 2831 DisableTSR,OpSwap1
+!NOINDEX
+function 2817OpSwap1.DisableTSR : Boolean;
+
+Disable TSR by restoring interrupt vectors and releasing memory. This does
+not halt the program. Returns False if it's not safe to disable.
+
+See also:  2832SafeToDisable
+;
+;------------------------------------------------------------
+!TOPIC 2832 SafeToDisable,OpSwap1
+!NOINDEX
+function 2817OpSwap1.SafeToDisable : Boolean;
+
+Allows you to determine whether or not it is safe to disable a TSR, without
+actually committing to doing so by calling DisableTSR.
+
+See also:  2831DisableTSR
+;
+;------------------------------------------------------------
+!TOPIC 2833 DisablePopup
+!NOINDEX
+procedure 2817OpSwap1.DisablePopup;
+
+An external interface procedure that attempts to disable the popup and
+reports the results in the UserData field of the IfcRecord.
+
+See also:  2831DisableTSR  2834InstallModule  2840ModulePtrByName
+;
+;------------------------------------------------------------
+!TOPIC 2834 InstallModule,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.InstallModule(var ModName : string;
+                                CmdEntryPtr : PopupProc);
+
+Installs a program as a resident module that can be located and accessed by
+other programs. ModuleName is a string that uniquely identifies a TSR
+module. CmdEntryPtr must point to the program's external interface.
+
+See also:  2841ModuleInstalled  2863PopupProc  2835UninstallModule
+;
+;------------------------------------------------------------
+!TOPIC 2835 UninstallModule,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.UninstallModule;
+
+Uninstalls the module from the linked list of modules.
+
+See also:  2831DisableTSR  2834InstallModule
+;
+;------------------------------------------------------------
+!TOPIC 2836 SetSwapMsgAttr
+!NOINDEX
+procedure 2817OpSwap1.SetSwapMsgAttr(Attr : Byte);
+
+Sets the video attribute used by the swap manager for displaying the swap
+message.
+
+See also:  2837SetSwapMsgOn  2838SetSwapMsgRow
+;
+;------------------------------------------------------------
+!TOPIC 2837 SetSwapMsgOn,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.SetSwapMsgOn(On : Boolean);
+
+Turns Swap message on or off.
+
+See also:  2836SetSwapMsgAttr  2838SetSwapMsgRow
+;
+;------------------------------------------------------------
+!TOPIC 2838 SetSwapMsgRow
+!NOINDEX
+procedure 2817OpSwap1.SetSwapMsgRow(Row : Byte);
+
+Sets the row where swapping messages are to appear.
+
+See also:  2836SetSwapMsgAttr  2837SetSwapMsgOn
+;
+;------------------------------------------------------------
+!TOPIC 2839 SetUserExitProc
+!NOINDEX
+procedure 2817OpSwap1.SetUserExitProc(UserExitProc : PopupProc);
+
+Sets a pointer to a far procedure that is to be called before disabling the
+TSR.
+
+See also:  2833DisablePopup  2831DisableTSR  2863PopupProc
+;
+;------------------------------------------------------------
+!TOPIC 2840 ModulePtrByName,OpSwap1
+!NOINDEX
+function 2817OpSwap1.ModulePtrByName(var ModuleName : string) : IfcPtr;
+
+Returns a pointer to the IfcRecord for the module named ModuleName, or Nil
+if the module was not found.
+
+See also:  2861IfcRecord  2841ModuleInstalled
+;
+;------------------------------------------------------------
+!TOPIC 2841 ModuleInstalled,OpSwap1
+!NOINDEX
+function 2817OpSwap1.ModuleInstalled(var ModuleName : string) : Boolean;
+
+This function allows you to determine whether a particular module is
+installed. You can use it to prevent loading your own TSR's twice, as well
+as to check for the presence of another program.
+
+See also:  2840ModulePtrByName
+;
+;------------------------------------------------------------
+!TOPIC 2842 EmulateInt,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.EmulateInt(var Regs : IntRegisters; IntAddr : Pointer);
+
+Emulates an interrupt by filling the CPU registers with the values in Regs,
+clearing interrupts, pushing the flags, and calling FAR to IntAddr.
+
+See also:  1670OpInt.EmulateInt  2862IntRegisters
+;
+;------------------------------------------------------------
+!TOPIC 2843 DosBusyFlag,OpSwap1
+!NOINDEX
+function 2817OpSwap1.DosBusyFlag : Byte;
+
+This routine, which is intended to be called from within a popup, indicates
+whether or not DOS was active at the time the popup was activated. If the
+value is 0, DOS was not active; otherwise, it was.
+
+See also:  2892OpTsr.DosBusyFlag  2851WasCommandActive
+;
+;------------------------------------------------------------
+!TOPIC 2844 SetQuickFixMode
+!NOINDEX
+procedure 2817OpSwap1.SetQuickFixMode(On : Boolean);
+
+Enable or disable special fix for MS Quick (Basic, C) IDE problem.
+;
+;------------------------------------------------------------
+!TOPIC 2845 InterruptsOn,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.InterruptsOn;
+
+Simple inline macro to turn interrupts on.
+
+See also:  2846InterruptsOff  1663OpInt.InterruptsOn
+;
+;------------------------------------------------------------
+!TOPIC 2846 InterruptsOff,OpSwap1
+!NOINDEX
+procedure 2817OpSwap1.InterruptsOff;
+
+Simple inline macro to turn interrupts off.
+
+See also:  1664OpInt.InterruptsOff  2845InterruptsOn
+;
+;------------------------------------------------------------
+!TOPIC 2847 SwapSize
+!NOINDEX
+function 2817OpSwap1.SwapSize(ParasToKeep : Word) : LongInt;
+
+Return the size in bytes of the area of memory to be swapped.
+
+See also:  2865Going resident
+;
+;------------------------------------------------------------
+!TOPIC 2848 SetSingleSwapFile
+!NOINDEX
+procedure 2817OpSwap1.SetSingleSwapFile(On : Boolean);
+
+If On is true, then OPSWAP uses a single swap file when swapping to disk.
+This cuts swapping disk space requirements in half. When using a single
+swap file, a small buffer is used in the resident kernel as an I/O buffer.
+This may reduce swap performance significantly compared to the default two
+swap file technique.
+
+This routine also has meaning when applied to XMS swapping. If the swap
+will be done to XMS, and SetSingleSwapFile has been called, then the XMS
+swap will be performed in a manner similar to that described above for
+single disk file swapping. This cuts the amount of XMS memory needed in
+half.
+;
+;------------------------------------------------------------
+!TOPIC 2849 SetSwapFileAttr
+!NOINDEX
+procedure 2817OpSwap1.SetSwapFileAttr(Hidden : Boolean);
+
+If Hidden is True, then swap files will be created with attribute 6
+(hidden+system); if False, they will be created with attribute 0 (normal).
+;
+;------------------------------------------------------------
+!TOPIC 2850 SetSaveComPorts
+!NOINDEX
+procedure 2817OpSwap1.SetSaveComPorts(Enable : Boolean);
+
+Enables/disables saving of UART interrupt states while popped.
+;
+;------------------------------------------------------------
+!TOPIC 2851 WasCommandActive
+!NOINDEX
+function 2817OpSwap1.WasCommandActive : Boolean;
+
+Returns True if COMMAND.COM was active at time of last popup. This function
+is normally useful only in TSR's that exec other programs while resident.
+See POPDOS.LZH on the BONUS disk for an example.
+
+See also: 2843DosBusyFlag
+;
+;------------------------------------------------------------
+!TOPIC 2852 Declarations,OpSwap1
+!NOINDEX
+!NOSEARCH
+OpSwap1 declares the following types and constants:
+
+  2860CSSwapDataType            2854EmsAllocated            2859EmsOverXms
+  2861IfcRecord                 2862IntRegisters            2853MaxPopups
+  2863PopupProc                 2855ReleaseEms              2856SideKickLoaded
+  2857SwapUseEMS                2858SwapUseXms
+;
+;------------------------------------------------------------
+!TOPIC 2853 MaxPopups,OpSwap1
+!NOINDEX
+const
+  MaxPopups = 8;
+
+Maximum number of popups that may be defined.
+;
+;------------------------------------------------------------
+!TOPIC 2854 EmsAllocated,OpSwap1
+!NOINDEX
+const
+  EmsAllocated : Boolean = False;
+  FileAllocated : Boolean = False;
+
+These variables indicate whether EMS or disk space is being used for
+swapping.
+;
+;------------------------------------------------------------
+!TOPIC 2855 ReleaseEms,OpSwap1
+!NOINDEX
+const
+  ReleaseEms : Boolean = False;
+
+If True, then a call to DisableTSR will release the EMS handle used by the
+Turbo Pascal overlay manager. OpSwap1 has no way of knowing whether the
+overlay manager is present and using EMS, so it is your responsibility to
+set this to True if the overlay manager is using EMS.
+
+See also:  2831DisableTSR
+;
+;------------------------------------------------------------
+!TOPIC 2856 SideKickLoaded,OpSwap1
+!NOINDEX
+const
+  SideKickLoaded : Boolean = False;
+
+Set to True if SideKick is detected as being loaded by OpSwap1's
+initialization code.
+;
+;------------------------------------------------------------
+!TOPIC 2857 SwapUseEMS
+!NOINDEX
+const
+  SwapUseEMS : Boolean = True;
+
+If set to False, then OpSwap1 will not use EMS memory for the swapping
+even if sufficient EMS is present.
+
+See also:  2830StayResSwap  2858SwapUseXms
+;
+;------------------------------------------------------------
+!TOPIC 2858 SwapUseXms
+!NOINDEX
+const
+  {$IFDEF SupportXms}
+  SwapUseXms : Boolean = False;
+  {$ENDIF}
+
+If False, then OpSwap1 will not use XMS memory for the swapping even if
+sufficient XMS is present.
+
+See also:  2859EmsOverXms
+;
+;------------------------------------------------------------
+!TOPIC 2859 EmsOverXms
+!NOINDEX
+const
+  {$IFDEF SupportXms}
+  EmsOverXms : Boolean = True;
+  {$ENDIF}
+
+If True, EMS will be checked for sufficient space before XMS; if False, XMS
+will be checked first.
+
+See also:  2858SwapUseXms
+;
+;------------------------------------------------------------
+!TOPIC 2860 CSSwapDataType
+!NOINDEX
+type
+  Str20 = String[20];
+  CSSwapDataPtr = ^CSSwapDataType;
+  CSSwapDataType =
+    record
+      ...
+      SwapMsgOn : Boolean;
+      SwapMsgAttr, SwapMsgRow : Byte;
+      ThisIFC : IFCRecord;
+      ModuleName : Str20;
+      IFCInstalled : Boolean;
+      ...
+      SwapEnabled : Boolean;
+      ...
+    end;
+
+This is the record definition that defines the data stored in the code
+segment of OpSwap. This record is primarily for internal use. Some of the
+fields are useful, such as the SwapMsgOn field, and you may need to access the
+ThisIfc field to set or get data contained or referenced by the UserData field
+of the IfcRecord. SwapEnabled is set to True after going resident if the TSR
+is using swapping.
+
+See also:  2861IfcRecord
+;
+;------------------------------------------------------------
+!TOPIC 2861 IfcRecord,OpSwap1
+!NOINDEX
+type
+  IfcPtr = ^IfcRecord;
+  IfcRecord =
+    record
+      NamePtr : ^string;
+      Version : Word;
+      CmdEntryPtr : PopupProc;
+      PrevIfc, NextIfc : IfcPtr;
+      CSDataPtr : CSSwapDataPtr;
+      UserData : Pointer;
+    end;
+
+A module interface record. Except for the last two fields, it is identical
+to the record structure of the same name declared in OpTsr. CSDataPtr is a
+pointer to the code segment relative data within the module. UserData is a
+pointer field designed to pass data to and from the CmdEntryPtr (external
+interface procedure).
+
+See also:  2860CSSwapDataType  2863PopupProc
+;
+;------------------------------------------------------------
+!TOPIC 2862 IntRegisters,OpSwap1
+!NOINDEX
+type
+  IntRegisters =
+    record
+      case Byte of
+        1 : (BP, ES, DS, DI, SI, DX, CX, BX, AX, IP, CS, Flags : Word);
+        2 : (Dummy : Dummy5; DL, DH, CL, CH, BL, BH, AL, AH : Byte);
+    end;
+
+A record whose structure mirrors the contents of the stack frame in an
+interrupt procedure.
+
+See also:  2842EmulateInt
+;
+;------------------------------------------------------------
+!TOPIC 2863 PopupProc,OpSwap1
+!NOINDEX
+type
+  PopupProc = procedure;
+
+The procedure type used for Popup procedures and external interface
+procedures.
+
+See also:  2824DefinePop
+;
+;------------------------------------------------------------
+!TOPIC 2864 Disabling TSRs,OpSwap1
+!NOINDEX
+!NOSEARCH
+OpSwap1 provides the following routines for disabling a TSR:
+
+  2833DisablePopup              2831DisableTSR              2832SafeToDisable
+  2839SetUserExitProc
+;
+;------------------------------------------------------------
+!TOPIC 2865 Going resident,OpSwap1
+!NOINDEX
+!NOSEARCH
+OpSwap1 provides the following routines for going resident:
+
+  2829MaxParagraphsToKeep       2828ParagraphsToKeep        2830StayResSwap
+  2847SwapSize                  2826WillSwapUseEms          2827WillSwapUseXms
+;
+;------------------------------------------------------------
+!TOPIC 2866 Interrupts and ISRs
+!NOINDEX
+!NOSEARCH
+OpSwap1 provides the following routines for working with interrupt vectors
+and interrupt service routines:
+
+  2818AllocateStack             2819DeallocateStack         2842EmulateInt
+  2846InterruptsOff             2845InterruptsOn            2825RestoreAllVectors
+;
+;------------------------------------------------------------
+!TOPIC 2867 Miscellaneous,OpSwap1
+!NOINDEX
+!NOSEARCH
+OpSwap1 also provides the following miscellaneous routines:
+
+  2823AddHotKey                 2822ChangeHotKey            2843DosBusyFlag
+  2844SetQuickFixMode           2850SetSaveComPorts         2848SetSingleSwapFile
+  2849SetSwapFileAttr           2851WasCommandActive
+;
+;------------------------------------------------------------
+!TOPIC 2868 Modules,OpSwap1
+!NOINDEX
+!NOSEARCH
+OpSwap1 provides the following routines for working with modules:
+
+  2834InstallModule             2841ModuleInstalled         2840ModulePtrByName
+  2835UninstallModule
+;
+;------------------------------------------------------------
+!TOPIC 2869 Popups,OpSwap1
+!NOINDEX
+!NOSEARCH
+OpSwap1 provides the following routines for working with popups:
+
+  2824DefinePop                 2821PopupsOff               2820PopupsOn
+;
+;------------------------------------------------------------
+!TOPIC 2870 Swap messages
+!NOINDEX
+!NOSEARCH
+OpSwap1 provides the following routines for controlling swap messages:
+
+  2836SetSwapMsgAttr            2837SetSwapMsgOn            2838SetSwapMsgRow
+

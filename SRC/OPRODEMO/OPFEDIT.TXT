@@ -1,0 +1,79 @@
+;
+;------------------------------------------------------------
+!TOPIC 1289 OpFEdit
+OpFEdit serves as a supplement to 1291OpField, and contains five field
+editors that together are too large to fit in OpField. The following is a
+brief summary of the five field editors, with emphasis on the differences
+among them.
+
+StringEditor
+!LINE
+Used for editing almost all of the field types supported by OpField in
+cases where the field has a true picture mask (i.e., a "regular" field).
+Although it works with a wide variety of data types, it is oriented toward
+the editing of strings rather than numbers. Its most noteworthy feature is
+its ability to scroll a field horizontally to permit the editing of strings
+that are longer than the field itself.
+
+SimpleStringEditor
+!LINE
+Used for editing all "simple" fields except those handled by
+SimpleCharEditor. Although similar to StringEditor, it cannot handle fields
+with true picture masks. It assumes that all characters in the picture mask
+are the same as the first, and it uses this character only to determine
+which characters are acceptable and to adjust their case. Like
+StringEditor, it can scroll a field horizontally if necessary.
+
+NumberEditor
+!LINE
+Special-purpose editor used exclusively for entering and editing numbers
+(integer, real, BCD). Works much like a calculator: the cursor is always
+positioned at the far right edge of the field, and digits are always
+inserted at the end, pushing previously entered digits to the left. Cursor
+movement commands are always treated as exit commands: ccLeft, for example,
+is interpreted to mean "move the cursor to the field to the left."
+NumberEditor correctly displays discretionary commas and floating dollar
+signs as text is being entered. A field that uses this editor is referred
+to as a "numeric" field.
+
+CalcEditor
+!LINE
+A calculator-style editor similar to NumberEditor that works more like a
+calculator. The main differences between the two editors are 1) the new one
+requires the user to enter decimal points manually, and 2) the new one
+can display more than the specified number of decimal places while the
+field is being edited. For example, suppose that the picture mask
+specified for the field is '999,999.99'. The user could enter
+'1234.5678', which would be displayed as '1,234.5678'. When the cursor
+left the field, the display would be updated to conform to the picture
+mask, i.e.: ' 1,234.57'. If UseCalcEdit is defined in OPDEFINE.INC, this
+editor is automatically used in place of NumberEditor for numeric fields.
+
+CharEditor
+!LINE
+Used for editing "regular" fields of type Char, Boolean, and YesNo.
+Although it does work with picture masks, it assumes that there is only one
+formatting character in the mask, and it always positions the cursor on the
+first one that it finds in the field. Treats cursor movement commands as
+exit commands.
+
+SimpleCharEditor
+!LINE
+Used for editing "simple" fields of type Char, Boolean, and YesNo. The
+principal difference between it and the CharEditor is that it assumes that
+the field is one character wide.
+
+See also:  1290ClearFirstFunc
+;
+;------------------------------------------------------------
+!TOPIC 1290 ClearFirstFunc,OpFEdit
+!NOINDEX
+type
+  ClearFirstFunc = function(var Cmd, Key : Word) : Boolean;
+
+A function called by a field editor when the ClearFirstChar option is in
+effect to determine whether or not a given command (Cmd) should cause the
+field to be cleared. The function should return True if the field should be
+cleared. The default function returns True only if Cmd = ccChar.
+
+See also:  1181EntryScreen.SetClearFirstFilter  0958LineEditor.SetClearFirstFilter

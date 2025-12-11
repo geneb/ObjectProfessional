@@ -1,0 +1,286 @@
+;
+;------------------------------------------------------------
+!TOPIC 2268 OpQkRef
+OpQkRef implements the 2269QkRefChart object, which is used in DESKPOP
+to display a programmer's quick reference chart.
+
+See also:  2287Commands
+;
+;------------------------------------------------------------
+!TOPIC 2269 QkRefChart
+!NOINDEX
+2268OpQkRef.QkRefChart = object(3045CommandWindow)
+!LINE
+QkRefChartPtr = ^QkRefChart;
+
+A programmer's quick reference chart. QkRefChart provides the following
+methods:
+
+  2287Commands                  2286Declarations            2270Init
+  2271InitCustom                2278Load                    2272ProcessSelf
+  2275qrOptionsAreOn            2274qrOptionsOff            2273qrOptionsOn
+  2276SetDimAttr                2277SetHighlightAttr        2279Store
+;
+;------------------------------------------------------------
+!TOPIC 2270 Init,QkRefChart
+!NOINDEX
+constructor 2269QkRefChart.Init(X1, Y1 , X2, Y2 : Byte);
+
+Initialize a quick reference chart using default connectors, colors, and
+window options.
+
+See also:  2280DefLeftTee  2271InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2271 InitCustom,QkRefChart
+!NOINDEX
+constructor 2269QkRefChart.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                  LeftTee, CrossBar, RightTee : Char;
+                                  var Colors : ColorSet;
+                                  Options : LongInt);
+
+Initialize the quick reference chart with custom connectors, colors, and
+window options.
+
+X1, Y1, X2, and Y2 represent the dimensions of the inner window (not
+including any border or shadows). LeftTee, CrossBar, and RightTee are the
+characters to be used to draw the line that divides the column headers at
+the top of the window from the remainder of the chart. Colors contains the
+colors to be used to draw the window, and Options are the window options.
+
+See also:
+    2282DefQkRefOptions                   3047CommandWindow.InitCustom
+    2276SetDimAttr                        2277SetHighlightAttr
+;
+;------------------------------------------------------------
+!TOPIC 2272 ProcessSelf,QkRefChart
+!NOINDEX
+procedure 2269QkRefChart.ProcessSelf; virtual;
+
+Browse through the quick reference chart.
+
+See also:  2287Commands  3048CommandWindow.Process  2283QkRefCommands
+;
+;------------------------------------------------------------
+!TOPIC 2273 qrOptionsOn
+!NOINDEX
+procedure 2269QkRefChart.qrOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  2281Options  2275qrOptionsAreOn  2274qrOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 2274 qrOptionsOff
+!NOINDEX
+procedure 2269QkRefChart.qrOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  2281Options  2275qrOptionsAreOn  2273qrOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2275 qrOptionsAreOn
+!NOINDEX
+function 2269QkRefChart.qrOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  2281Options  2274qrOptionsOff  2273qrOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2276 SetDimAttr
+!NOINDEX
+procedure 2269QkRefChart.SetDimAttr(Color, Mono : Byte);
+
+Set attributes for dim characters. The default attributes are taken from the
+TextColor and TextMono fields in the Colors parameter passed to InitCustom.
+
+See also:  2271InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2277 SetHighlightAttr,QkRefChart
+!NOINDEX
+procedure 2269QkRefChart.SetHighlightAttr(Color, Mono : Byte);
+
+Set attributes for highlighted characters. The default attributes are taken
+from the HighlightColor and HighlightMono fields in the Colors parameter
+passed to InitCustom.
+
+See also:  2271InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2278 Load,QkRefChart
+!NOINDEX
+constructor 2269QkRefChart.Load(var S : IdStream);
+
+Load a quick reference chart from a stream. The stream registration routine
+for a QkRefChart is QkRefChartStream.
+
+See also:  2279Store
+;
+;------------------------------------------------------------
+!TOPIC 2279 Store,QkRefChart
+!NOINDEX
+procedure 2269QkRefChart.Store(var S : IdStream);
+
+Store a quick reference chart in a stream. The stream registration routine
+for a QkRefChart is QkRefChartStream.
+
+See also:  2278Load
+;
+;------------------------------------------------------------
+!TOPIC 2280 DefLeftTee
+!NOINDEX
+const
+  DefLeftTee  : Char = 'Ã';  {left T}
+  DefCrossBar : Char = 'Ä';  {horizontal bar}
+  DefRightTee : Char = '´';  {right T}
+
+The default "connectors" passed by Init to InitCustom as its LeftTee,
+CrossBar, and RightTee parameters.
+
+See also:  2270Init  2271InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 2281 Options,QkRefChart
+!NOINDEX
+!NOSEARCH
+The following options may be set for a quick reference chart:
+
+!NOWRAP
+qrMousePage      = $0001;
+qrSuppressBlink  = $0002;
+!WRAP
+
+qrMousePage indicates that clicking on the up or down arrows of a scroll bar
+scrolls the chart by a full page, rather than a single line. qrSuppressBlink
+indicates that attribute blinking should be suppressed when displaying color
+samples.
+
+See also:  2275qrOptionsAreOn  2274qrOptionsOff  2273qrOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2282 DefQkRefOptions
+!NOINDEX
+const
+  DefQkRefOptions : Word = qrMousePage+qrSuppressBlink;
+
+Default options for a quick reference chart.
+
+See also:  2281Options
+;
+;------------------------------------------------------------
+!TOPIC 2283 QkRefCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  QkRefCommands : DragProcessor;
+  {$ELSE}
+  QkRefCommands : CommandProcessor;
+  {$ENDIF}
+
+CommandProcessor used for a quick reference chart.
+
+See also:  2285Configuration data
+;
+;------------------------------------------------------------
+!TOPIC 2284 ccBlinkToggle
+!NOINDEX
+const
+  ccBlinkToggle = 176;
+
+Command used to toggle attribute blinking on and off.
+
+See also:  2287Commands
+;
+;------------------------------------------------------------
+!TOPIC 2285 Configuration data,OpQkRef
+!NOINDEX
+!NOSEARCH
+const
+  QkRefKeyMax = 160;
+  QkRefKeyID  : string[12] = 'opqkref keys';
+  QkRefKeySet : array[0..QkRefKeyMax] of Byte = (...);
+  QkRefCfgEnd : Byte = 0;
+
+QkRefKeyMax is the last available slot in QkRefKeySet. QkRefKeyID is an ID
+string that allows installation programs to locate the configuration data.
+QkRefKeySet contains the default key assignments for the quick reference
+chart. QkRefCfgEnd marks the end of the configuration data.
+;
+;------------------------------------------------------------
+!TOPIC 2286 Declarations,OpQkRef
+!NOINDEX
+!NOSEARCH
+The following types, constants, and variables pertain to quick reference
+charts:
+
+  2284ccBlinkToggle             2285Configuration data      2280DefLeftTee
+  2282DefQkRefOptions           2281Options                 2283QkRefCommands
+;
+;------------------------------------------------------------
+!TOPIC 2287 Commands,QkRefChart
+!NOINDEX
+!NOSEARCH
+The following commands are available in the quick reference chart:
+
+ccUp          <Up>, <CtrlE>, <CtrlW>
+!LINE
+Scroll window up one row.
+
+ccDown        <Down>, <CtrlX>, <CtrlZ>
+!LINE
+Scroll window down one row.
+
+ccLeft        <Left>, <CtrlS>
+!LINE
+Scroll window left one column.
+
+ccRight       <Right>, <CtrlD>
+!LINE
+Scroll window right one column.
+
+ccHome        <Home>, <CtrlQ><S>
+!LINE
+Scroll window left to column 1.
+
+ccEnd         <End>, <CtrlQ><D>
+!LINE
+Scroll window right to last column.
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+!LINE
+Scroll window left 10 columns.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+!LINE
+Scroll window right 10 columns.
+
+ccPageUp      <PgUp>, <CtrlR>
+!LINE
+Scroll window up one page.
+
+ccPageDn      <PgDn>, <CtrlC>
+!LINE
+Scroll window down one page.
+
+ccEndOfFile   <CtrlPgDn>, <CtrlQ><C>
+!LINE
+Scroll to end of chart.
+
+ccTopOfFile   <CtrlPgUp>, <CtrlQ><R>
+!LINE
+Scroll to top of chart.
+
+ccHelp        <F1>, <ClkBoth>
+!LINE
+Request help.
+
+ccBlinkToggle <CtrlB>
+!LINE
+Toggle attribute blinking.
+
+ccQuit        <CtrlBreak>, <Esc>, <ClkRight>
+!LINE
+Close window.

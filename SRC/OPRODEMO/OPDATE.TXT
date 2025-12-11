@@ -1,0 +1,882 @@
+;
+;------------------------------------------------------------
+!TOPIC 479 OpDate
+OpDate's primary function is to provide routines that allow you to store
+dates and times in compact formats, to convert them to other forms when
+necessary, and to perform date/time arithmetic.
+
+  0531Arithmetic                0532Declarations            0533Date strings
+  0534Time strings              0549DOS dates/times
+;
+;------------------------------------------------------------
+!TOPIC 480 ValidDate
+!NOINDEX
+function 0479OpDate.ValidDate(Day, Month, Year : Integer) : Boolean;
+
+Verify that day, month, year is a valid date.
+
+See also:  0498ValidTime
+;
+;------------------------------------------------------------
+!TOPIC 481 DMYtoDate
+!NOINDEX
+function 0479OpDate.DMYtoDate(Day, Month, Year : Integer) : Date;
+
+Convert from day, month, year to a julian date.
+
+See also:  0482DateToDMY
+;
+;------------------------------------------------------------
+!TOPIC 482 DateToDMY
+!NOINDEX
+procedure 0479OpDate.DateToDMY(Julian : Date;
+                           var Day, Month, Year : Integer);
+
+Convert from a julian date to day, month, year.
+
+See also:  0481DMYtoDate
+;
+;------------------------------------------------------------
+!TOPIC 483 IncDate
+!NOINDEX
+function 0479OpDate.IncDate(Julian : Date;
+                        Days, Months, Years : Integer) : Date;
+
+Add (or subtract) the number of days, months, and years to a date.
+
+See also:  0484IncDateTrunc
+;
+;------------------------------------------------------------
+!TOPIC 484 IncDateTrunc
+!NOINDEX
+function 0479OpDate.IncDateTrunc(Julian : Date;
+                             Months, Years : Integer) : Date;
+
+Add (or subtract) the specified number of months and years to a date.
+
+See also:  0483IncDate
+;
+;------------------------------------------------------------
+!TOPIC 485 DateDiff
+!NOINDEX
+procedure 0479OpDate.DateDiff(Date1, Date2 : Date;
+                          var Days, Months, Years : Inte);
+
+Return the difference in days,months,years between two valid julian dates.
+
+See also:  0514DateTimeDiff  0507TimeDiff
+;
+;------------------------------------------------------------
+!TOPIC 486 DayOfWeek
+!NOINDEX
+function 0479OpDate.DayOfWeek(Julian : Date) : DayType;
+
+Return the day of the week for the date.
+
+See also:  0487DayOfWeekDMY
+;
+;------------------------------------------------------------
+!TOPIC 487 DayOfWeekDMY
+!NOINDEX
+function 0479OpDate.DayOfWeekDMY(Day, Month, Year : Integer) : DayType;
+
+Return the day of the week for the day, month, year.
+
+See also:  0486DayOfWeek
+;
+;------------------------------------------------------------
+!TOPIC 488 DateStringToDate
+!NOINDEX
+function 0479OpDate.DateStringToDate(Picture, S : DateString) : Date;
+
+Convert S, a string of the form indicated by Picture, to a julian date.
+Picture and S must be of equal lengths.
+
+See also:  0495DateStringToDMY  0489DateToDateString
+;
+;------------------------------------------------------------
+!TOPIC 489 DateToDateString
+!NOINDEX
+function 0479OpDate.DateToDateString(Picture : DateString;
+                                 Julian : Date) : DateString;
+
+Convert Julian to a string of the form indicated by Picture.
+;
+;------------------------------------------------------------
+!TOPIC 490 Today
+!NOINDEX
+function 0479OpDate.Today : Date;
+
+Returns today's date as a julian.
+
+See also:  0486DayOfWeek  0497TodayString
+;
+;------------------------------------------------------------
+!TOPIC 491 DateToSortString
+!NOINDEX
+function 0479OpDate.DateToSortString(Julian : Date) : string;
+
+Convert a date to a sortable string.
+
+See also:  0492SortStringToDate
+;
+;------------------------------------------------------------
+!TOPIC 492 SortStringToDate
+!NOINDEX
+function 0479OpDate.SortStringToDate(S : string) : Date;
+
+Convert a sortable string form to a date.
+
+See also:  0491DateToSortString
+;
+;------------------------------------------------------------
+!TOPIC 493 IsLeapYear
+!NOINDEX
+function 0479OpDate.IsLeapYear(Year : Integer) : Boolean;
+
+Return True if Year is a leap year.
+;
+;------------------------------------------------------------
+!TOPIC 494 DaysInMonth
+!NOINDEX
+function 0479OpDate.DaysInMonth(Month, Year : Integer) : Integer;
+
+Return the number of days in the specified month of a given year.
+;
+;------------------------------------------------------------
+!TOPIC 495 DateStringToDMY
+!NOINDEX
+function 0479OpDate.DateStringToDMY(Picture, S : DateString;
+                                var D, M, Y : Integer) : Boolean;
+
+Extract day, month, and year from S, returning true if string is valid.
+
+See also:  0488DateStringToDate  0489DateToDateString  0496DMYtoDateString
+;
+;------------------------------------------------------------
+!TOPIC 496 DMYtoDateString
+!NOINDEX
+function 0479OpDate.DMYtoDateString(Picture : DateString;
+                                Day, Month, Year : Integer) : DateString;
+
+Merge the month, day, and year into the picture.
+
+See also:  0495DateStringToDMY
+;
+;------------------------------------------------------------
+!TOPIC 497 TodayString
+!NOINDEX
+function 0479OpDate.TodayString(Picture : DateString) : DateString;
+
+Returns today's date as a string of the specified form.
+
+See also:  0489DateToDateString  0490Today
+;
+;------------------------------------------------------------
+!TOPIC 498 ValidTime
+!NOINDEX
+function 0479OpDate.ValidTime(Hours, Minutes, Seconds : Inte) : Boolean;
+
+Return true if Hours:Minutes:Seconds is a valid time.
+
+See also:  0480ValidDate
+;
+;------------------------------------------------------------
+!TOPIC 499 TimeToHMS
+!NOINDEX
+procedure 0479OpDate.TimeToHMS(T : Time;
+                           var Hours, Minutes, Seconds : Byte);
+
+Convert a Time variable to Hours, Minutes, Seconds.
+
+See also:  0500HMStoTime
+;
+;------------------------------------------------------------
+!TOPIC 500 HMStoTime
+!NOINDEX
+function 0479OpDate.HMStoTime(Hours, Minutes, Seconds : Byte) : Time;
+
+Convert Hours, Minutes, Seconds to a Time variable.
+
+See also:  0499TimeToHMS
+;
+;------------------------------------------------------------
+!TOPIC 501 TimeStringToHMS
+!NOINDEX
+function 0479OpDate.TimeStringToHMS(Picture, St : DateString;
+                                var H, M, S : Integer) : Boolean;
+
+Extract Hours, Minutes, Seconds from St, returning True if string is valid.
+
+See also:  0502TimeStringToTime
+;
+;------------------------------------------------------------
+!TOPIC 502 TimeStringToTime
+!NOINDEX
+function 0479OpDate.TimeStringToTime(Picture, S : DateString) : Time;
+
+Convert S, a string of the form indicated by Picture, to Time.
+
+See also:  0501TimeStringToHMS  0504TimeToAmPmString  0503TimeToTimeString
+;
+;------------------------------------------------------------
+!TOPIC 503 TimeToTimeString
+!NOINDEX
+function 0479OpDate.TimeToTimeString(Picture : DateString;
+                                 T : Time) : DateString;
+
+Convert T to a string of the form indicated by Picture.
+;
+;------------------------------------------------------------
+!TOPIC 504 TimeToAmPmString
+!NOINDEX
+function 0479OpDate.TimeToAmPmString(Picture : DateString;
+                                 T : Time) : DateString;
+
+Convert T to a string of the form indicated by Picture. Times are always
+displayed in am/pm format.
+
+See also:  0503TimeToTimeString
+;
+;------------------------------------------------------------
+!TOPIC 505 CurrentTime
+!NOINDEX
+function 0479OpDate.CurrentTime : Time;
+
+Returns current time in seconds since midnight.
+;
+;------------------------------------------------------------
+!TOPIC 506 CurrentTimeString
+!NOINDEX
+function 0479OpDate.CurrentTimeString(Picture : DateString) : DateString;
+
+Returns current time as a string of the specified form.
+
+See also:  0503TimeToTimeString
+;
+;------------------------------------------------------------
+!TOPIC 507 TimeDiff
+!NOINDEX
+procedure 0479OpDate.TimeDiff(Time1, Time2 : Time;
+                          var Hours, Minutes, Seconds : Byte);
+
+Return the difference in hours, minutes, seconds between two times.
+
+See also:  0485DateDiff  0514DateTimeDiff
+;
+;------------------------------------------------------------
+!TOPIC 508 IncTime
+!NOINDEX
+function 0479OpDate.IncTime(T : Time;
+                        Hours, Minutes, Seconds : Byte) : Time;
+
+Add the specified hours, minutes, seconds to T and return the result.
+
+See also:  0509DecTime
+;
+;------------------------------------------------------------
+!TOPIC 509 DecTime
+!NOINDEX
+function 0479OpDate.DecTime(T : Time;
+                        Hours, Minutes, Seconds : Byte) : Time;
+
+Subtract the specified hours, minutes, seconds from T and return the
+result.
+
+See also:  0508IncTime
+;
+;------------------------------------------------------------
+!TOPIC 510 TimeToSortString
+!NOINDEX
+function 0479OpDate.TimeToSortString(T : Time) : string;
+
+Convert a time variable to a sortable string.
+;
+;------------------------------------------------------------
+!TOPIC 511 RoundToNearestHour
+!NOINDEX
+function 0479OpDate.RoundToNearestHour(T : Time; Truncate : Boolean) : Time;
+
+Round T to the nearest hour, or Truncate minutes and seconds from T.
+
+See also:  0512RoundToNearestMinute
+;
+;------------------------------------------------------------
+!TOPIC 512 RoundToNearestMinute
+!NOINDEX
+function 0479OpDate.RoundToNearestMinute(T : Time; Truncate : Boolean) : Time;
+
+Round T to the nearest minute, or Truncate seconds from T.
+
+See also:  0511RoundToNearestHour
+;
+;------------------------------------------------------------
+!TOPIC 513 SortStringToTime
+!NOINDEX
+function 0479OpDate.SortStringToTime(S : string) : Time;
+
+Convert a sortable string to a time variable.
+
+See also:  0510TimeToSortString
+;
+;------------------------------------------------------------
+!TOPIC 514 DateTimeDiff
+!NOINDEX
+procedure 0479OpDate.DateTimeDiff(DT1, DT2 : DateTimeRec;
+                              var Days : Word; var Secs : LongInt);
+
+Return the difference in days and seconds between two points in time.
+
+See also:  0485DateDiff  0507TimeDiff
+;
+;------------------------------------------------------------
+!TOPIC 515 IncDateTime
+!NOINDEX
+procedure 0479OpDate.IncDateTime(var DT1, DT2 : DateTimeRec;
+                             Days : Integer; Secs : LongInt);
+
+Increment (or decrement) DT1 by the specified number of days and seconds
+and put the result in DT2.
+
+See also:  0483IncDate  0508IncTime
+;
+;------------------------------------------------------------
+!TOPIC 516 InternationalDate
+!NOINDEX
+function 0479OpDate.InternationalDate(WholeYear,
+                                  ZeroPad : Boolean) : DateString;
+
+Return a picture mask for a date string, based on DOS's country info.
+
+See also:  0024OpAbsFld.InternationalCurrency  0517InternationalTime
+;
+;------------------------------------------------------------
+!TOPIC 517 InternationalTime
+!NOINDEX
+function 0479OpDate.InternationalTime(WithSeconds, ZeroPad, ExtraSpace,
+                                  WithEm : Boolean) : DateString;
+
+Return a picture mask for a time string, based on DOS's country info.
+
+See also:  0024OpAbsFld.InternationalCurrency  0516InternationalDate
+;
+;------------------------------------------------------------
+!TOPIC 518 Date pictures
+!NOINDEX
+!NOSEARCH
+OpDate provides numerous functions for converting Julian dates to strings
+and back again. To allow the maximum amount of flexibility, and to insure
+that the same routines may be used internationally, OpDate lets you
+specify a "picture mask" to indicate how a given string should be
+formatted. For example, let's say that a Julian date variable contains
+January 2, 1900 and you want to convert it to a string (using the
+0489DateToDateString routine). There are several possible picture masks you
+could use:
+
+!NOWRAP
+Picture                 Result
+'mm/dd/yy'              '01/02/00'
+'MM/dd/yy'              ' 1/02/00'
+'mm/dd/yyyy'            '01/02/1900'
+'mm-dd-yyyy'            '01-02-1900'
+'dd/mm/yyyy'            '02/01/1900'
+'DD/mm/yyyy'            ' 2/01/1900'
+'dd-nnn-yyyy'           '02-Jan-1900'
+'dd-NNN-yyyy'           '02-JAN-1900'
+'www dd nnn yyyy'       'Tue 02 Jan 1900'
+'WWW NNN dd yyyy'       'TUE JAN 02 1900'
+!WRAP
+
+The following special characters are meaningful in picture masks:
+
+!NOWRAP
+Char            Marks location of or is replaced by
+'m', 'M'        month (date fields only)
+'d', 'D'        day (date)
+'y'             year (date)
+'n', 'N'        month name (date)
+'w', 'W'        day of week name (date)
+'/'             '/' or SlashChar (date; semi-literal)
+!WRAP
+
+In most cases, the difference between the uppercase and lowercase formatting
+characters is that the lowercase ones cause numbers to be padded with '0',
+while the uppercase ones cause them to be padded with spaces.
+
+The characters 'n' and 'N' may be used in place of 'm' and 'M' when the name
+of the month is desired instead of its number.
+
+The characters 'w' and 'W' may be used to include the day of the week in a
+date string.
+
+'/' and ':', are considered "semi-literal": when OpDate sees one of these two
+characters in a picture mask, it automatically replaces them with the current
+value of SlashChar (for '/') or ColonChar (for ':').
+
+Any characters not shown in the list above are treated as literals when they
+appear in a picture mask.
+
+Here are the actual constant declarations:
+
+!NOWRAP
+MonthOnly    = 'm';
+DayOnly      = 'd';
+YearOnly     = 'y';
+NameOnly     = 'n';
+WeekDayOnly  = 'w';
+MonthOnlyU   = 'M';
+DayOnlyU     = 'D';
+NameOnlyU    = 'N';
+WeekDayOnlyU = 'W';
+DateSlash    = '/';
+!WRAP
+
+See also:  0545SlashChar  0526ColonChar  0535Time pictures
+;
+;------------------------------------------------------------
+!TOPIC 519 Date
+!NOINDEX
+type
+  {$IFDEF FourByteDates}
+  Date  = LongInt;
+  {$ELSE}
+  Date = Word;
+  {$ENDIF}
+
+In OpDate, dates are stored in integer format as the number of days since
+January 1, 1600. Besides offering compact storage--any date through December
+31, 3999 may be stored in four bytes--this method facilitates date arithmetic,
+since the number of days between any two dates may be determined with simple
+subtraction. Note, however, that if the conditional compilation directive
+FourByteDates is not defined, dates are stored as words (two bytes), giving a
+range of 1/1/1900 to 12/31/2078.
+;
+;------------------------------------------------------------
+!TOPIC 520 DateString
+!NOINDEX
+type
+  DateString = string[0530DateLen];
+
+A String representation of a date.
+;
+;------------------------------------------------------------
+!TOPIC 521 DateTimeRec
+!NOINDEX
+type
+  DateTimeRec =
+    record
+      D : Date;
+      T : Time;
+    end;
+
+This record type simply combines the two basic date types defined by OpDate,
+Date and Time.
+
+See also:  0519Date  0523Time
+;
+;------------------------------------------------------------
+!TOPIC 522  DayType
+!NOINDEX
+type
+  DayType = (
+    Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday);
+
+An enumerated type used when representing a day of the week.
+;
+;------------------------------------------------------------
+!TOPIC 523  Time
+!NOINDEX
+type
+  Time = LongInt;
+
+OpDate handles time in a manner similar to dates, representing a given time
+of day as the number of seconds since midnight. The valid range for a time
+variable is thus 0 (12 am) to 86,399 (11:59:59 pm), since there are 86,400
+(60*60*24) seconds in a day.
+;
+;------------------------------------------------------------
+!TOPIC 524 BadDate
+!NOINDEX
+const
+  {$IFDEF FourByteDates}
+  BadDate = $FFFFFFFF;
+  {$ELSE}
+  BadDate = $FFFF;
+  {$ENDIF}
+
+This value is used to represent an invalid date, such as 12/32/1989.
+
+See also:  0525BadTime
+;
+;------------------------------------------------------------
+!TOPIC 525  BadTime
+!NOINDEX
+const
+  BadTime = $FFFFFFFF;
+
+This value is used to represent an invalid time of day, such as 12:61:00.
+
+See also:  0524BadDate
+;
+;------------------------------------------------------------
+!TOPIC 526 ColonChar
+!NOINDEX
+const
+  ColonChar : Char = ':';
+
+This typed constant determines what character will be used as a separator in
+time strings. For example, if TimeToTimeString is passed a picture mask of
+'hh:mm:ss' and ColonChar is '.', the string returned will be in 'hh.mm.ss'
+format.
+;
+;------------------------------------------------------------
+!TOPIC 527 Date1900
+!NOINDEX
+const
+  {$IFDEF FourByteDates}
+  Date1900 = $0001AC05;
+  {$ELSE}
+  Date1900 = $0000;
+  {$ENDIF}
+
+This constant contains the Julian date for 1/1/1900.
+;
+;------------------------------------------------------------
+!TOPIC 528 Date1980
+!NOINDEX
+const
+  {$IFDEF FourByteDates}
+  Date1980 = $00021E28;
+  {$ELSE}
+  Date1980 = $7223;
+  {$ENDIF}
+
+This constant contains the Julian date for 1/1/1980.
+;
+;------------------------------------------------------------
+!TOPIC 529 Date2000
+!NOINDEX
+const
+  {$IFDEF FourByteDates}
+  Date2000 = $00023AB1;
+  {$ELSE}
+  Date2000 = $8EAC;
+  {$ENDIF}
+
+This constant contains the Julian date for 1/1/2000.
+;
+;------------------------------------------------------------
+!TOPIC 530 DateLen
+!NOINDEX
+const
+  DateLen = 40;
+
+This is the maximum length of a Picture string passed to a routine in OpDate.
+;
+;------------------------------------------------------------
+!TOPIC 531 Arithmetic
+!NOINDEX
+!NOSEARCH
+OpDate provides the following constants and routines for performing date/time
+arithmetic:
+
+  0505CurrentTime               0485DateDiff                0514DateTimeDiff
+  0482DateToDMY                 0486DayOfWeek               0487DayOfWeekDMY
+  0494DaysInMonth               0509DecTime                 0481DMYtoDate
+  0500HMStoTime                 0483IncDate                 0515IncDateTime
+  0484IncDateTrunc              0508IncTime                 0493IsLeapYear
+  0511RoundToNearestHour        0512RoundToNearestMinute    0507TimeDiff
+  0499TimeToHMS                 0490Today                   0480ValidDate
+  0498ValidTime
+;
+;------------------------------------------------------------
+!TOPIC 532 Declarations,OpDate
+!NOINDEX
+!NOSEARCH
+OpDate provides the following types, constants, and variables for managing
+dates and times:
+
+  0524BadDate                   0525BadTime                 0526ColonChar
+  0526ColonChar                 0519Date                    0542Date range constants
+  0527Date1900                  0528Date1980                0529Date2000
+  0530DateLen                   0530DateLen                 0520DateString
+  0521DateTimeRec               0536DayString               0522DayType
+  0548Default dates             0537HoursInDay              0538MinutesInHour
+  0544MonthString               0539SecondsInDay            0540SecondsInHour
+  0541SecondsInMinute           0545SlashChar               0545SlashChar
+  0546Threshold2000             0523Time                    0543Time range constants
+  0547UpCaseTime
+;
+;------------------------------------------------------------
+!TOPIC 533 Date strings
+!NOINDEX
+!NOSEARCH
+OpDate provides the following routines for converting dates to and from
+strings:
+
+  0518Date pictures             0488DateStringToDate        0495DateStringToDMY
+  0489DateToDateString          0491DateToSortString        0496DMYtoDateString
+  0516InternationalDate         0492SortStringToDate        0497TodayString
+;
+;------------------------------------------------------------
+!TOPIC 534 Time strings
+!NOINDEX
+!NOSEARCH
+OpDate provides the following routines for converting times to and from
+strings:
+
+  0506CurrentTimeString         0517InternationalTime       0513SortStringToTime
+  0535Time pictures             0501TimeStringToHMS         0502TimeStringToTime
+  0504TimeToAmPmString          0510TimeToSortString        0503TimeToTimeString
+;
+;------------------------------------------------------------
+!TOPIC 535 Time pictures
+!NOINDEX
+!NOSEARCH
+OpDate provides numerous functions for converting times to strings and back
+again. To allow the maximum amount of flexibility, and to insure that the same
+routines may be used internationally, OpDate lets you specify a "picture
+mask" to indicate how a given string should be formatted. For example, let's
+say that you wanted to convert a Time variable containing 1:02 pm (13:02) into
+a string using 0503TimeToTimeString. Here are some possible picture masks:
+
+!NOWRAP
+Picture                 Result
+'hh:mm:ss'              '13:02:00'
+'hh:mm'                 '13:02'
+'hh:mm te'              '01:02 pm'
+'hh:mmt'                '01:02p'
+!WRAP
+
+Note that string representations of time are always assumed to be in military
+format unless a 't' appears in the picture mask. An 'e' (em) in the mask
+should always be accompanied by a corresponding 't' (time).
+
+The following special characters are meaningful in picture masks:
+
+!NOWRAP
+Char            Marks location of or is replaced by
+'h', 'H'        hours (time fields only)
+'m', 'M'        minutes (time)
+'s', 'S'        seconds (time)
+':'             ':' or ColonChar (date; semi-literal)
+'t'             'p', 'P', 'a', 'A' (time; case depends on UpCaseTime)
+'e'             'm' or 'M' (time; case depends on UpCaseTime)
+
+Here are the actual mask constant declarations:
+
+HourOnly    = 'h';
+MinOnly     = 'm';
+SecOnly     = 's';
+HourOnlyU   = 'H';
+MinOnlyU    = 'M';
+SecOnlyU    = 'S';
+TimeOnly    = 't';
+EmOnly      = 'e';
+TimeColon   = ':';
+!WRAP
+
+See also:  0526ColonChar  0518Date pictures
+;
+;------------------------------------------------------------
+!TOPIC 536 DayString
+!NOINDEX
+const
+  DayString : array[DayType] of string[15] = (
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+    'Saturday');
+
+This array can be used to convert DayType variables to strings. For example,
+if DayOfWeek = Saturday, then the statement 'S := DayString[DayOfWeek]' would
+set S to 'Saturday'. Notice that you could then get a reasonable abbreviation
+for the day of the week using 'Copy(S, 1, 3)'. The maximum length for each
+string is set to 15 to allow the array to be modified for use in foreign
+countries.
+;
+;------------------------------------------------------------
+!TOPIC 537 HoursInDay
+!NOINDEX
+const
+  HoursInDay = 24;
+
+Number of hours in a day.
+
+See also:  0538MinutesInHour
+;
+;------------------------------------------------------------
+!TOPIC 538 MinutesInHour
+!NOINDEX
+const
+  MinutesInHours = 60;
+
+Number of minutes in an hour.
+
+See also:  0537HoursInDay
+;
+;------------------------------------------------------------
+!TOPIC 539 SecondsInDay
+!NOINDEX
+const
+  SecondsInDay = 86400;
+
+Number of seconds in a day.
+
+See also:  0540SecondsInHour  0541SecondsInMinute
+;
+;------------------------------------------------------------
+!TOPIC 540 SecondsInHour
+!NOINDEX
+const
+  SecondsInHour = 3600;
+
+Number of seconds in an hour.
+
+See also:  0539SecondsInDay  0541SecondsInMinute
+;
+;------------------------------------------------------------
+!TOPIC 541 SecondsInMinute
+!NOINDEX
+const
+  SecondsInMinute = 60;
+
+Number of seconds in a minute.
+
+See also:  0539SecondsInDay  0540SecondsInHour
+;
+;------------------------------------------------------------
+!TOPIC 542 Date range constants
+!NOINDEX
+!NOSEARCH
+const
+  {$IFDEF FourByteDates}
+  MinDate = $00000000; {= 01/01/1600}
+  MaxDate = $000D6025; {= 12/31/3999}
+  MinYear = 1600;
+  MaxYear = 3999;
+  {$ELSE}
+  MinDate = $0000;     {= 01/01/1900}
+  MaxDate = $FF62;     {= 12/31/2078}
+  MinYear = 1900;
+  MaxYear = 2078;
+  {$ENDIF}
+
+These constants define the valid range of dates for a date variable.
+
+See also:  0543Time range constants
+;
+;------------------------------------------------------------
+!TOPIC 543 Time range constants
+!NOINDEX
+!NOSEARCH
+const
+  MinTime = 0;     {= 00:00:00 am}
+  MaxTime = 86399; {= 23:59:59 pm}
+
+These constants define the valid range of times for a time variable.
+
+See also:  0542Date range constants
+;
+;------------------------------------------------------------
+!TOPIC 544 MonthString
+!NOINDEX
+const
+  MonthString : array[1..12] of string[12] = (
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December');
+
+This array can be used to convert variables representing months to strings.
+For example, if Month = 1, then the statement 'S := MonthString[Month]' would
+set S to 'January'. Notice that you could then get a reasonable abbreviation
+for the month using 'Copy(S, 1, 3)'. The maximum length for each string is set
+to 12 to allow the array to be modified for use in foreign countries.
+;
+;------------------------------------------------------------
+!TOPIC 545 SlashChar
+!NOINDEX
+const
+  SlashChar : Char = '/';
+
+This typed constant determines what character will be used as a separator in
+date strings. For example, if DateToDateString is passed a picture mask of
+'mm/dd/yy' and SlashChar is '-', the string returned will be in 'mm-dd-yy'
+format.
+
+See also:  0518Date pictures
+;
+;------------------------------------------------------------
+!TOPIC 546 Threshold2000
+!NOINDEX
+const
+  Threshold2000 : Integer = 1900;
+
+This constant determines how OpDate interprets the year portion of a date
+like 01/01/40. If Threshold2000 = 1900, the year is assumed to be 1940. If
+Threshold2000 = 1941, the year is assumed to be 2040. More generally,
+Threshold2000 specifies the year at which OpDate stops assuming a century of
+2000 when the year is in the range 00..99 and starts assuming 1900. With the
+default value of 1900, 1900 is always assumed. With a value of 2000, 2000
+would always be assumed.
+;
+;------------------------------------------------------------
+!TOPIC 547 UpCaseTime
+!NOINDEX
+const
+  UpCaseTime : Boolean = False;
+
+This value affects the behavior of routines that return string representations
+of times. If it is True, and the picture mask passed to the routine contains
+'t' and/or 'e', the string returned will contain 'P', 'PM', 'A', or 'AM'
+rather than their lower-case equivalents.
+;
+;------------------------------------------------------------
+!TOPIC 548 Default dates
+!NOINDEX
+!NOSEARCH
+var
+  DefaultMonth : Byte;
+  DefaultYear : Integer;
+
+These variables are used by the routines that convert strings to dates in
+cases where the picture mask represents a partial date such as 'dd' or
+'mm/dd'. They are principally useful when OpDate is being used in
+conjunction with OpEntry, and the user is being asked to enter dates that
+are assumed to fall in a particular month and/or year. They are initialized by
+OpDate to the current month and year (assuming that the system clock is
+accurate).
+;
+;------------------------------------------------------------
+!TOPIC 549 DOS Dates/Times
+!NOINDEX
+;
+OpDate defines the following routines for manipulation DOS dates and times:
+
+  0550DosToDateTime             0551DateTimeToDos           0552PackedToDateTime
+  0553DateTimeToPacked
+
+;------------------------------------------------------------
+!TOPIC 550 DosToDateTime
+!NOINDEX
+procedure DosToDateTime(var DT : DateTime; var DTR : DateTimeRec);
+
+Convert a DateTime record, found in the DOS unit, to an OPRO DateTimeRec.
+;
+;------------------------------------------------------------
+!TOPIC 551 DateTimeToDos
+!NOINDEX
+procedure DateTimeToDos(var DTR : DateTimeRec; var DT : DateTime);
+
+Convert an OPRO DateTimeRec to a DOS unit DateTime structure.
+;
+;------------------------------------------------------------
+!TOPIC 552 PackedToDateTime
+!NOINDEX
+procedure PackedToDateTime(PackedTime : LongInt; var DT : DateTimeRec);
+
+Convert a DOS packed time to an OPRO DateTimeRec.
+;
+;------------------------------------------------------------
+!TOPIC 553 DateTimeToPacked
+!NOINDEX
+procedure DateTimeToPacked(var DT : DateTimeRec; var PackedTime : LongInt);
+
+Convert an OPRO DateTimeRec to a DOS packed time variable.

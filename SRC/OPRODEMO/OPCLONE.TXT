@@ -1,0 +1,173 @@
+;
+;------------------------------------------------------------
+!TOPIC 200 OpClone
+The OpClone unit contains the Cloner object and related routines.
+
+  0201Cloner
+;
+;------------------------------------------------------------
+!TOPIC 201 Cloner
+!NOINDEX
+0200OpClone.Cloner = object(2306Root)
+!LINE
+ClonerPtr = ^Cloner;
+
+The Cloner object aids you in locating and updating configuration data in
+program's EXE file. The cloner needs three things to to its job:
+
+ - a block of data identical in size and format to that within the EXE file
+ - the name of the EXE file
+ - a identifier string embedded in the EXE file
+
+    0212Declarations                      0205Done
+    0206FindDefaultsEnd                   0207FindDefaultsStart
+    0208GetLastError                      0209GetPos
+    0202Init                              0203InitCustom
+    0204InitAndFind                       0210LoadDefaults
+    0211StoreDefaults
+;
+;------------------------------------------------------------
+!TOPIC 202 Init,Cloner
+!NOINDEX
+constructor 0201Cloner.Init(FName : string; DUT : DateUpdateType);
+
+Open file for cloning.
+
+See also:  0205Done  0203InitCustom  0204InitAndFind
+;
+;------------------------------------------------------------
+!TOPIC 203 InitCustom,Cloner
+!NOINDEX
+constructor 0201Cloner.InitCustom(FName; DUT : DateUpdateType;
+                              BufSize : Word);
+
+Open a file for cloning.
+
+See also:  0205Done  0202Init  0204InitAndFind
+;
+;------------------------------------------------------------
+!TOPIC 204 InitAndFind
+!NOINDEX
+constructor 0201Cloner.InitAndFind(FName : string; DUT : DateUpdateType;
+                               var ID; IdSize : Word);
+
+Open file and find ID. Uses FindDefaultsEnd.
+
+See also:  0206FindDefaultsEnd  0205Done  0202Init  0203InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 205 Done,Cloner
+!NOINDEX
+destructor 0201Cloner.Done; virtual;
+
+Close clone file, adjust time stamp, and deallocate buffer.
+
+See also:  0202Init  0203InitCustom  0204InitAndFind
+;
+;------------------------------------------------------------
+!TOPIC 206 FindDefaultsEnd
+!NOINDEX
+function 0201Cloner.FindDefaultsEnd(var ID; IdSize : Word;
+                                Skip : LongInt) : Boolean;
+
+Find the ID in the clone file, searching from the end backward.
+
+See also:
+  0207FindDefaultsStart         0208GetLastError            0209GetPos
+  0210LoadDefaults
+;
+;------------------------------------------------------------
+!TOPIC 207 FindDefaultsStart
+!NOINDEX
+function 0201Cloner.FindDefaultsStart(var ID; IdSize : Word;
+                                  Skip : LongInt) : Boolean;
+
+Find the ID in the clone file, searching from the start forward.
+
+See also:  0206FindDefaultsEnd  0210LoadDefaults
+;
+;------------------------------------------------------------
+!TOPIC 208 GetLastError,Cloner
+!NOINDEX
+function 0201Cloner.GetLastError : Word;
+
+Get the code for the last error.
+;
+;------------------------------------------------------------
+!TOPIC 209 GetPos,Cloner
+!NOINDEX
+function 0201Cloner.GetPos : LongInt;
+
+Get position where an ID string was found (offset returned is the start of
+the ID string).
+
+See also:  0206FindDefaultsEnd  0207FindDefaultsStart  0210LoadDefaults
+;
+;------------------------------------------------------------
+!TOPIC 210 LoadDefaults
+!NOINDEX
+procedure 0201Cloner.LoadDefaults(FileOfs : LongInt;
+                              var Defaults; Bytes : Word);
+
+Seek to position FileOfs and read defaults there.
+
+See also:
+  0206FindDefaultsEnd           0207FindDefaultsStart       0209GetPos
+  0204InitAndFind               0211StoreDefaults
+;
+;------------------------------------------------------------
+!TOPIC 211 StoreDefaults
+!NOINDEX
+procedure 0201Cloner.StoreDefaults(FileOfs : LongInt;
+                               var Defaults; Bytes : Word);
+
+Seek to position FileOfs and store defaults there.
+
+See also:  0209GetPos  0210LoadDefaults
+;
+;------------------------------------------------------------
+!TOPIC 212 Declarations,OpClone
+!NOINDEX
+!NOSEARCH
+OpClone provides the following types, constants and variables for working
+with Cloner objects:
+
+  0215DateUpdateType            0214DefBufSize              0213MinBufSize
+  0216SearchBuffer
+;
+;------------------------------------------------------------
+!TOPIC 213 MinBufSize
+!NOINDEX
+const
+  MinBufSize = 512;
+
+Minimum buffer size.
+;
+;------------------------------------------------------------
+!TOPIC 214 DefBufSize
+!NOINDEX
+const
+  DefBufSize = 4096;
+
+Default buffer size.
+;
+;------------------------------------------------------------
+!TOPIC 215 DateUpdateType
+!NOINDEX
+type
+  DateUpdateType = (UpdateNone, UpdateDate, UpdateAll);
+
+Type used to indicate what a Cloner object should do concerning the date-time
+stamp on the EXE file after updating it. UpdateNone indicates that the
+original date-time stamp should be maintained. UpdateDate indicates that the
+date should be changed, but not the time. UpdateAll indicates that both the
+date and the time should be changed, as would normally occur after a file has
+been modified.
+;
+;------------------------------------------------------------
+!TOPIC 216 SearchBuffer
+!NOINDEX
+type
+  SearchBuffer = array[0..DefBufSize-1] of Char;
+
+Buffer used to locate a search string within an EXE file.

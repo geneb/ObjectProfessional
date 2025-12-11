@@ -1,0 +1,2623 @@
+
+
+           OPDIALOG: Dialog Boxes for Object Professional
+
+            Copyright (c) 1990, 1992 TurboPower Software
+
+                            Version 1.22
+
+
+------- Overview -----------------------------------------------------
+
+Since Object Professional 1.0 was first released, many customers have
+expressed a need to create dialog boxes that conform to IBM's SAA
+(Systems Application Architecture) guidelines. To meet that need, we
+have created a pair of new units, OPCTRL and OPDIALOG, that allow you
+to create dialog boxes similar to those used in Microsoft Windows,
+OS/2 Presentation Manager, and Turbo Debugger 2.0.
+
+OPDIALOG implements an object called a DialogBox that, like the
+Selector and the EntryScreen, is derived from the AbstractSelector:
+
+                               CommandWindow
+                                     ³
+                              AbstractSelector
+                                     ³
+             ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+             ³                       ³                       ³
+         Selector               EntryScreen              DialogBox
+             ³                       ³
+     ScrollingSelector      ScrollingEntryScreen
+
+Just as the Selector maintains a list of SelectFields, and the
+EntryScreen maintains a list of EntryFields, the DialogBox maintains a
+list of field-based objects called controls. The principal job of the
+DialogBox is to manage the movement of the cursor from one Control to
+the next.
+
+The OPCTRL unit implements the Control object and most of its
+descendants. Their place in the object hierarchy is shown in the
+following diagram:
+
+                               AbstractField
+                                     ³
+                         ÚÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄ¿
+                         ³                       ³
+                    SelectField              PrintField
+                         ³
+                     EntryField
+                         ³
+                      Control
+                         ³
+          ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+          ³              ³              ³
+     PushButton       Cluster     WindowControl
+                         ³
+                ÚÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄ¿
+                ³                 ³
+           RadioButtons      CheckBoxes
+
+The various types of controls will be discussed in the sections that
+follow, along with a host of other issues relating to dialog boxes.
+Please be forewarned that, in writing this document, we have assumed
+that the reader is familiar with the documentation for the OPFIELD and
+OPENTRY units. DialogBoxes are similar to EntryScreens in many
+respects, and since most users of OPDIALOG will already be familiar
+with OPENTRY, we decided that the best way to explain how DialogBoxes
+work is to explain how they differ from EntryScreens. If you are not
+familiar with OPENTRY, please read the relevant sections of the Object
+Professional manual: specifically, the documentation for the OPABSFLD,
+OPFEDIT, OPFIELD, OPSELECT, and OPENTRY units.
+
+
+------- A Simple Example ---------------------------------------------
+
+To help you get started with OPDIALOG, let's look at a simple example
+program that demonstrates some of the basic features of the DialogBox:
+
+{$V-}                        {<- required for OPDIALOG}
+program DialogBoxExample;
+uses
+  OpCrt, OpRoot, OpCmd, OpFrame, OpWindow, OpField, OpCtrl, OpSelect,
+  OpDialog;
+var
+  DB : DialogBox;
+  Finished : Boolean;
+begin
+  {instantiate dialog box}
+  if not DB.InitCustom(
+      25, 10, 55, 14,                 {window coordinates}
+      DefaultColorSet,                {ColorSet}
+      DefWindowOptions or wBordered,  {window options}
+      DefaultDialogColors) then begin {DialogColorSet}
+    WriteLn('Init error: ', InitStatus);
+    Halt(1);
+  end;
+
+  {add some window frills}
+  DB.wFrame.AddShadow(shBR, shOverWrite);
+  DB.wFrame.AddHeader(' Dialog Box ', heTC);
+
+  {add some text}
+  DB.AddCenteredTextField('This is a dialog box.', 2);
+
+  {add pushbuttons}
+  DB.AddPushButton('O&k',    04, 06, 8, 0, ccSelect, True);
+  DB.AddPushButton('Cancel', 04, 18, 8, 0, ccQuit,   False);
+
+  {check for error}
+  if DB.RawError <> 0 then begin
+    WriteLn('Init error: ', DB.RawError);
+    Halt(1);
+  end;
+
+  {clear the screen}
+  ClrScr;
+
+  {process commands}
+  Finished := False;
+  repeat
+    DB.Process;
+    case DB.GetLastCommand of
+      ccSelect, {Ok}
+      ccQuit,   {Cancel}
+      ccError : {fatal error}
+        Finished := True;
+    end;
+  until Finished;
+
+  {erase the dialog box}
+  DB.Erase;
+
+  {dispose of dialog box}
+  DB.Done;
+end.
+
+The first thing to notice is the compiler directive {$V-} at the start
+of the program. This directive is required for most programs and units
+written with OPDIALOG. If you omit it, you can expect to see a
+compiler error when you try to add an edit control (line editor).
+
+You may also have noticed that the USES list is quite similar to one
+for a program written with OPENTRY. The only differences are 1)
+OPDIALOG is used instead of OPENTRY, and 2) OPCTRL is needed in
+addition to OPFIELD. In some cases you will need to use the OPABSFLD
+and/or OPFEDIT units as well, but normally these units may be omitted
+from the USES list.
+
+Our example program represents the simplest kind of dialog box, a
+message box that displays some text and uses pushbutton controls to
+elicit a response from the user. Although dialog boxes of this kind
+are frequently used, be aware that a more typical one--one that
+contains radio buttons, check boxes, or edit controls--will have user
+variables associated with the individual controls, just as the fields
+in an entry screen are associated with user variables. We've provided
+several other example programs (DIALOG2.PAS, DIALOG3.PAS, and
+DIALOG4.PAS) that are, in this respect, more typical.
+
+The first order of business in this program is to instantiate the
+DialogBox object, DB. The parameters to a DialogBox's constructor are,
+up to a point, the same as those for most other objects derived from a
+CommandWindow. The first four parameters to InitCustom are the
+coordinates for the inner window, followed by the ColorSet and the
+window options to be used. The final parameter is a second color set,
+of type DialogColorSet, that contains video attribute choices that
+pertain solely to dialog boxes and their component parts. (See the
+section on the DialogColorSet, below.)
+
+The only special window option that we've activated is the wBordered
+option. After the DialogBox has been instantiated, though, we add a
+few "frills": a solid (not "see-through") shadow and a centered header
+at the top of the window border.
+
+Now we're ready to lay out the interior of the dialog box. The first
+step is to add the message to be displayed. We've used the
+AddCenteredTextField method inherited from AbstractSelector (new in
+OPRO 1.03), because we want the text centered on row 2 of the window.
+
+Next we use the AddPushButton method to add the two pushbutton
+controls that tell the user what his choices are. The first parameter
+to AddPushButton is the text to be displayed within the button. The
+'&' character in 'O&k' indicates that the next character in the string
+is the shortcut key for that pushbutton. Shortcut keys will be
+discussed in more detail later; for now, we'll simply say that in this
+program the user can select the action associated with the Ok button
+by pressing either <K> or <AltK>, as well as by moving the cursor over
+the button and pressing <Enter> or the spacebar.
+
+The second and third parameters specify the location for the
+pushbutton, and the fourth indicates its width. In the case of the
+'Ok' button, which has a width of 8, the text will be centered in the
+button with 3 spaces on each side (' Ok '). The fifth parameter is the
+help index for the control, the value to be passed to the
+user-supplied help routine if the ccHelp command is issued when this
+pushbutton is the current control.
+
+The sixth parameter is the command to be returned or processed when
+the pushbutton is selected. In this program, selecting the 'Ok' button
+will cause DialogBox.Process to exit with an exit command of ccSelect.
+(Note that, unlike EntryScreen.Process, DialogBox.Process considers
+ccSelect to be a "hard" exit command, rather than a field movement
+command.) Selecting 'Cancel' will produce an exit command of ccQuit,
+just as pressing <Esc> would.
+
+The final parameter indicates whether or not the pushbutton being
+added should be considered the default pushbutton. The following rules
+apply in this regard: 1) Every dialog box must have a default
+pushbutton, 2) only one pushbutton per dialog box may be marked as the
+default pushbutton, and 3) the default pushbutton must never be marked
+as protected, hidden or invisible. None of these rules is enforced by
+OPDIALOG, and it is up to you to abide by them. The purpose of the
+default pushbutton is explained in a later section. For now, it's
+enough to know that if you press <Enter> when the cursor is on a
+control other than a pushbutton, the DialogBox will exit and return
+the command associated with the default pushbutton.
+
+On a more general note: You may recall that when adding fields to a
+Selector or EntryScreen, the fields must be added in a specific order
+(left-to-right and top-to-bottom), in order to facilitate the
+processing of cursor commands such as <Up> and <Down>. This is not the
+case for a DialogBox, despite the fact that it is based on the
+AbstractSelector. Controls may be added in any order you wish, and
+when you press <Tab>, the cursor will be moved to the control that was
+added after the current one. The reason this restriction is lifted for
+dialog boxes is that the cursor keys are not used to move from one
+control to another. <Tab> and <ShiftTab> are used instead. Along the
+same lines, another important difference between DialogBox and other
+objects based on the AbstractSelector is that a DialogBox always has a
+wrap mode of WrapAtEdges.
+
+Once the controls and text fields have been added, and we've checked
+for errors, we're ready to clear the screen and display the dialog
+box. As with most objects derived from CommandWindow, the call to
+Process is part of a repeat..until loop that includes a case statement
+in which exit commands are handled. The only ones that can occur in
+our example program are ccSelect ('Ok'), ccQuit ('Cancel'), and
+ccError (fatal error).
+
+The program ends by erasing the DialogBox and destroying it. The call
+to Done is unnecessary in this case, since the memory allocated to the
+DialogBox will be recovered by DOS when the program ends, but it would
+be needed if the program were going to continue.
+
+That concludes our look at this simple example program. For additional
+examples, see DIALOG1.PAS, DIALOG2.PAS, DIALOG3.PAS, and DIALOG4.PAS.
+These programs demonstrate many of the other features of OPCTRL and
+OPDIALOG: radio buttons, check boxes, edit controls, window controls,
+streams support, and more.
+
+
+------- Miscellaneous Topics -----------------------------------------
+
+Some Terms
+----------
+
+Two terms used throughout this document require special definitions,
+both of them terms that we've appropriated from Microsoft Windows and
+other systems that implement dialog boxes.
+
+The first is "control." A Control is the principal component part of a
+dialog box. Or, to put it another way, a dialog box is a window whose
+interior is composed of Controls. Controls are to DialogBoxes what
+EntryFields are to EntryScreens. The primary function of the DialogBox
+is to manage its list of Controls and to transfer the responsibility
+for interpreting commands from one Control to another.
+
+When this responsibility is passed to a Control, it is said to have
+"the focus." This term is perhaps more apt in an event-driven
+environment such as Windows, but it works as well as any other in the
+case of OPDIALOG. Specifically, what we mean when we say that a
+Control has the focus is that DialogBox.ProcessSelf has called the
+Control's Edit method and given it responsibility for interpreting
+commands issued with the keyboard or mouse. Before doing so,
+ProcessSelf will call the "pre-focus" routine associated with the
+DialogBox, if there is one. Eventually an exit command of some sort
+will be issued, and the Control will give that responsibility back to
+ProcessSelf, and at that point the "post-focus" routine will be
+called. As you might guess, the pre- and post-focus routines are
+analogous to the pre- and post-edit routines for an EntryScreen.
+
+Controls
+--------
+Before discussing the individual types of controls (pushbuttons, radio
+buttons, etc.), we need to discuss a few topics relevant to most or
+all types of controls.
+
+  Prompts and Shortcut Keys
+  -------------------------
+  One important difference between entry screens and dialog boxes is
+  that the prompts for individual controls can have a single
+  highlighted character that identifies a shortcut key that may be
+  used to move the cursor to that control from anywhere in the dialog
+  box.
+
+  For example, a set of radio buttons used to select the destination
+  for printed output might have a prompt such as '&Printer'. The '&'
+  character indicates both that the 'P' should be highlighted when the
+  prompt is displayed, and that <P> or <AltP> should be considered the
+  shortcut keys for that control. (<P> can be either 'p' or 'P'; the
+  test is case insensitive.)
+
+  The color to be used for highlighting prompt characters may be
+  specified either by setting the HiPromptColor and HiPromptMono
+  fields of the DialogColorSet passed to the DialogBox's constructor,
+  or by calling DialogBox.SetHighlightPromptAttr.
+
+  One important thing to keep in mind about shortcut keys is that they
+  have a low priority as far as a CommandProcessor is concerned.
+  Hence, an alphanumeric shortcut key such as <P> may not be used in
+  an edit control or any other control which already has a use for
+  alphanumeric keys. Similarly, if you have already assigned a user
+  command (such as ccUser0) to the same Alt-key combination (such as
+  <AltP>), the CommandProcessor will give precedence to the
+  user-defined command and return ccUser0.
+
+  Prompt Coordinates
+  ------------------
+  Another difference between the prompts for controls and those for
+  entry fields is that, on a monochrome or black & white display,
+  OPDIALOG will display a double arrow next to the prompt for the
+  current field. For example:
+
+     ¯Filename
+      MYPROG.PAS__________
+
+  You don't need to do anything special to make this happen, but you
+  do have to leave room for the double arrow when you are specifying
+  the coordinates for your prompts. Specifically, the prompt for a
+  control *must always* have a column coordinate of 2 or greater. If
+  you try to break this rule, the result will be a fatal error (8301:
+  epFatal+ecBadCoordinates).
+
+  Ordering of Controls
+  --------------------
+  As indicated earlier, the restrictions concerning the order in which
+  fields are added to an EntryScreen or Selector do not apply to the
+  controls in a DialogBox. As far as OPDIALOG is concerned, you may
+  add controls in any order you wish. There are, however, a few
+  guidelines you should keep in mind:
+
+  - Arrange the controls in the order that the user would want to use
+    them, if there is such an order.
+
+  - When tabbing through the controls, the cursor should move in a
+    straight line (horizontally or vertically) whenever possible.
+
+  - In large dialog boxes, arrange controls that belong together
+    logically into groups, and surround the group with a box. For
+    example:
+
+        ÚÄ Currency format ÄÄÄÄÄÄ¿
+        ³ Symbol  $              ³
+        ³ (o) Prefix  ( ) Suffix ³
+        ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+    This group could be created in the following manner:
+
+      const
+        CurrencySymbol : string[3] = '$';
+        CurrencyPrefix : Boolean = True;
+      ...
+      DB.AddBoxField(SglWindowFrame, 2, 2, 27, 5);
+      DB.AddTextField('Currency format', 2, 3);
+      DB.AddSimpleEditControl(
+        '&Symbol', 3, 4, 'X', 3, 12, 3, 3, 0, CurrencySymbol);
+      DB.AddRadioButtons(
+        '', 04, 03, 04, 03, 23, 1, 0, 0, CurrencyPrefix);
+        DB.AddRadioButtonAt('Prefix ', 01, 01, Ord(True) );
+        DB.AddRadioButtonAt('Suffix ', 01, 13, Ord(False) );
+
+    Note that the order of the calls to AddBoxField and AddTextField
+    is important. If it were reversed, the box field would overwrite
+    the text field.
+
+  A Plethora of Options
+  ---------------------
+  Because Control is a descendant of EntryField, it inherits all of
+  the options associated with its parent. You can make a pushbutton
+  protected, for example, like this:
+
+    dgFieldOptionsOn(efProtected);
+    AddPushButton(...);
+    dgFieldOptionsOff(efProtected);
+
+  Secondary field options (sef- prefix) may be turned on and off with
+  dgSecFieldOptionsOn and dgSecFieldOptionsOff, respectively.
+
+  Keep in mind, however, that many of the options associated with
+  EntryFields have meaning only for edit controls: the efInsertPushes
+  and sefPadCurrentOnly options, for example.
+
+  There also a few options that pertain specifically to Controls,
+  although most of them are internal flags that are set automatically
+  and cannot be changed. These options may be turned on and off with
+  dgControlOptionsOn and dgControlOptionsOff, respectively. The only
+  options you are likely to want to set are the dcSelectLocally
+  option, which changes the way shortcut keys for cluster items are
+  interpreted and displayed (see below), or dcButtonBox, which changes
+  the appearance of pushbuttons. For a list of the available options,
+  see the Declarations portion of the reference section on the Control
+  object, below.
+
+  Effects of OPDRAG
+  -----------------
+  OPCTRL and OPDIALOG both support the BONUS unit OPDRAG. When OPDRAG
+  is in use, the cursor may be moved from one control to another by
+  pressing the left mouse button and dragging the mouse around the
+  dialog box. Except in the case of radio buttons, where moving the
+  cursor automatically changes the selected value, a selection will
+  not be made until the left mouse button is released, and then only
+  if the mouse cursor is still inside the current control.
+
+  To see for yourself what effects OPDRAG has, you may either enable
+  the conditional define UseDragAnyway in any of the four demo
+  programs (DIALOG1..DIALOG4), or you may change the UseDrag define in
+  OPDEFINE.INC.
+
+Pushbuttons
+-----------
+Every dialog box should have at least one pushbutton, and most will
+have at least two. The biggest differences between push buttons and
+other controls are 1) a pushbutton has no prompt and 2) a pushbutton
+has no user variable associated with it. Pushbuttons are used to
+select actions, not to alter the values of variables (as edit
+controls, radio buttons, and check boxes are).
+
+  Button Shadows
+  --------------
+  By default, all pushbuttons have shadows when they are displayed on
+  a color adapter. These shadows are drawn the same way that window
+  shadows of type shOverWrite are drawn, using graphics characters. If
+  you don't want the shadows, you can disable the dcButtonShadow
+  option.
+
+  Important: Shadows are never actually displayed on a monochrome or
+  black & white adapter, but they are "drawn" anyway, in the form of
+  spaces. It is your responsibility to insure that the color specified
+  for button shadows on a mono system matches the background color for
+  the dialog box.
+
+  Boxed Pushbuttons
+  -----------------
+  If you don't like the look of shadowed pushbuttons, you can choose
+  an alternate look by setting the dcButtonBox option. When this
+  option is in effect, pushbuttons are bordered by boxes and the
+  dcButtonShadow option is forced off.
+
+  One of three border types is used for the box, depending on the
+  situation. If the pushbutton is selected, the frame characters in
+  the global typed constant DefButtonBoxSel are used. If the
+  pushbutton is selected, the left mouse button is being pressed, and
+  OPDRAG is present, the characters in DefButtonBoxDown are used.
+  Otherwise, the characters in DefButtonBox are used. By default, the
+  boxes are single-line when the button is being "pushed" with the
+  mouse, and double-line the rest of the time.
+
+  Because the dcButtonShadow and dcButtonBox options are mutually
+  exclusive, and no program is likely to use both options, the button
+  shadow attribute in the DialogColorSet serves double duty: it also
+  represents the attribute to be used for drawing the border around a
+  boxed pushbutton.
+
+  Positioning of Pushbuttons
+  --------------------------
+  When specifying the location and width for a pushbutton, there are
+  several considerations that you must keep in mind.
+
+  If the dcButtonBox option is *not* in effect, then the following
+  considerations apply:
+
+  1) If the dcButtonShadow option is in effect, you need to allow one
+     extra row's worth of space below the pushbutton for its shadow.
+
+  2) On a monochrome or black & white display, pushbuttons will
+     sometimes be surrounded by single or double arrows. Hence, you
+     must leave room (one column) on either side of the push button
+     for these arrows. On a color display, the extra column on the
+     right is generally used for the button's shadow.
+
+  3) When OPDRAG is in use, an additional column on the right will
+     sometimes be needed to achieve a visual "pushing effect", and
+     OPDIALOG assumes that it must provide for that possibility.
+     Hence, you must actually leave two columns' worth of space on the
+     right side of a pushbutton, not one.
+
+  4) On a monochrome or black & white display, the text for a
+     pushbutton is surrounded by square brackets. Hence, when
+     specifying the width of a pushbutton, you must leave room for
+     these brackets. For example, if the text of the pushbutton is
+     'Cancel', the width parameter to AddPushButton must be at least
+     8. If you don't leave room for the brackets, they will overwrite
+     part of the pushbutton or cause other problems; the error will
+     not be caught automatically.
+
+  If the dcButtonBox option is in effect, then the following
+  considerations apply:
+
+  1) The row and column coordinates that you specify pertain to the
+     button itself (the "interior" of the box), not to the box itself.
+
+  2) You need to allow two extra row's worth of space (one above the
+     button and one below) and two extra columns (one to the left of
+     the pushbutton and one to the right).
+
+  The Default Pushbutton
+  ----------------------
+  As indicated earlier, every dialog box should have one its
+  pushbuttons designated as the default pushbutton by passing True as
+  the final parameter to AddPushButton. But what does that mean?
+
+  In general, the default pushbutton specifies the action to be
+  performed if the user issues the ccSelect command (i.e., presses
+  <Enter>). For example, if the command associated with the default
+  pushbutton is ccUser1, and the user presses <Enter> while the cursor
+  is within a cluster of radio buttons, the dialog box will exit and
+  GetLastCommand will return ccUser1, even though the cursor wasn't on
+  the default pushbutton.
+
+  Note however that when the current control is itself a pushbutton,
+  that pushbutton is considered to be the default pushbutton for as
+  long as it is the current control. When the cursor is moved to a
+  control other than a pushbutton, the default pushbutton you
+  specified originally will again appear as such.
+
+  On color systems, the default pushbutton is displayed in different
+  colors than normal pushbuttons. On monochrome systems, the default
+  pushbutton is surrounded by single arrows (#26 and #27) when it is
+  not the current control, and by double arrows ('¯' and '®') when it
+  is (unless the dcButtonBox option is in effect). If you have a color
+  system and want to see what a given dialog box will look like on a
+  monochrome system, issue the DOS command 'MODE BW80' before running
+  your program.
+
+  Effects of OPDRAG
+  -----------------
+  If OPDRAG is in use and the dcButtonShadow option is enabled,
+  pushbuttons will exhibit a kind of 3D effect if the left mouse
+  button is pressed while the mouse cursor is on the pushbutton. On
+  color systems, the button shadow goes away, and the button is
+  displayed one column further to the right than normal. On monochrome
+  systems, the brackets around the button text disappear, and the
+  button is displayed one column to the right. The pushbutton will
+  exhibit this altered appearance until the mouse cursor is moved off
+  the pushbutton or the left mouse button is released.
+
+  If the dcButtonBox option is enabled, a (potentially) different set
+  of frame characters is used when the left button is being pressed.
+
+  Standard Pushbuttons
+  --------------------
+  The following are the standard names for pushbuttons:
+
+     &Xxxx  -- Performs action specified by Xxxx; usually closes
+               dialog box.
+     O&k    -- Accept changes specified in dialog box; close dialog
+               box.
+     &Apply -- Accept changes, and display results, but don't close
+               box.
+     &Reset -- Restore previous values; don't close dialog box.
+     Cancel -- Ignore all changes; close dialog box.
+     Help   -- Help concerning the dialog box as a whole.
+
+  Not all dialog boxes will contain pushbuttons with these names, but
+  these names should be used in cases where the pushbutton performs
+  the action associated with them.
+
+  Note that, when adding a Help pushbutton, you should be sure to
+  assign it a help index that will cause the program to bring up help
+  information concerning the current dialog box.
+
+  Order and Placement of Pushbuttons
+  ----------------------------------
+  If possible, pushbuttons should be arranged horizontally in a single
+  row at the bottom of the dialog box. Alternatively, they may be
+  arranged vertically in a single column along the right side of the
+  dialog box. Pushbuttons arranged vertically should all be of the
+  same width. Ideally, the order of pushbuttons should reflect the
+  order of the list of standard pushbuttons (i.e., application
+  specific actions first, then Ok, Apply, Reset, then Cancel and
+  Help).
+
+Radio Buttons and Check Boxes
+-----------------------------
+
+Radio buttons and check boxes are generally used to allow the user to
+select program options. Although a single check box may be used in
+rare situations, check boxes are normally arranged into groups of
+related options called "clusters." Radio buttons, on the other hand,
+are always part of a larger cluster, because their purpose is to allow
+the user to select from a variety of choices.
+
+In OPCTRL's terms, radio buttons and check boxes are considered to be
+"cluster items," and the cluster to which they belong is the control.
+Hence, you would add radio buttons to a dialog box first by calling
+the AddRadioButtons method to create a Cluster object (actually, a
+descendant of Cluster called RadioButtons), and then you would call
+the AddRadioButton method to add a new radio button to the cluster.
+The job of the Cluster object is to manage the list of cluster items
+and to process commands entered by the user when the Cluster becomes
+the current control.
+
+Similarly, you would add a group of check boxes by calling the
+AddCheckBoxes method to create a Cluster, and then you would call
+AddCheckBox to add the individual check boxes to the cluster. Note
+that this procedure is necessary even when adding a single check box.
+
+The key differences between radio buttons and check boxes may be
+summarized thus: Individual check boxes are associated with individual
+Boolean variables, and the purpose of a check box is to allow the user
+to toggle the value of that variable. By contrast, all radio buttons
+in a cluster are associated with a single byte-sized variable;
+individual radio buttons are associated with distinct values, and
+selecting a given radio button sets the variable to that radio
+button's value.
+
+Another difference lies in the method of selection. A check box is
+"selected" (or deselected) by moving the cursor to it and pressing
+<Space> or <Plus> to toggle the value of its Boolean variable. A radio
+button is selected simply by moving the cursor to it.
+
+In other respects, however, the two are quite similar. In both cases,
+the text string associated with a radio button or check box may
+specify a shortcut key. Pressing the shortcut key for the cluster as a
+whole (as specified in the Prompt parameter to AddRadioButtons or
+AddCheckBoxes) moves the cursor to the current item for that cluster.
+Pressing the shortcut key for an individual item moves the cursor
+directly to that item and selects/deselects it.
+
+  Placement Considerations
+  ------------------------
+  When you create a cluster of radio buttons or check boxes, you must
+  first calculate the dimensions of the region to be occupied by all
+  the items within the cluster. For example, if the cluster will
+  contain 5 items arranged vertically, and each item is 12 columns
+  wide, then the cluster as a whole will have a width of 12 and a
+  height of 5.
+
+  Keep in mind, when calculating the width of individual items, that 5
+  characters will automatically be prepended to the string you specify
+  for a given item: ' ( ) ' for radio buttons and ' [ ] ' for check
+  boxes. For example, if the string you pass to AddRadioButton is
+  'LPT&1', then the minimum width for the radio button is 9, since the
+  '&' character won't be displayed: Length(' ( ) LPT1') = 9.
+
+  Remember, too, that in the case of a cluster with a vertical
+  orientation, you will generally want all the items in the cluster to
+  have the same width. OPCTRL/OPDIALOG can take care of that for you
+  automatically if you pass the width of the widest item as the iWidth
+  parameter to AddRadioButtons or AddCheckBoxes.
+
+  Horizontal vs. Vertical Orientations
+  ------------------------------------
+  OPDIALOG is designed with the assumption that most clusters will
+  have a vertical orientation. For example, if you call
+  AddRadioButtons and give it the width and height of the cluster, you
+  can call AddRadioButton with just two parameters (the string to be
+  displayed and the value of the radio button). The location of the
+  radio button will be calculated for you automatically. (AddCheckBox
+  is analogous to AddRadioButton.)
+
+  If you want the cluster to have a horizontal orientation, however,
+  you have to calculate the location yourself, and call
+  AddRadioButtonAt instead. This method takes two extra parameters,
+  Row and Col. DIALOG2.PAS provides an example of a radio button
+  cluster with a horizontal orientation. Note that, when the
+  orientation of a cluster is horizontal, the <Left> and <Right> arrow
+  keys are used to move the cursor from item to item, rather than <Up>
+  and <Down>. (AddCheckBoxAt is analogous to AddRadioButtonAt.)
+
+  Multi-column Clusters
+  ---------------------
+
+  It is also possible to create a multi-column cluster:
+
+     (o) One       ( ) Four
+     ( ) Two       ( ) Five
+     ( ) Three     ( ) Six
+
+  The easiest way to create this cluster would be to do something like
+  this:
+
+     AddRadioButtonAt( 'One',   01, 01, 1);
+     AddRadioButton(   'Two',           2);
+     AddRadioButton(   'Three',         3);
+     AddRadioButtonAt( 'Four',  01, 15, 4);
+     AddRadioButton(   'Five',          5);
+     AddRadioButton(   'Six',           6);
+
+  That is, you would have to calculate the coordinates for the first
+  and fourth items, but you could let AddRadioButton calculate the
+  coordinates for the rest of the items for you, since it assumes that
+  the item is to be added just below the previous one. Alternatively,
+  of course, you could simply use AddRadioButtonAt for all six items.
+  (Note that the coordinates passed to AddRadioButtonAt are 1-based
+  and relative to the top left corner of the cluster.)
+
+  In a multi-column cluster such as this, <Up> and <Down> are used to
+  move the cursor from item to item, and <Left> and <Right> are
+  ignored. Why? Because the decision about which cursor commands to
+  accept is based on the orientation of the cluster, and if the second
+  item is below the first, the orientation is considered to be
+  vertical.
+
+  Note that there is no provision made for "scrolling clusters." All
+  items in a cluster must fit in the DialogBox's window at once.
+
+  Implementing Custom Radio Buttons or Check Boxes
+  ------------------------------------------------
+  If you don't like the characters used for check boxes (' [X] ') or
+  radio buttons (' (o) ', where 'o' = #7), you will need to do two
+  things. Here, for example, is how you would implement check boxes
+  that uses ' û ' rather than ' [X] ' when an item is selected and
+  ' _ ' rather than ' [ ] ' when it is unselected.
+
+  1. Create a new object derived from CheckBoxes and override the
+     GetIconAndMarker method:
+
+     MyBoxesPtr = ^MyBoxes;
+     MyBoxes =
+       object(CheckBoxes)
+         procedure GetIconAndMarker(var Icon : string;
+                                    var Marker : Char;
+                                    var MarkerOfst : Byte); virtual;
+           {-Get the icon and selection marker for this cluster}
+       end;
+
+     procedure MyBoxes.GetIconAndMarker(var Icon : string;
+                                        var Marker : Char;
+                                        var MarkerOfst : Byte);
+     begin
+       Icon := ' _ ';    {three spaces}
+       Marker := 'û';    {character used to mark selected item}
+       MarkerOfst := 2;  {offset into Icon for Marker}
+     end;
+
+     Note: It is imperative that the first character in Icon is a
+     space and that MarkerOfst be >= 2.
+
+  2. Create a new object derived from DialogBox and create an
+     AddMyBoxes method.
+
+     NewBox =
+       object(DialogBox)
+         procedure AddMyBoxes(Prompt : string;
+                              pRow, pCol : Word;
+                              cRow, cCol: Word;
+                              cWidth, cHeight : Byte;
+                              iWidth : Byte;
+                              HelpIndex : Word);
+           {-Add a box for special checkboxes}
+        end;
+
+     procedure NewBox.AddMyBoxes(Prompt : string;
+                                 pRow, pCol : Word;
+                                 cRow, cCol: Word;
+                                 cWidth, cHeight : Byte;
+                                 iWidth : Byte;
+                                 HelpIndex : Word);
+     begin
+       if dgParamsOK(Prompt, pRow, pCol, emNullError,
+                     cRow, cCol, cWidth, cHeight) then
+         {allocate control and append it to the linked list}
+         dgAppendControl(
+           New(MyBoxesPtr {CheckBoxesPtr} ,
+               Init(asCount, Prompt, pRow, pCol, cRow, cCol, cWidth,
+                    cHeight, iWidth, HelpIndex, emNullError,
+                    asFieldOptions, dgFieldFlags, dgControlFlags,
+                    asColors, dgColors) ) );
+     end;
+
+     Note that the implementation of AddMyBoxes is identical to that
+     of AddCheckBoxes, except that 'CheckBoxesPtr' was changed to
+     'MyBoxesPtr'.
+
+  Getting Control When a Cluster Item is Changed or Selected
+  ----------------------------------------------------------
+  Prior to version 1.11, there was no way for the application to gain
+  control when a particular radio button was selected or when the
+  value of a check box variable was changed. The question of how to do
+  so arose often because many programmers wanted to protect or
+  unprotect certain controls based on the value of a check box
+  variable, or to make changes to the dialog box based on which radio
+  button was selected. We have made several changes to OPCMD, OPCTRL,
+  and OPDIALOG in order to make this possible.
+
+  First, we added the dcItemChangeExit option for Cluster-based
+  controls. When this option is set, the field editor will temporarily
+  relinguish control whenever 1) the cursor is moved from one cluster
+  item to another or 2) the value of a check box variable is changed.
+  When this happens, the post-focus routine (see below) for the dialog
+  box will have an opportunity to make whatever changes to the dialog
+  box that it wants. The key to distinguishing this case within the
+  post-focus routine is to call GetLastCommand and look for the (new)
+  ccItemChange command. This command is generated internally in the
+  two cases mentioned. DialogBox.Process has no interest in this
+  command, and if the post-focus routine ignores it nothing will
+  happen.
+
+  Second, a new method was added to DialogBox, GetCurrentItemID, that
+  allows you to determine easily within a post-focus routine which
+  item within the cluster is the current item. (Cluster items are
+  automatically assigned ID numbers just as controls are: the first
+  item added has an ID of 0, the second an ID of 1, and so on.)
+
+  Very important: When processing a ccItemChange command, a post-focus
+  routine absolutely must not change the current control using
+  SetNextField or the current command using SetLastCommand (as it is
+  allowed to do in all other cases).
+
+  For a simple example of how to use these new hooks, see the
+  PostFocus routine in DIALOG3.PAS.
+
+Edit Controls
+-------------
+An edit control is essentially identical to a string field in an entry
+screen, with two exceptions: its prompt can specify a shortcut key,
+and shortcut keys for other controls are recognized by the field
+editor if the <Alt> key is being pressed.
+
+DialogBox provides two methods for adding edit controls.
+AddEditControl is analogous to AddStringField. It allows true picture
+masks to be specified, and uses the StringEditor routine in OPFEDIT
+for editing. AddSimpleEditControl is analogous to
+AddSimpleStringField. It does not take a picture mask as a parameter,
+and it uses the SimpleStringEditor for editing.
+
+  Editing Other Data Types
+  ------------------------
+  Obviously, there will be cases where you will need to edit data
+  types other than strings within a dialog box. In these cases, you
+  can use the AddUserEditControl method, whose parameters are
+  identical to those for EntryScreen.AddUserField. The following code,
+  for example, could be used to edit a variable of type Char:
+
+    DB.AddUserEditControl(
+       'Char:',                  {prompt}
+       2, 2,                     {prompt coordinates}
+       'X',                      {picture mask}
+       2, 8,                     {edit field coordinates}
+       1,                        {edit field width}
+       0,                        {help index}
+       BlankRange,               {range low}
+       BlankRange,               {range high}
+       SizeOf(Char),             {size of data type}
+       0,                        {decimal places}
+       NullValidation,           {validation routine}
+       SimpleCharConversion,     {conversion routine}
+       SimpleDrawString,         {draw routine}
+       SimpleCharEditor,         {editor routine}
+       MyCharVar);               {variable to edit}
+
+  Before choosing the parameters for the Validate, Convert, FDraw, and
+  Editor parameters to AddUserEditControl, you should consult the
+  tables given in the Derived Field Types section of the OPFIELD
+  chapter in the manual, pp. 6-29 to 6-39. Note that some data types
+  supported directly by OPFIELD and OPENTRY/OPEDIT may not be edited
+  in a DialogBox without writing special conversion and/or validation
+  routines. These data types (such as Date and Time) have '--overrides
+  method--' in the table for the corresponding field type. Field types
+  that require special edit or draw methods (ChoiceField, MultiLine
+  field) have no equivalents in OPCTRL/OPDIALOG.
+
+Window Controls
+---------------
+
+Just as OPENTRY uses the WindowField object to allow
+CommandWindow-based objects to be treated as fields, OPDIALOG uses the
+WindowControl object to allow them to be treated as controls. This
+facility makes it possible, for example, to embed pick lists and
+directory lists within a dialog box.
+
+Most of what is said in the READ.1ST file concerning the WindowField
+object and EntryScreen.AddWindowField applies equally well to
+WindowControl and DialogBox.AddWindowControl, so you should be sure to
+read the "Child Windows in EntryScreens" section of READ.1ST before
+using AddWindowControl. The same restrictions apply--except the one
+concerning ScrollingEntryScreens, since there is no
+ScrollingDialogBox--and the mechanism for creating and positioning a
+WindowControl is the same.
+
+For examples of how to use AddWindowControl, see DIALOG3.PAS and
+FDIALOG.PAS.
+
+More on Mnemonic Shortcuts
+--------------------------
+
+In assigning shortcut keys to controls, there are several basic
+guidelines that you should keep in mind:
+
+  1. Never assign a shortcut key to a pushbutton in cases where there
+     is already a hotkey that performs the same function. For example,
+     'Cancel' (= ccQuit = <Esc>) and 'Help' (= ccHelp = <F1>) should
+     not have shortcut keys.
+
+  2. Do not assign the same shortcut key to two controls. If a name
+     conflict exists (e.g., 'Save' and 'Save as'), either change the
+     name of one of the controls, or use a letter other than the first
+     for one of the controls (e.g., '&Save' and 'Save &as').
+
+  3. If a name conflict arises between items in two separate clusters
+     (e.g., a radio button and a check box), you may set the
+     dcSelectLocally option for one or both clusters, so that the
+     shortcut keys for the individual items work only when the cursor
+     is in the same cluster. Note that as of version 1.21, when the
+     dcSelectLocally option is set for a cluster, the shortcut keys
+     for the items in it are displayed in a highlighted state only
+     when the cluster has the focus.
+
+SAA Conformance
+---------------
+
+In several sections of this introduction, we have offered guidelines
+pertaining to the style and content of dialog boxes. In most cases,
+these guidelines are based on the IBM publication "Systems Application
+Architecture, Common User Access: Advanced Interface Design Guide"
+(SC26-4582-0). If it is important that your application conform as
+strictly as possible to SAA guidelines, we highly recommend that you
+order this reference book from your local IBM representative.
+
+The EnterToTab Option
+---------------------
+
+One common place where programs deviate from the SAA specification
+mentioned above is in the behavior of the <Enter> key. Many people
+find the more traditional handling of this key--where pressing <Enter>
+accepts the input of the current field and moves to the next field of
+the dialog--more natural and easier to use than the SAA/CUA standard
+of having the <Enter> key accept all dialog input and activating the
+default pushbutton.
+
+Prior to version 1.21, there was no easy way of implementing this
+behavior. As of version 1.21 we have added the SetEnterToTab option
+for dialog boxes, to allow controling this. The SetEnterToTab method
+behaves in a similar manner to the method of the same name in our Data
+Entry Workshop library for Windows, forcing the <Enter> key to be
+interpreted as a <Tab> when the current control is not a pushbutton.
+See the entry below for DialogBox.SetEnterToTab.
+
+Pre-Focus Routines
+------------------
+
+The pre-focus routine is the DialogBox's equivalent of the
+EntryScreen's pre-edit routine, and may be used for the same purposes
+(e.g., to display a help message concerning the current control). You
+can specify a pre-focus routine for a DialogBox by calling the
+SetPreFocusProc method.
+
+A pre-focus routine should be of the following form
+
+  {$F+}
+  procedure PreFocus(DBP : DialogBoxPtr);
+  begin
+    case DBP^.GetCurrentID of
+      {display help message for this field}
+    end;
+  end;
+
+where DBP is a pointer to the DialogBox making the call.
+
+Post-Focus Routines
+-------------------
+
+The post-focus routine is the DialogBox's equivalent of the
+EntryScreen's post-edit routine, and may be used for the same purposes
+(e.g., to update other controls based on the value associated with the
+current control). You can specify a post-focus routine for a DialogBox
+by calling the SetPostFocusProc method.
+
+A post-focus routine should be of the following form
+
+  {$F+}
+  procedure PostFocus(DBP : DialogBoxPtr);
+  begin
+    case DBP^.GetCurrentID of
+      {update any controls affected by changes to the current control}
+      {update the screen using DrawField}
+    end;
+  end;
+
+where DBP is a pointer to the DialogBox making the call.
+
+For additional information concerning post-focus routines, see the
+section on ""Getting Control When a Cluster Item is Changed or
+Selected," above.
+
+For a sophisticated example of a post-focus routine, see the source
+for the FileDialog.dgPostFocus method in FDIALOG.PAS. (Overriding
+dgPostFocus is an alternative to calling SetPostFocusProc. Similarly,
+overriding dgPreFocus is an alternative to calling SetPreFocusProc.) A
+simpler example may be found in DIALOG3.PAS.
+
+FDIALOG.PAS
+-----------
+
+This file implements an object derived from the DialogBox called the
+FileDialog. It provides a ready-made dialog box for selecting
+filenames. Although we consider it a mere example, a component part of
+DIALOG4.PAS, the object is general purpose enough that it should be
+usable in a wide variety of applications.
+
+In terms of its interface, the FileDialog is a straightforward
+extension of the DialogBox, so there's no real need for documentation
+other than the example given in DIALOG4.PAS. The constructor does,
+however, take two additional parameters: one to control the display of
+the dialog box's Help pushbutton, and a second to indicate the file
+mask to use for the file directory list ('' = '*.*'). If the DialogBox
+exits with a command of ccSelect, a valid filename was selected, which
+can be obtained by calling the GetFileName method.
+
+The only special method whose use is not demonstrated by DIALOG4 is
+SetFileName, which you would call if you wanted the edit control at
+the top of the dialog box to suggest a default filename other than the
+filename portion of the mask. For example, if you used a mask of
+'C:\*.*', the edit control would display '*.*' initially. If you
+wanted it to display 'MYPROG.PAS' instead, you would call
+'SetFileName('MYPROG.PAS');' immediately after instantiating the
+object.
+
+DialogBoxes and Streams
+-----------------------
+
+Streams support for DialogBoxes is implemented in the same fashion as
+that for EntryScreens. That is, it uses the "user record" principle
+for dealing with user variables, and it leaves the registration of
+individual control types up to you, to avoid linking in code that will
+never be used.
+
+Everything that is said in the manual (p. 6-133 ff.) about the
+EntryScreen's SetUserRecord, GetUserRecord, and GetUserRecordSize
+methods applies equally well to the DialogBox's versions of those
+methods. Please be sure to read that section of the manual.
+
+In preparation for loading or storing a DialogBox, you must be certain
+that you register all the appropriate object types. DialogBoxStream
+will register most of the necessary types for you, but it does not
+register all the various control types. You must do that yourself. To
+determine which registration routines you need to call, you can use
+the following table, which is analogous in purpose to the one shown on
+p. 6-135 of the manual:
+
+  AddControl routine       Stream registration
+  -----------------------------------------------
+  AddPushButton            PushButtonStream
+  AddRadioButtons          RadioButtonsStream
+  AddCheckBoxes            CheckBoxesStream
+  AddWindowControl         WindowControlStream
+  AddEditControl           EditControlStream
+  AddSimpleEditControl     SimpleEditControlStream
+  AddUserEditControl       *
+
+  * When you use AddUserEditControl, you will need to register the
+    addresses of the conversion, validation, draw, and edit routines
+    that you have used. If these are all built-in routines, and are
+    emulating one of EntryScreen's AddField methods, you can save
+    yourself some work by using the same registration routine that you
+    would use if your DialogBox were an EntryScreen. For example,
+    let's say that you were using AddUserEditControl to edit an
+    integer field with the SimpleStringEditor, and that you had used
+    the InitSim entry under IntegerField on p. 6-34 to find out which
+    driver routines to use. You would thus be emulating the
+    AddSimpleIntField method of EntryScreen, and you could find the
+    appropriate registration routine to call, IntegerFieldSimStream,
+    using the table on p. 6-135.
+
+For an example of how to Store a DialogBox in a stream and reload it,
+see DIALOG3.PAS. If the conditional define TestStream is enabled in
+DIALOG3, and UseStreams is defined in OPDEFINE.INC, DIALOG3 will Store
+its dialog box in a stream after it has been instantiated and then
+reload it from the stream before processing it.
+
+The Help File: OPDIALOG.TXT
+---------------------------
+
+OPDIALOG.TXT is intended to be merged with the help files for Object
+Professional, allowing you to obtain popup help on OPCTRL and OPDIALOG
+using our POPHELP utility.
+
+To combine help files, you should use a text editor to modify the main
+text file of one of the help databases. Let's say that you want to
+combine Object Professional's help with the help for OPDIALOG. To do
+so, you would edit OPRO.TXT and add OPDIALOG.TXT to the list of
+included help files. Just prior to the INCLUDE directive for
+OPDIALOG.TXT, you would insert an additional line with a !BIAS
+directive. The end of OPRO.TXT would then look something like this:
+
+...
+!INCLUDE OPSWAP1.TXT
+!INCLUDE OPTSR.TXT
+!INCLUDE OPWINDOW.TXT
+;
+; insert !BIAS statement here
+; add !INCLUDE statement here
+;
+!BIAS
+!INCLUDE OPDIALOG.TXT
+
+You would then use MAKEHELP to recompile the combined help database:
+
+   MAKEHELP /Q OPRO
+
+
+------- DialogBox Commands  ------------------------------------------
+
+The commands available while within a dialog box are arranged by
+category in the list below. In each case the first line gives the name
+of the command, followed by the key(s) to which it is normally
+assigned. The second and following lines give a brief description of
+the command.
+
+Because many of the commands behave differently depending on the
+current control, the descriptions are generally preceded by one or
+more abbreviations, indicating the control being described. These are
+the abbreviations used:
+
+  CC  Cluster control (radio buttons, check boxes)
+  EC  Edit control
+  WC  Window control
+
+"WC: ?" indicates that the command serves a function only in window
+controls, and that that function may vary depending on the type of the
+window.
+
+Cursor Movement
+---------------
+
+ccLeft        <Left>, <CtrlS>
+EC: Cursor left one character.
+CC: Cursor to previous cluster item (horizontal cluster only).
+
+ccRight       <Right>, <CtrlD>
+EC: Cursor right one character.
+CC: Cursor to next cluster item (horizontal cluster only).
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+EC: Cursor left one word.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+EC: Cursor right one word.
+
+ccHome        <Home>, <CtrlQ><S>
+EC: Cursor to beginning of control.
+
+ccEnd         <End>, <CtrlQ><D>
+EC: Cursor to end of control.
+
+ccUp          <Up>, <CtrlE>
+CC: Cursor to previous cluster item (vertical cluster only).
+
+ccDown        <Down>, <CtrlX>
+CC: Cursor to next cluster item (vertical cluster only).
+
+ccTab         <Tab>, <CtrlI>
+Cursor to next control.
+
+ccBackTab     <ShiftTab>
+Cursor to previous control.
+
+ccPageUp      <PgUp>
+WC: ?.
+
+ccPageDn      <PgDn>
+WC: ?.
+
+Insertion and Deletion
+----------------------
+
+ccDel         <Del>, <CtrlG>
+EC: Delete character at cursor.
+
+ccBack        <Bksp>, <CtrlH>, <CtrlBksp>
+EC: Delete character to left of cursor.
+
+ccDelLine     <CtrlY>
+EC: Clear entire control.
+
+ccDelEol      <CtrlEnd>, <CtrlQ><Y>
+EC: Delete from cursor to end of subfield.
+
+ccDelBol      <CtrlHome>
+EC: Delete from beginning of subfield to cursor.
+
+ccDelWord     <CtrlT>
+EC: Delete word to right of cursor.
+
+ccCtrlChar    <CtrlP>
+EC: Insert control character. For example, to insert a ^G, you would
+enter <CtrlP><CtrlG>. This command is not available if the video
+attribute for control characters is the same as that for ordinary text
+and the efMapCtrls option is on.
+
+ccIns         <Ins>, <CtrlV>
+EC: Toggle insert mode on and off. A fat cursor indicates insert mode;
+a thin cursor indicates overtype mode.
+
+Other
+-----
+
+ccSelect      <Enter>, <CtrlM>
+Accept contents of dialog box. If the current control has a special
+command code associated with it, that command will be executed by
+DialogBox.Process and returned by GetLastCommand. (For example, a
+pushbutton might have a command of ccQuit or ccHelp associated with
+it.) Otherwise, the command associated with the default pushbutton
+will be executed/returned.
+
+ccMouseSel    <ClickLeft>
+CC: If mouse is within the cluster, moves cursor to position of mouse,
+else to the control pointed to by the mouse cursor.
+Else: Move cursor to control pointed to by mouse cursor.
+
+ccRestore     <CtrlR>, <CtrlQ><L>
+EC: Restore original contents of the control.
+
+ccToggle      <+>, <Space>
+CC: Toggles the value of a check box.  If the focus is on a pushbutton,
+that pushbutton and the command associated with it is generated.
+
+ccHelp        <F1>, <ClickBoth>
+Help. If a user-written help routine has been established by calling
+DialogCommands.SetHelpProc, pressing <F1> will call that routine;
+otherwise this command does nothing. If there is a GetHelpProc, the
+control editor will pass it the following three parameters: ucDialog,
+nil, and the value designated as the current control's help index.
+
+ccQuit        <Esc>, <CtrlBreak>, <ClickRight>
+Exit from the dialog box.
+
+
+------- OPCTRL -------------------------------------------------------
+
+DialogColorSet
+==============
+
+The DialogColorSet object is used to supplement the information about
+video attributes provided by the standard ColorSet object.
+
+Declarations
+------------
+
+Types
+    DialogColorSet =
+      object
+        HiPromptColor, HiPromptMono : Byte;
+        ButtonColor, ButtonMono : Byte;
+        DefButtonColor, DefButtonMono : Byte;
+        HiButtonColor, HiButtonMono : Byte;
+        SelButtonColor, SelButtonMono : Byte;
+        ProButtonColor, ProButtonMono : Byte;
+        BtnShadowColor, BtnShadowMono : Byte;
+        ClusterColor, ClusterMono : Byte;
+        ProClusterColor, ProClusterMono : Byte;
+        HiClusterColor, HiClusterMono : Byte;
+        SelClusterColor, SelClusterMono : Byte;
+      end;
+
+   Objects of this type are used to specify the video attributes that
+   are to be used for DialogBoxes and their component parts.
+
+Constants
+    DefaultDialogColors : DialogColorSet = (
+      HiPromptColor   : $0F; HiPromptMono    : $0F;
+      ButtonColor     : $70; ButtonMono      : $70;
+      DefButtonColor  : $78; DefButtonMono   : $70;
+      HiButtonColor   : $7F; HiButtonMono    : $70;
+      SelButtonColor  : $7F; SelButtonMono   : $70;
+      ProButtonColor  : $70; ProButtonMono   : $07;
+      BtnShadowColor  : $08; BtnShadowMono   : $07;
+      ClusterColor    : $70; ClusterMono     : $70;
+      ProClusterColor : $07; ProClusterMono  : $07;
+      HiClusterColor  : $7F; HiClusterMono   : $70;
+      SelClusterColor : $7F; SelClusterMono  : $70);
+
+  The default DialogColorSet, used by DialogBox.Init.
+
+Methods
+-------
+
+DialogColorSet provides the following methods, which have a one-to-one
+correspondence to the data fields for the object:
+
+  procedure SetHighlightPromptAttr(Color, Mono : Byte);
+    {-Set attributes for highlight chars in prompts}
+  procedure SetButtonAttr(Color, Mono : Byte);
+    {-Set attributes for unselected buttons}
+  procedure SetDefaultButtonAttr(Color, Mono : Byte);
+    {-Set attributes for default button when unselected}
+  procedure SetHighlightButtonAttr(Color, Mono : Byte);
+    {-Set attributes for highlighted chars in buttons}
+  procedure SetSelectedButtonAttr(Color, Mono : Byte);
+    {-Set attributes for selected buttons}
+  procedure SetProtectedButtonAttr(Color, Mono : Byte);
+    {-Set attributes for protected buttons}
+  procedure SetButtonShadowAttr(Color, Mono : Byte);
+    {-Set attributes for button shadows/boxes}
+  procedure SetClusterAttr(Color, Mono : Byte);
+    {-Set attributes for cluster items}
+  procedure SetProtectedClusterAttr(Color, Mono : Byte);
+    {-Set attributes for protected cluster items}
+  procedure SetHighlightClusterAttr(Color, Mono : Byte);
+    {-Set attributes for highlighted chars in cluster items}
+  procedure SetSelectedClusterAttr(Color, Mono : Byte);
+    {-Set attributes for selected cluster items}
+
+
+Control
+=======
+
+The Control is an abstract object derived from EntryField that defines
+the data fields and methods shared in common by all of its
+descendants. (See the object hierarchy at the beginning of the
+introduction.)
+
+Declarations
+------------
+
+Constants
+    BadControlOptions : LongInt =
+      dcButtonDown+dcSelectByChar+dcIsDefault+dcIsButton+
+      dcIsCluster+dcForceExit;
+
+  Control options that exist for internal use, and may not be altered
+  by calling dcOptionsOn or dcOptionsOff.
+
+    CurControlMarker1 : Char = '¯';
+    CurControlMarker2 : Char = '®';
+    DefButtonMarker1  : Char = #26;
+    DefButtonMarker2  : Char = #27;
+
+  These constants specify the characters that are used on monochrome
+  systems to mark the current control (CurControlMarker1 and
+  CurControlMarker2) and the default pushbutton (DefButtonMarker1 and
+  DefButtonMarker2). Note that copies of these values are *not* stored
+  with individual objects.
+
+    dcSelectLocally   = $00000001;
+    dcButtonShadow    = $00000002;
+    dcButtonBox       = $00000004;
+    dcItemChangeExit  = $00000008;
+    dcForceExit       = $04000000; {internal flags}
+    dcButtonDown      = $08000000;
+    dcSelectByChar    = $10000000;
+    dcIsDefault       = $20000000;
+    dcIsButton        = $40000000;
+    dcIsCluster       = $80000000;
+
+  These are the option settings that may be applied to Control-based
+  objects. dcSelectLocally, meaningful only for Clusters, indicates
+  that the shortcut keys for the items in the Cluster should be
+  recognized and displayed only when the Cluster has the focus.
+  dcButtonShadow, meaningful only for pushbuttons, indicates that the
+  button should have a shadow when it is displayed on a color system.
+  dcButtonBox is also meaningful only for pushbuttons; it indicates
+  that the button should be surrounded by a box (DefButtonBox,
+  DefButtonBoxSel, or DefButtonBoxDown). Note that dcButtonBox and
+  dcButtonShadow are mutually exclusive, and that neither option may
+  be turned on or off after the pushbutton has been instantiated.
+  dcItemChangeExit indicates that you want your post-focus routine to
+  be called (with GetLastCommand = ccItemChange) when in a radio
+  button or check box cluster and either 1) the current item changes
+  or 2) a check box is selected/deselected.
+
+  The remaining options are internal flags. dcForceExit is used
+  internally in connection with the processing of the dcItemChangeExit
+  option. dcButtonDown indicates that the left mouse button is
+  currently being held down, and is meaningful only if the OPDRAG unit
+  is use. This option is used to create a 3D effect for pushbuttons.
+  dcSelectByChar indicates that the control has shortcut keys
+  associated with it other than that specified in its prompt. It is
+  set automatically for pushbuttons and clusters. dcIsDefault flags
+  the default button in a dialog box. dcIsButton flags the control as
+  a pushbutton. And dcIsCluster flags the control as a cluster.
+
+    DefButtonBox      : FrameArray = 'ÉÈ»¼ÍÍºº';
+    DefButtonBoxSel   : FrameArray = 'ÉÈ»¼ÍÍºº';
+    DefButtonBoxDown  : FrameArray = 'ÚÀ¿ÙÄÄ³³';
+
+  Box types used when the dcButtonBox option is selected. DefButtonBox
+  is used when the pushbutton is unselected. DefButtonBoxSel is used
+  when the pushbutton is selected. DefButtonBoxDown is used when the
+  pushbutton is being "pushed down" by the mouse cursor (happens only
+  if OPDRAG is in use).
+
+    DefControlOptions : LongInt = dcButtonShadow;
+
+  The default options pertaining to Controls.
+
+Types
+    ControlPtr = ^Control;
+    Control =
+      object(EntryField)
+        dcFlags      : LongInt;
+        dcDefCmd     : Word;
+        dcHighPColor : Byte;
+        dcHighPMono  : Byte;
+      end;
+
+  This object defines the data fields and methods that are shared in
+  common by all controls (pushbuttons, check box and radio button
+  clusters, etc.). dcFlags holds the special options related to the
+  control (see the Declarations section). dcDefCmd is the command
+  associated with the control. It is normally set to ccSelect, except
+  in the case of pushbuttons. dcHighPColor and dcHighPMono are the
+  attributes used to display highlighted characters in prompts.
+
+    PushButtonPtr = ^PushButton;
+    PushButton =
+      object(Control)
+        buShadowColor : Byte;
+        buShadowMono  : Byte;
+        buDefColor    : Byte;
+        buDefMono     : Byte;
+      end;
+
+  A pushbutton. buShadowColor and buShadowMono are the colors for the
+  button's shadow (or box), if it has one, and buDefColor and
+  buDefMono are the colors used to display a button marked as the
+  default button for a dialog box.
+
+Methods
+-------
+
+Declaration
+  function dcOptionsAreOn(OptionFlags : LongInt) : Boolean;
+Purpose
+  Return True if all specified control options are on.
+Description
+  This method returns True if the specified control option(s) are
+  currently selected.
+
+
+Declaration
+  procedure dcOptionsOff(OptionFlags : LongInt);
+Purpose
+  Deactivate control options.
+Description
+  This method deactivates the specified control option(s), excluding
+  dcButtonBox, dcButtonShadow, and those designated as
+  BadControlOptions.
+
+
+Declaration
+  procedure dcOptionsOn(OptionFlags : LongInt);
+Purpose
+  Activate control options.
+Description
+  This method activates the specified control option(s), excluding
+  dcButtonBox, dcButtonShadow, and those designated as
+  BadControlOptions.
+
+
+Declaration
+  constructor Init(ID : Word;           var Prompt : string;
+                   pRow, pCol : Word;   var Picture : string;
+                   fRow, fCol : Word;   fWidth, fHeight : Byte;
+                   HlpNdx : Word;
+                   var RangeLo, RangeHi : RangeType;
+                   DataSize : Word;     DecimalPlaces : Byte;
+                   VF : ValidationFunc; CP : ConversionProc;
+                   DP : DrawProc;       EP : EditProc;
+                   var EditVar;         PadChar : Char;
+                   prOptions, seOptions, dcOptions : LongInt;
+                   var Colors : ColorSet;
+                   var dColors : DialogColorSet);
+Purpose
+  Initialize a control.
+Description
+  This constructor is identical to EntryField.Init except that it
+  takes two additional parameters: dcOptions (options specific to
+  controls; prOptions and seOptions specify the primary and secondary
+  field options), and dColors (video attributes pertaining solely to
+  dialog box controls).
+See Also
+  EntryField.Init
+
+
+Declaration
+  constructor InitNPP(ID : Word;           var Prompt : string;
+                      pRow, pCol : Word;   var Picture : string;
+                      fRow, fCol : Word;   fWidth, fHeight : Byte;
+                      HlpNdx : Word;
+                      var RangeLo, RangeHi : RangeType;
+                      DataSize : Word;     DecimalPlaces : Byte;
+                      var EditVar;         PadChar : Char;
+                      prOptions, seOptions, dcOptions : LongInt;
+                      var Colors : ColorSet;
+                      var dColors : DialogColorSet);
+Purpose
+  Initialize a control (No Procedure Pointers).
+Description
+  This constructor is identical to Init except that it lacks VF
+  (validation), CP (conversion), DP (draw), and EP (edit) parameters.
+  It is used in cases where the corresponding methods have been
+  overridden, rather than using driver routines.
+See Also
+  Init
+
+
+Declaration
+  procedure SetDefCommand(Cmd : Word);
+Purpose
+  Set default command for this control.
+Description
+  This method may be used to specify the command to be executed when
+  the ccSelect command is issued. It should generally be used only for
+  pushbutton controls.
+
+
+Cluster
+=======
+
+The Cluster is an abstract object derived from Control that defines
+the data fields and methods shared in common by the CheckBoxes and
+RadioButtons objects.
+
+Declarations
+------------
+
+Types
+    CheckBoxesPtr = ^CheckBoxes;
+    CheckBoxes =
+      object(Cluster)
+      end;
+
+  This cluster-based object defines the appearance of a check box and
+  processes cursor movement commands within the cluster.
+
+    ClusterItemPtr = ^ClusterItem;
+    ClusterItem =
+      object(DoubleListNode)
+        ciId         : Byte;
+        ciSelValue   : Byte;
+        ciRow, ciCol : Byte;
+        ciVarPtr     : ^Byte;
+        ciText       : StringPtr;
+      end;
+
+  A single item (radio button or check box) within a Cluster. ciId is
+  the ID number for the item, which is assigned automatically when the
+  item is added. The first item in a cluster has an ID of 0, the next
+  is 1, etc.
+
+  ciVarPtr points to the variable associated with the item, and
+  ciSelValue is the value to be assigned to it when the item is
+  selected. ciRow and ciCol are the coordinates for the item. And
+  ciText is the descriptive string associated with it.
+
+    ClusterPtr = ^Cluster;
+    Cluster =
+      object(Control)
+        clSelFColor : Byte;
+        clSelFMono  : Byte;
+        clItemWidth : Byte;
+        clList      : DoubleList;
+        clCurrent   : ClusterItemPtr;
+      end;
+
+  A control containing multiple items (radio buttons or check boxes).
+  clSelFColor and clSelFMono are the attributes to be used for the
+  current item when the cluster has the focus (it is selected).
+  clItemWidth is the width to which each item should be padded, or 0
+  if no padding is desired. clList is the list of items (of type
+  ClusterItem) within the cluster. clCurrent points to the current
+  item.
+
+    RadioButtonsPtr = ^RadioButtons;
+    RadioButtons =
+      object(Cluster)
+      end;
+
+  This cluster-based object defines the appearance of a radio button
+  and processes cursor movement commands within the cluster.
+
+Methods
+-------
+
+Declaration
+  function FindItem(Id : Byte) : ClusterItemPtr;
+Purpose
+  Return a pointer to the specified item.
+Description
+  Given the ID number for an item within the cluster, this method
+  returns a pointer to the corresponding ClusterItem. See the entry
+  for ClusterItem for a discussion of how ID numbers are assigned.
+
+
+Declaration
+  function GetCurrentItem : Byte;
+Purpose
+  Return ID for current item.
+Description
+  This method returns the ID number for the current item.
+
+
+Declaration
+  procedure SelectItem(Id : Byte);
+Purpose
+  Select specified item.
+Description
+  This method may be used to set the variable associated with the
+  specified item to its selection value (ciSelValue). Note that
+  calling SelectItem will not, in the case of a check box, reset the
+  current item. In the case of a radio button, the current item will
+  be reset the next time that the cluster is redrawn.
+See Also
+  SetCurrentItem
+
+
+Declaration
+  procedure SetCurrentItem(Id : Byte);
+Purpose
+  Set current item.
+Description
+  This method may be used to set the current item within a cluster. It
+  is useful only for check boxes. To set the current item for a
+  cluster of radio buttons, use SelectItem instead.
+See Also
+  SelectItem
+
+
+------- OPDIALOG -----------------------------------------------------
+
+Declarations
+------------
+
+Types
+    dgControlProc = procedure(CP : ControlPtr; var D;
+                              DBP : DialogBoxPtr);
+
+  A user-written procedure called by VisitAllControls to perform a
+  particular action on all Controls associated with a DialogBox.
+
+    dgUserProc = procedure(DBP : DialogBoxPtr);
+
+  A user-written procedure called when the cursor is about to be moved
+  to a new control (a pre-focus routine) or the cursor is about to
+  leave the current control (a post-focus routine).
+
+    DialogBoxPtr = ^DialogBox;
+    DialogBox =
+      object(AbstractSelector)
+        ...
+        dgInsertMode : Boolean;    {insert mode on?}
+        ...
+      end;
+
+  A dialog box. dgInsertMode indicates whether the default mode for
+  editing is insert or overtype.
+
+    WindowControlPtr = ^WindowControl;
+    WindowControl =
+      object(Control)
+        wcWin : CommandWindowPtr;
+      end;
+
+  The purpose of the WindowControl is to allow virtually any
+  CommandWindow-based object to be treated as a control within a
+  DialogBox. See the entry for DialogBox.AddWindowControl, below.
+
+Constants
+    BadDgFieldOptions : LongInt = efMultChoice+efAutoAdvanceCursor;
+
+  DialogBox options that exist for internal use, and may not be
+  altered by calling dgFieldOptionsOn or dgFieldOptionsOff.
+
+    BadDialogOptions : Byte = dgFastUpdates+dgDeallocUserRec;
+
+  DialogBox options that exist for internal use, and may not be
+  altered by calling dgOptionsOn or dgOptionsOff.
+
+    DialogKeyMax = 220;
+    DialogKeyID  : string[13] = 'opdialog keys';
+    DialogKeySet : array[0..DialogKeyMax] of Byte = (...);
+    DialogCfgEnd : Byte = 0;
+
+  DialogKeyId is an ID string used to mark the the beginning of the
+  configuration data area for OPDIALOG; DialogCfgEnd marks the end of
+  the configuration data area. In between them is DialogKeySet, the
+  command table used by DialogCommands. DialogKeyMax is the last valid
+  index into the table.
+
+    dgSamePosition   = $08; {same cursor position as before?}
+    dgEnterToTab     = $20; {used internally}
+    dgDeallocUserRec = $40; {used internally}
+    dgFastUpdates    = $80; {used internally}
+
+  When the dgSamePosition flag is set, the Process method will
+  position the cursor at exactly the same location it had when Process
+  last exited. This option is meaningful only for edit controls. (When
+  dgSamePosition is not set, the cursor returns to the same control as
+  before, but the cursor is positioned on either the first or last
+  character.) dgSamePosition is useful when implementing special exit
+  commands that must appear to execute "transparently." Note that the
+  dgSamePosition option is cleared automatically by Process as soon as
+  it is acted upon, so setting the option affects only the next call
+  to Process.
+
+  dgEnterToTab is an internal flag that is set when SetEnterToTab has
+  been called to request that the <Enter> key be processed in the same
+  manner as the <Tab> key.
+
+  The dgDeallocUserRec option is an internal flag that is sometimes
+  used when a DialogBox is loaded from a stream. The dgFastUpdates
+  option is an internal flag used to speed up screen updates.
+
+    DefDgFieldOptions : LongInt =
+      efInsertPushes+efAutoAdvanceChar+efTrimBlanks+efMapCtrls+
+      efAllowEscape+efDefaultAccepted+efShowReadChar;
+
+  The default field options for a DialogBox.
+
+    DefDialogOptions : Byte = 0;
+
+  The default options for a DialogBox.
+
+Variables
+    {$IFDEF UseDrag}
+    DialogCommands : DragProcessor;
+    {$ELSE}
+    DialogCommands : CommandProcessor;
+    {$ENDIF}
+
+  The default CommandProcessor for a DialogBox.
+
+Methods
+-------
+
+Declaration
+  procedure AddCheckBox(S : string; var cbVar : Boolean);
+Purpose
+  Add a check box.
+Description
+  This method is identical to AddCheckBoxAt, except that it assumes
+  that the orientation of the cluster is vertical, so it calculates
+  appropriate Row and Col coordinates based on the location of the
+  cluster as a whole and/or the last checkbox added.
+Example
+  See DIALOG3.PAS.
+See Also
+  AddCheckBoxAt   AddCheckBoxes
+
+
+Declaration
+  procedure AddCheckBoxAt(S : string; Row, Col : Byte;
+                          var cbVar : Boolean);
+Purpose
+  Add a check box at a specific Row, Col.
+Description
+  This method adds a single check box at the specified Row and Col,
+  which must be within the bounds of a cluster previously created with
+  AddCheckBoxes. Both coordinates are 1-based and they are considered
+  to be relative to the top left corner of the cluster: i.e., 1,1 =
+  top left corner.
+
+  S is the text to be associated with the check box, and cbVar is the
+  Boolean variable whose value is controlled by the check box.
+
+  AddCheckBoxAt should be used in preference to AddCheckBox when
+  creating a cluster with a horizontal orientation, or a cluster with
+  multiple columns.
+See Also
+  AddCheckBox   AddCheckBoxes
+
+
+Declaration
+  procedure AddCheckBoxes(Prompt : string;  pRow, pCol : Word;
+                          cRow, cCol: Word; cWidth, cHeight : Byte;
+                          iWidth : Byte; HelpIndex : Word);
+Purpose
+  Add a box for checkboxes.
+Description
+  This method adds a cluster of checkboxes at the specified row (cRow)
+  and column (cCol). Prompt is the prompt to be associated with the
+  cluster as a whole, to be displayed at the specified row (pRow) and
+  column (pCol).
+
+  cWidth is the width of the cluster as a whole, and cHeight is its
+  height. All individual checkboxes should be contained within the
+  rectangle whose location and dimensions are given by cRow, cCol,
+  cWidth, and cHeight.
+
+  iWidth is the width of all the items in the cluster. If the value is
+  non-0, the text for all items will be padded to this width. If the
+  value is 0, the items will not be padded. Typically, clusters with a
+  vertical orientation (see DIALOG3.PAS) should be padded, and
+  clusters with a horizontal orientation (see DIALOG2.PAS, which uses
+  radio buttons) should not.
+
+  In calculating the width of individual items and the cluster as a
+  whole, keep in mind that each item will be preceded by five
+  characters, ' [ ] '. Also, in a vertical cluster, it is generally
+  desirable to leave room for at least one extra space at the end of
+  the widest item.
+
+  HelpIndex is the value that should be passed to the help routine
+  when help is requested for this control.
+
+  A call to AddCheckBoxes should be followed immediately by calls to
+  AddCheckBox or AddCheckBoxAt, to add the individual checkboxes to
+  the cluster.
+Example
+  See DIALOG3.PAS.
+See Also
+  AddCheckBox   AddCheckBoxAt
+
+
+Declaration
+  procedure AddEditControl(Prompt : string;  pRow, pCol : Word;
+                           Picture : string; cRow, cCol : Word;
+                           cWidth : Byte;    HelpIndex : Word;
+                           var EditSt : string);
+Purpose
+  Add an editing control.
+Description
+  This method is analogous to the AddStringField method for
+  EntryScreens, and its parameters are identical. The only difference
+  is that the Prompt may contain an '&' character used to designate
+  the shortcut key used to move the cursor to the control.
+See Also
+  AddSimpleEditControl  AddUserEditControl  EntryScreen.AddStringField
+
+
+Declaration
+  procedure AddPushButton(St : string; Row, Col : Word;
+                          cWidth : Byte; HelpIndex : Word;
+                          Cmd : Word; Default : Boolean);
+Purpose
+  Add a pushbutton.
+Description
+  This method adds a pushbutton control containing the string St at
+  the specified Row and Column. cWidth is the width of the pushbutton,
+  which should be at least two characters greater than the length of
+  St. HelpIndex is the value that should be passed to the help routine
+  when help is requested for this control. Cmd is the command to be
+  executed when the button is selected (e.g., 'OK' = ccSelect,
+  'Cancel' = ccQuit, 'Help' = ccHelp). Default should be True if this
+  button is the default button for the entire dialog box. Note that
+  only one button should be designated as the default button, and the
+  default button should never be protected or hidden.
+
+  Important: When calculating the Row, Col, and cWidth coordinates,
+  don't forget to account for the extra space needed around the
+  pushbutton. See the introductory section on Pushbuttons for details.
+Example
+  See DIALOG1.PAS.
+
+
+Declaration
+  procedure AddRadioButton(S : string; SelValue : Byte);
+Purpose
+  Add a radio button.
+Description
+  This method is identical to AddRadioButtonAt, except that it assumes
+  that the orientation of the cluster is vertical, so it calculates
+  appropriate Row and Col coordinates based on the location of the
+  cluster as a whole and/or the last radio button added.
+Example
+  See DIALOG3.PAS.
+See Also
+  AddRadioButtonAt   AddRadioButtons
+
+
+Declaration
+  procedure AddRadioButtonAt(S : string; Row, Col, SelValue : Byte);
+Purpose
+  Add a radio button at a specific Row,Col.
+Description
+  This method adds a single radio button at the specified Row and Col,
+  which must be within the bounds of a cluster previously created with
+  AddRadioButtons. Both coordinates are 1-based and they are
+  considered to be relative to the top left corner of the cluster:
+  i.e., 1,1 = top left corner.
+
+  S is the text to be associated with the radio button, and SelValue
+  is the value to be assigned to the variable named as the rbVar
+  parameter in the call to AddRadioButtons.
+
+  AddRadioButtonAt should be used in preference to AddRadioButton when
+  creating a cluster with a horizontal orientation, or a cluster with
+  multiple columns.
+Example
+  See DIALOG2.PAS.
+See Also
+  AddRadioButton   AddRadioButtons
+
+
+Declaration
+  procedure AddRadioButtons(Prompt : string;  pRow, pCol : Word;
+                            cRow, cCol: Word; cWidth, cHeight : Byte;
+                            iWidth : Byte; HelpIndex : Word;
+                            var rbVar);
+Purpose
+  Add a radio button box.
+Description
+  This method adds a cluster of radio buttons at the specified row
+  (cRow) and column (cCol). Prompt is the prompt to be associated with
+  the cluster as a whole, to be displayed at the specified row (pRow)
+  and column (pCol).
+
+  cWidth is the width of the cluster as a whole, and cHeight is its
+  height. All individual radio buttons should be contained within the
+  rectangle whose location and dimensions are given by cRow, cCol,
+  cWidth, and cHeight.
+
+  iWidth is the width of all the items in the cluster. If the value is
+  non-0, the text for all items will be padded to this width. If the
+  value is 0, the items will not be padded. Typically, clusters with a
+  vertical orientation (see DIALOG3.PAS) should be padded, and
+  clusters with a horizontal orientation (see DIALOG2.PAS) should not.
+
+  In calculating the width of individual items and the cluster as a
+  whole, keep in mind that each item will be preceded by five
+  characters, ' ( ) '. Also, in a vertical cluster, it is generally
+  desirable to leave room for at least one extra space at the end of
+  the widest item.
+
+  HelpIndex is the value that should be passed to the help routine
+  when help is requested for this control.
+
+  rbVar is the variable whose value is to be set by the radio buttons.
+  This variable may be of any type that is one byte in size (usually a
+  byte, char, or an enumerated type). Selecting a given radio button
+  will set the variable to the value associated with the radio button.
+
+  A call to AddRadioButtons should be followed immediately by calls to
+  AddRadioButton or AddRadioButtonAt, to add the individual radio
+  buttons to the cluster.
+Example
+  See DIALOG3.PAS.
+See Also
+  AddRadioButton   AddRadioButtonAt
+
+
+Declaration
+  procedure AddSimpleEditControl(Prompt : string; pRow, pCol : Word;
+                                 PicChar : Char;  cRow, cCol : Word;
+                                 cWidth, MaxLen : Byte;
+                                 HelpIndex : Word;
+                                 var EditSt : string);
+Purpose
+  Add an editing control (simple string editor).
+Description
+  This method is analogous to the AddSimpleStringField method for
+  EntryScreens, and its parameters are identical. The only difference
+  is that the Prompt may contain an '&' character used to designate
+  the shortcut key used to move the cursor to the control.
+Example
+  See DIALOG3.PAS.
+See Also
+  AddEditControl  AddUserEditControl  EntryScreen.AddSimpleStringField
+
+
+Declaration
+  procedure AddUserEditControl(Prompt : string;   pRow, pCol : Word;
+                               Picture : string;  cRow, cCol : Word;
+                               cWidth : Byte;     HelpIndex : Word;
+                               RangeLo, RangeHi : RangeType;
+                               DataSize : Word;
+                               DecimalPlaces : Byte;
+                               Validate: ValidationFunc;
+                               Convert : ConversionProc;
+                               FDraw   : DrawProc;
+                               Editor  : EditProc;
+                               var EditVar);
+Purpose
+  Add an editing control of a user-defined type.
+Description
+  This method is analogous to the AddUserField method for
+  EntryScreens, and its parameters are identical. The only difference
+  is that the Prompt may contain an '&' character used to designate
+  the shortcut key used to move the cursor to the control.
+
+  AddUserEditControl should be used rather than AddEditControl and
+  AddSimpleEditControl in cases where a data type other than a string
+  needs to be edited.
+
+  For further details, see the introductory section on Edit Controls.
+Example
+    DB.AddUserEditControl(
+       'Word:', 2, 2, '99999', 2, 8, 5, 0, BlankRange, BlankRange,
+       SizeOf(Word), 0, SimpleValidateLong, SimpleWordConversion,
+       SimpleDrawString, SimpleStringEditor, MyWordVar);
+
+  This example shows how to edit a variable of type Word using the
+  simple string editor. The values for the Validate, Convert, FDraw,
+  and Editor parameters were taken from the table for
+  WordField.InitSim on p. 6-38.
+See Also
+  AddEditControl   AddSimpleEditControl   EntryScreen.AddUserField
+
+
+Declaration
+  procedure AddWindowControl(Prompt : string;  pRow, pCol : Word;
+                             cRow, cCol: Word; HelpIndex : Word;
+                             Cmd : Word;
+                             var CW : CommandWindow);
+Purpose
+  Add a child window to be treated as a control.
+Description
+  Prompt, pRow, and pCol describe the content and location of the
+  control's prompt (optional).
+
+  cRow and cCol specify the location for the top left corner of the
+  child window. More on this below.
+
+  HelpIndex is used to set the help index for the child window (see
+  the documentation for CommandWindow.SetHelpIndex, p. 4-158). Most
+  CommandWindow-based objects pass this value to the user-supplied
+  help routine when the ccHelp command is issued.
+
+  CW is the CommandWindow-based object that is to be treated as a
+  control within the DialogBox. CW must meet the following criteria:
+
+    - It must be instantiated but inactive.
+    - It must not have a parent (AddWindowControl will call AddChild
+      for you).
+    - It must fit entirely within the inner window of the DialogBox.
+    - It must not overlap any other controls in the DialogBox.
+
+  In most cases, OPDIALOG will report a fatal error if one of these
+  criteria isn't met, but it cannot determine whether or not CW has
+  been instantiated, and it does not check for overlap.
+
+  For an explanation of how to calculate the proper coordinates for a
+  window control, see the documentation for AddWindowField in
+  READ.1ST. See also the section on Window Controls in the
+  introduction.
+See Also
+  EntryScreen.AddWindowField
+
+
+Declaration
+  procedure ChangeConversion(ID : Word; CP : ConversionProc);
+Purpose
+  Change the conversion routine for the specified control.
+Description
+  This method allows you to alter the conversion routine for any
+  control in a DialogBox. ID is the ID number for the field. CP is the
+  new conversion routine. Its purpose is identical to that of
+  EntryScreen.ChangeConversion.
+
+
+Declaration
+  procedure ChangeValidation(ID : Word; VF : ValidationFunc);
+Purpose
+  Change the validation routine for the specified control.
+Description
+  This method allows you to alter the validation routine for any field
+  in an entry screen. ID is the ID number for the field. VF is the new
+  validation routine. Its purpose is identical to that of
+  EntryScreen.ChangeValidation.
+
+
+Declaration
+  function dgControlOptionsAreOn(OptionFlags : LongInt) : Boolean;
+Purpose
+  Return True if all specified control options are on.
+Description
+  This method returns True if the specified control option(s) are
+  currently selected. See the section on OPCTRL for a discussion of
+  control options.
+
+
+Declaration
+  procedure dgControlOptionsOff(OptionFlags : LongInt);
+Purpose
+  Deactivate multiple control options.
+Description
+  This method deactivates the specified control option(s), excluding
+  those designated in OPCTRL as BadControlOptions.
+
+
+Declaration
+  procedure dgControlOptionsOn(OptionFlags : LongInt);
+Purpose
+  Activate multiple control options.
+Description
+  This method activates the specified control option(s), excluding
+  those designated in OPCTRL as BadControlOptions.
+
+
+Declaration
+  function dgFieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+Purpose
+  Return True if all specified field options are on.
+Description
+  This method returns True if the specified primary field option(s)
+  are currently selected.
+
+
+Declaration
+  procedure dgFieldOptionsOff(OptionFlags : LongInt);
+Purpose
+  Deactivate multiple field options.
+Description
+  This method deactivates the specified primary field option(s),
+  excluding those designated as BadDgFieldOptions.
+
+
+Declaration
+  procedure dgFieldOptionsOn(OptionFlags : LongInt);
+Purpose
+  Activate multiple field options.
+Description
+  This method activates the specified primary field option(s),
+  excluding those designated as BadDgFieldOptions.
+
+
+Declaration
+  function dgOptionsAreOn(OptionFlags : Byte) : Boolean;
+Purpose
+  Return True if all specified options are on.
+Description
+  This method returns True if the specified DialogBox option(s) are
+  currently selected (see the Declarations section, above).
+
+
+Declaration
+  procedure dgOptionsOff(OptionFlags : Byte);
+Purpose
+  Deactivate multiple options.
+Description
+  This method deactivates the specified DialogBox option(s), excluding
+  those designated as BadDialogOptions (see the Declarations section,
+  above).
+
+
+Declaration
+  procedure dgOptionsOn(OptionFlags : Byte);
+Purpose
+  Activate multiple options.
+Description
+  This method activates the specified DialogBox option(s), excluding
+  those designated as BadDialogOptions (see the Declarations section,
+  above).
+
+
+Declaration
+  function dgSecFieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+Purpose
+  Return True if all specified secondary field options are on.
+Description
+  This method returns True if the specified secondary field option(s)
+  are currently selected.
+
+
+Declaration
+  procedure dgSecFieldOptionsOff(OptionFlags : LongInt);
+Purpose
+  Deactivate multiple secondary field options.
+Description
+  This method deactivates the specified secondary field option(s),
+  excluding those designated in OPFIELD as BadSEFieldOptions (see the
+  documentation for OPFIELD).
+
+
+Declaration
+  procedure dgSecFieldOptionsOn(OptionFlags : LongInt);
+Purpose
+  Activate multiple secondary field options.
+Description
+  This method activates the specified secondary field option(s),
+  excluding those designated in OPFIELD as BadSEFieldOptions (see the
+  documentation for OPFIELD).
+
+
+Declaration
+  destructor Done; virtual;
+Purpose
+  Dispose of the dialog box.
+Description
+  This destructor disposes of the user record, if one was allocated
+  dynamically by Load, then calls the parent's destructor
+  (AbstractSelector.Done) to dispose of the control list, screen
+  buffers, etc.
+
+
+Declaration
+  function EvaluateCommand(var Cmd : Word) : Word;
+Purpose
+  Given a command, return the ID for the control the cursor will move
+  to.
+Description
+  This method is intended to be called only from within a post-focus
+  routine. Given the code for a command to be evaluated, it calculates
+  where the DialogBox will be moving the cursor after the post-focus
+  routine returns control. Its purpose is identical to that of
+  EntryScreen.EvaluateCommand.
+
+
+Declaration
+  function FindControl(ID : Word) : ControlPtr;
+Purpose
+  Find the control with the specified ID.
+Description
+  Returns a pointer to the control specified by ID, or Nil if not
+  found.
+See Also
+  AbstractSelector.FindField
+
+
+Declaration
+  function GetCurrentItemID : Word;
+Purpose
+  Get the ID for the current cluster item.
+Description
+  Assuming that the current control is a cluster (of radio buttons or
+  check boxes), this function returns the ID # for the currently
+  selected item within the cluster. If the current control is not a
+  cluster, it returns 0.
+
+  For further details, see the introductory section on "Getting
+  Control When a Cluster Item is Changed or Selected."
+See Also
+  AbstractSelector.GetCurrentID
+
+
+Declaration
+  {$IFDEF UseStreams}
+  function GetUserRecord : Pointer;
+Purpose
+  Return a pointer to the user record.
+Description
+  This method returns a pointer to the "user record." It is needed
+  only in cases where a DialogBox has been loaded from a stream and
+  the Load constructor has had to allocate the record used to store
+  data being edited. See the discussion of "DialogBoxes and Streams"
+  in the introduction.
+
+
+Declaration
+  {$IFDEF UseStreams}
+  function GetUserRecordSize : Word;
+Purpose
+  Return the size of the user record.
+Description
+  This method returns the size of the "user record." It is needed only
+  in cases where a DialogBox has been loaded from a stream and the
+  Load constructor has had to allocate the record used to store data
+  being edited. See the discussion of "DialogBoxes and Streams" in the
+  introduction.
+
+
+Declaration
+  constructor Init(X1, Y1, X2, Y2 : Byte);
+Purpose
+  Initialize the dialog box.
+Description
+  This constructor instantiates a DialogBox using the default window
+  options (DefWindowOptions) and the default color sets
+  (DefaultColorSet and DefaultDialogColors). See InitCustom for
+  further details.
+
+
+Declaration
+  constructor InitCustom(X1, Y1, X2, Y2 : Byte;
+                         var Colors : ColorSet;
+                         Options : LongInt;
+                         var dColors : DialogColorSet);
+Purpose
+  Initialize the dialog box with custom window options.
+Description
+  This constructor instantiates a DialogBox using the specified window
+  Options, Colors, and dColors (attributes specific to dialog boxes).
+  X1, Y1, X2, and Y2 are the coordinates for the interior portion of
+  the window.
+
+  InitCustom will fail only if the parent constructor
+  (AbstractSelector.InitCustom) fails. The most likely cause of
+  failure is insufficient memory. The precise cause may be determined
+  by examining InitStatus.
+
+  Several sets of attributes in the specified ColorSet have relevance
+  for window objects of type DialogBox; these attributes, however, are
+  relevant for all descendants of the AbstractSelector object (see the
+  entry for AbstractSelector.InitCustom).
+
+  All the video attributes that have particular meaning for
+  DialogBoxes are contained in dColors. See the entry for
+  DialogColorSet for a description of these attributes. After the
+  DialogBox has been instantiated, these attributes can be changed by
+  calling the following methods: SetHighlightPromptAttr,
+  SetButtonAttr, SetDefaultButtonAttr, SetHighlightButtonAttr,
+  SetSelectedButtonAttr, SetProtectedButtonAttr, SetButtonShadowAttr,
+  SetClusterAttr, SetProtectedClusterAttr, SetHighlightClusterAttr,
+  and SetSelectedClusterAttr.
+See Also
+  AbstractSelector.InitCustom
+
+
+Declaration
+  {$IFDEF UseStreams}
+  constructor Load(var S : IdStream);
+Purpose
+  Load a dialog box from a stream.
+Description
+  S is a properly initialized stream object. Note that S can be any
+  descendant of the IdStream type (e.g., DosIdStream, BufIdStream,
+  Library).
+
+  Load reads the next sequence of bytes from the stream S. These bytes
+  must have been written by a previous call to DialogBox.Store. The
+  various control types used by the DialogBox must be registered
+  before calling Load. If appropriate, the address of the user record
+  should be registered as well, and so should the addresses of any
+  user-written routines associated with the DialogBox (pre-control,
+  post-control, etc.).
+
+  The stream registration procedure for an DialogBox is
+  DialogBoxStream.
+
+  For further details, see the discussion of "DialogBoxes and Streams"
+  in the introduction.
+
+
+Declaration
+  procedure ProcessSelf; virtual;
+Purpose
+  Process commands.
+Description
+  The DialogBox's ProcessSelf method is essentially identical to
+  EntryScreen's ProcessSelf method, with the following exceptions:
+
+  It handles the commands described in the "DialogBox Commands"
+  section of the introduction.
+
+  A DialogBox always has a "wrap mode" of WrapAtEdges.
+
+  When <Tab> or <ShiftTab> is pressed to move the cursor to the
+  next/previous control, the choice of which control to move the
+  cursor to is based strictly on the order in which controls were
+  added, not on their location within the window.
+
+  ProcessSelf is responsible for processing cursor movement based on
+  mnemonic shortcut keys.
+See Also
+  CommandWindow.Process
+
+
+Declaration
+  procedure SetBeepOnError(On : Boolean);
+Purpose
+  Activate/deactivate beeping on error option for all controls.
+Description
+  This method activates (On = True) or deactivates (On = False) the
+  efBeepOnError option for all controls in the DialogBox. Its purpose
+  is identical to that of EntryScreen.SetBeepOnError.
+
+
+Declaration
+  procedure SetButtonAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for unselected buttons.
+Description
+  This method allows you to specify the attributes in which normal
+  pushbuttons are displayed on Color and Monochrome systems when they
+  are unselected (not current).
+See Also
+  SetButtonShadowAttr      SetProtectedButtonAttr
+  SetDefaultButtonAttr     SetSelectedButtonAttr
+  SetHighlightButtonAttr
+
+
+Declaration
+  procedure SetButtonShadowAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for button shadows.
+Description
+  This method allows you to specify the attributes in which the
+  shadows/boxes for pushbuttons are displayed on Color and Monochrome
+  systems. Note that shadows are not actually displayed on mono
+  systems. The attribute specified here is actually used to fill in
+  the area around the button, and it should match the background color
+  of the dialog box itself.
+See Also
+  SetButtonAttr
+
+
+Declaration
+  procedure SetClusterAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for cluster items.
+Description
+  This method allows you to specify the attributes in which cluster
+  items (radio buttons, check boxes) are displayed on Color and
+  Monochrome systems when they are unselected (not current).
+See Also
+  SetHighlightClusterAttr   SetSelectedClusterAttr
+  SetProtectedClusterAttr
+
+
+Declaration
+  procedure SetDefaultButtonAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for default button when unselected.
+Description
+  This method allows you to specify the attributes in which the
+  default pushbutton is displayed on Color and Monochrome systems when
+  it is unselected (not current).
+See Also
+  SetButtonAttr   SetHighlightButtonAttr   SetSelectedButtonAttr
+
+
+Declaration
+  procedure SetEnterToTab(On : Boolean);
+Purpose
+  Set Enter-To-Tab option on/off.
+Description
+  This method allows you to control the handling of the <Enter> key.  By
+  default this option is off, and the <Enter> key behaves according to
+  CUA convention (i.e., pressing <Enter> activates the default Button).
+  With this option turned on, pressing <Enter> when on a field moves the
+  cursor to the next active field; if the current control is a button,
+  that button is activated.  This allows you to give a dialog a more
+  traditional EntryScreen-like behavior, at the expense of full CUA
+  compatibility.
+
+
+Declaration
+  procedure SetForceMode(Force, Overtype : Boolean);
+Purpose
+  Force insert or overtype mode, else use previous setting.
+Description
+  This method allows you to indicate that certain fields may be edited
+  only in insert or overtype mode. The setting is meaningful only for
+  edit controls. The method's purpose is identical to that of
+  EntryScreen.SetForceMode.
+
+
+Declaration
+  procedure SetHighlightButtonAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for highlighted chars in buttons.
+Description
+  This method allows you to specify the attributes in which
+  highlighted characters in pushbuttons are displayed on Color and
+  Monochrome systems when the buttons are not protected or hidden.
+See Also
+   SetButtonAttr   SetDefaultButtonAttr
+
+
+Declaration
+  procedure SetHighlightClusterAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for highlighted chars in cluster items.
+Description
+  This method allows you to specify the attributes in which
+  highlighted characters in cluster items (radio buttons, check boxes)
+  are displayed on Color and Monochrome systems when the clusters are
+  not protected or hidden.
+See Also
+  SetClusterAttr
+
+
+Declaration
+  procedure SetHighlightPromptAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for highlight chars in prompts.
+Description
+  This method allows you to specify the attributes in which
+  highlighted characters in control prompts are displayed on Color and
+  Monochrome systems when the controls are not protected or hidden.
+
+
+Declaration
+  procedure SetPadChar(Ch : Char);
+Purpose
+  Set character used to pad ends of strings.
+Description
+  This method allows you to specify the character used to pad the end
+  of a field being edited. Its purpose is identical to that of
+  EntryScreen.SetPadChar.
+
+
+Declaration
+  procedure SetPasswordChar(Ch : Char);
+Purpose
+  Set character used in password mode.
+Description
+  This method allows you to specify the character used when an edit
+  control is used in password mode. Its purpose is identical to that
+  of EntryScreen.SetPasswordChar.
+
+
+Declaration
+  procedure SetPostFocusProc(PFP : dgUserProc);
+Purpose
+  Specify routine to call after a control receives the focus.
+Description
+  This method allows you to specify a post-focus routine (PFP), which
+  will be called by Process after the current control has given up the
+  focus. A post-focus routine must be of the following form:
+
+  {$F+}
+  procedure PostFocus(DBP : DialogBoxPtr);
+  begin
+  end;
+
+  The DBP parameter is a pointer to the DialogBox making the call
+  (@Self is passed by Process). See the discussion of "Post-Focus
+  Routines" in the introduction.
+
+
+Declaration
+  procedure SetPreFocusProc(PFP : dgUserProc);
+Purpose
+  Specify routine to call just before a control receives the focus.
+Description
+  This method allows you to specify a pre-focus routine (PFP), which
+  will be called by Process just before the focus is passed to the
+  current control. A pre-focus routine must be of the following form:
+
+  {$F+}
+  procedure PreFocus(DBP : DialogBoxPtr);
+  begin
+  end;
+
+  The DBP parameter is a pointer to the DialogBox making the call
+  (@Self is passed by Process). See the discussion of "Pre-Focus
+  Routines" in the introduction.
+
+
+Declaration
+  procedure SetProtectedButtonAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for protected buttons.
+Description
+  This method allows you to specify the attributes in which normal
+  pushbuttons are displayed on Color and Monochrome systems when they
+  are protected.
+See Also
+  SetButtonAttr
+
+
+Declaration
+  procedure SetProtectedClusterAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for protected cluster items.
+Description
+  This method allows you to specify the attributes in which cluster
+  items (radio buttons, check boxes) are displayed on Color and
+  Monochrome systems when the cluster is marked as protected.
+See Also
+  SetClusterAttr
+
+
+Declaration
+  procedure SetSelectedButtonAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for selected buttons.
+Description
+  This method allows you to specify the attributes in which
+  pushbuttons (both normal and default) are displayed on Color and
+  Monochrome systems when they are selected (current).
+See Also
+   SetButtonAttr   SetDefaultButtonAttr
+
+
+Declaration
+  procedure SetSelectedClusterAttr(Color, Mono : Byte);
+Purpose
+  Set attributes for selected cluster items.
+Description
+  This method allows you to specify the attributes in which cluster
+  items (radio buttons, check boxes) are displayed on Color and
+  Monochrome systems when they are selected (current).
+See Also
+  SetClusterAttr   SetHighlightClusterAttr
+
+
+Declaration
+  {$IFDEF UseStreams}
+  procedure SetUserRecord(var UserRec; UserRecSize : Word);
+Purpose
+  Set the address and size of the user record.
+Description
+  This method allows you to specify the address and size of a "user
+  record." It is needed only in cases where a DialogBox is to be
+  stored in a stream. See the discussion of "DialogBoxes and Streams"
+  in the introduction.
+
+
+Declaration
+  {$IFDEF UseStreams}
+  procedure Store(var S : IdStream);
+Purpose
+  Store a dialog box in a stream.
+Description
+  S is a properly initialized stream object. Note that S can be any
+  descendant of the IdStream type (e.g., DosIdStream, BufIdStream,
+  Library).
+
+  Store writes an image of the DialogBox to the stream S. The various
+  control types used by the DialogBox must be registered before
+  calling Store. If appropriate, the address of the user record should
+  be registered as well, and so should the addresses of any
+  user-written routines associated with the DialogBox (pre-focus,
+  post-focus, etc.). To check for errors that may have occurred during
+  the Store, call the stream's GetStatus function.
+
+  The stream registration procedure for an DialogBox is
+  DialogBoxStream.
+
+  For further details, see the discussion of "DialogBoxes and Streams"
+  in the introduction.
+
+
+Declaration
+  procedure VisitAllControls(FProc : dgControlProc; var D);
+Purpose
+  Call the specified procedure for all controls in the dialog box.
+Description
+  This method allows you to specify a user-written procedure to be
+  called for each Control associated with a DialogBox. FProc is the
+  procedure to be called, and D is the data to be passed to it. FProc
+  must be of the form:
+
+    {$F+}
+    procedure FieldProc(CP : ControlPtr; var D; DBP : DialogBoxPtr);
+    begin
+    end;
+
+  CP is a pointer to the Control to be modified. D is the data passed
+  to VisitAllControls. And DBP is a pointer to the DialogBox itself.
+

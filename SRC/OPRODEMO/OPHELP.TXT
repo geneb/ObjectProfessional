@@ -1,0 +1,1774 @@
+;
+;------------------------------------------------------------
+!TOPIC 1518 OpHelp
+OpHelp unit offers a powerful, convenient method to incorporate help
+screens into your programs.
+
+There are three, perhaps four, steps required to develop a help system.
+
+  1. Write the help text
+  2. Compile the text into a compressed, indexed help file
+  3. Call the appropriate OpHelp methods to manage a help window
+  4. Optionally, use the CommandProcessor help hooks to connect the help
+     window to your other window objects
+
+To write the help text, you use any text editor, such as the one in Turbo's
+integrated development environment. Each help file contains as many topics
+as you need;OpHelp accesses each topic quickly by name or number. We'll
+describe the format of the text file in a moment. To compile the text, you
+use the supplied MAKEHELP utility.
+
+OpHelp provides three objects to manage help windows. One of them,
+AbstractHelpWindow, is an abstract parent that provides the methods to
+access the binary help file but doesn't implement the methods to display
+the information. The other two, PagedHelpWindow and ScrollingHelpWindow,
+offer two different ways to display the help information and to interact
+with the user. The PagedHelpWindow works like the TpHelp unit in Turbo
+Professional: help is displayed a page at a time; the PgDn and PgUp keys
+move to different pages; the arrow keys move the highlight bar from one
+cross-reference link to the next. By contrast, ScrollingHelpWindow offers
+line-by-line vertical scrolling and horizontal scrolling; the hardware
+cursor remains visible and moves with the arrow keys to select cross-
+reference links. ScrollingHelpWindow is better suited to modern
+environments that support resizeable, zoomable windows; we've chosen to use
+it in the POPHELP popup reference guide.
+
+If you like, the compressed help file can be linked directly into the
+target program, so that no additional files are required by the end user of
+the application. For hefty help files or large applications, the file is
+kept separate and OpHelp reads pieces of it into memory on demand.
+
+The help system supports up to 10,000 help topics in one file. Each help
+topic may contain cross-references to other topics, with up to 50 cross-
+references for each topic. (These limits can be increased by modifying
+constants in OpHelp.) Help is displayed in a pop-up window through which
+the user may browse. Formatting controls allow help to appear in up to six
+different video attributes. The help compiler optionally word-wraps and
+paginates the original help text, under the control of directives that you
+insert.
+
+You can choose which topic to display by using any of several techniques:
+directly by topic number, by topic name, by scanning context words from the
+current screen, by selecting from a master index, by cross-referencing to
+related items, or by referring to a stack of previously selected help
+items. Many of these options are invoked automatically with no further
+effort on your part. The OpHelp unit fully supports the mouse as well,
+leading to even friendlier help systems.
+
+The text files used as input to the OpHelp system are downwardly
+compatible with those used for Turbo Professional. There are a few new
+directives in OpHelp, but all the old ones work just the same. Object
+Professional's MAKEHELP provides improved compression and some other new
+features; you'll need to recompile old help files before they can be used.
+
+Here are the relevant parts of OpHelp's object hierarchy:
+
+  [2306Root]
+    [2919AbstractWindow]
+      [2923RawWindow]
+        [3015StackWindow]
+          [3045CommandWindow]
+            [2027PickList]
+              1519AbstractHelpWindow*
+                1559PagedHelpWindow
+                1550ScrollingHelpWindow
+
+The objects whose names are surrounded by brackets are described elsewhere.
+Objects followed by an asterisk are low-level ones primarily designed for
+internal use. Methods of these objects that are useful to application
+programmers will be described as appropriate.
+
+    1569Declarations                      1597Help file ctrl chars
+    1596Help file directives              1598MakeHelp
+    1556ScrollingHelpFile
+;
+;------------------------------------------------------------
+!TOPIC 1519 AbstractHelpWindow
+!NOINDEX
+1518OpHelp.AbstractHelpWindow = object(2027PickList)
+!LINE
+AbstractHelpWindowPtr = ^AbstractHelpWindow;
+
+AbstractHelpWindow is an abstract object: you shouldn't declare variables
+of this type. However, it does implement a lot of functionality for its
+children, PagedHelpWindow and ScrollingHelpWindow. In fact, the two
+children have only a few non-internal methods of their own, mostly
+constructors specific to their requirements. As a result, many of the
+methods that you'll use for help systems are listed under this topic.
+
+As you think about an AbstractHelpWindow keep in mind that it is derived
+from the PickList object. What it inherits is the ability to display and
+select from the master topic index. What the AbstractHelpWindow adds is the
+ability to access a help file and load a specified topic into a memory
+buffer. PagedHelpWindow and ScrollingHelpWindow then add the code to
+display the information in this buffer and to accept user commands to
+browse around and select cross-references to other topics.
+
+Note that the help window types are "dual-mode" windows. If you call the
+Process method of a newly constructed help window, it will act just like a
+PickList to display the master topic index; this is called pick mode. If
+you use SetTopic to specify a valid topic number before calling Process, it
+will display the help text; this is called help mode. If the user executes
+the ccIndex command (mapped to <F1> by default) while in help mode, the
+window automatically switches back to pick mode.
+
+  1600Display control           1601General methods         1599Topic control
+;
+;------------------------------------------------------------
+!TOPIC 1520 Done,AbstractHelpWindow
+!NOINDEX
+destructor 1519AbstractHelpWindow.Done; virtual;
+
+Close up and dispose of help window.
+
+See also:  2033PickList.Done
+;
+;------------------------------------------------------------
+!TOPIC 1521 ItemString,AbstractHelpWindow
+!NOINDEX
+procedure 1519AbstractHelpWindow.ItemString(Item : Word;
+                                        Mode : pkMode;
+                                        var IType : pkItemType;
+                                        var IString : String); virtual;
+
+Supplies each item string when the list is displayed or searched.
+
+See also:  2038PickList.ItemString
+;
+;------------------------------------------------------------
+!TOPIC 1522 Draw,AbstractHelpWindow
+!NOINDEX
+procedure 1519AbstractHelpWindow.Draw; virtual;
+
+Choose appropriate frame and draw help window or pick index.
+
+See also:  1524ProcessSelf  1523UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 1523 UpdateContents,AbstractHelpWindow
+!NOINDEX
+procedure 1519AbstractHelpWindow.UpdateContents; virtual;
+
+Redraw the help window in pick or help mode.
+
+See also:  1522Draw  1524ProcessSelf  2036PickList.UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 1524 ProcessSelf,AbstractHelpWindow
+!NOINDEX
+procedure 1519AbstractHelpWindow.ProcessSelf; virtual;
+
+Draw help index or current topic; process commands.
+
+See also:  2037PickList.ProcessSelf  1525SetTopic
+;
+;------------------------------------------------------------
+!TOPIC 1525 SetTopic
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetTopic(Topic : Word);
+
+Specify which topic is displayed next. 0 for index.
+
+See also:  1524ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 1526 GetTopicChoice
+!NOINDEX
+function 1519AbstractHelpWindow.GetTopicChoice : Word;
+
+Return topic number chosen by pick.
+
+See also:  1524ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 1527 InHelpMode
+!NOINDEX
+function 1519AbstractHelpWindow.InHelpMode : Boolean;
+
+Return True if window shows help, not pick list.
+
+See also:  1524ProcessSelf  1525SetTopic
+;
+;------------------------------------------------------------
+!TOPIC 1528 TopicStackPtr
+!NOINDEX
+function 1519AbstractHelpWindow.TopicStackPtr : StaticQueuePtr;
+
+Return a pointer to the topic stack.
+
+See also:  2419StaticQueue.Elements  2415StaticQueue.PeekTail
+;
+;------------------------------------------------------------
+!TOPIC 1529 CurrentTopic
+!NOINDEX
+function 1519AbstractHelpWindow.CurrentTopic : Word;
+
+Return the topic number currently loaded into the help buffers.
+
+See also:  1525SetTopic
+;
+;------------------------------------------------------------
+!TOPIC 1530 TopicExists
+!NOINDEX
+function 1519AbstractHelpWindow.TopicExists(Topic : Word) : Boolean;
+
+Returns True if the specified topic exists in the current help file.
+;
+;------------------------------------------------------------
+!TOPIC 1531 hwOptionsOn
+!NOINDEX
+procedure 1519AbstractHelpWindow.hwOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  1570Help options  1533hwOptionsAreOn  1532hwOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1532 hwOptionsOff
+!NOINDEX
+procedure 1519AbstractHelpWindow.hwOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  1570Help options  1533hwOptionsAreOn  1531hwOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1533 hwOptionsAreOn
+!NOINDEX
+function 1519AbstractHelpWindow.hwOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  1570Help options  1532hwOptionsOff  1531hwOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1534 SetPickPadSize
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetPickPadSize(PadSize : Byte);
+
+Set number of characters for padding of pick items.
+
+See also:  1535SetHelpPadSize
+;
+;------------------------------------------------------------
+!TOPIC 1535 SetHelpPadSize
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetHelpPadSize(Pad : Byte);
+
+Set number of blank characters at edges of help window.
+
+See also:  1534SetPickPadSize
+;
+;------------------------------------------------------------
+!TOPIC 1536 AddTopicHeader
+!NOINDEX
+procedure 1519AbstractHelpWindow.AddTopicHeader(PadSize : Byte;
+                                            MaxLen : Byte;
+                                            Posn : HeaderPosType);
+
+Add a header to display the topic name.
+;
+;------------------------------------------------------------
+!TOPIC 1537 AddMoreHelpHeader
+!NOINDEX
+procedure 1519AbstractHelpWindow.AddMoreHelpHeader(PromptStr : String80;
+                                        Posn : HeaderPosType;
+                                        UpStr, DnStr, SepStr : String10;
+                                        UpPos, DnPos, SepPos : Byte);
+
+Add a specialized more header to indicate more help.
+
+See also:  2034PickList.AddMoreHeader  1538InitHelpFrame
+;
+;------------------------------------------------------------
+!TOPIC 1538 InitHelpFrame
+!NOINDEX
+procedure 1519AbstractHelpWindow.InitHelpFrame;
+
+Make help frame look like wFrame.
+;
+;------------------------------------------------------------
+!TOPIC 1539 SetPrevTopicHotSpot
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetPrevTopicHotSpot(SpotNum : Byte;
+                                                 Posn : FrameCharType);
+
+Activate a hot spot for previous topic command.
+
+See also:  1479Frame.AddHotRegion  1477Frame.AddHotSpot
+;
+;------------------------------------------------------------
+!TOPIC 1540 SetNestedFunc
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetNestedFunc(NF : hwNestedFunc);
+
+Set function to call for nested cross-reference commands.
+
+See also:  1547CurrentXrefTopic  1558NoNestedAction
+;
+;------------------------------------------------------------
+!TOPIC 1541 HighestTopic
+!NOINDEX
+function 1519AbstractHelpWindow.HighestTopic : Word;
+
+Return highest topic number in help system.
+
+See also:  1542PickTopics
+;
+;------------------------------------------------------------
+!TOPIC 1542 PickTopics
+!NOINDEX
+function 1519AbstractHelpWindow.PickTopics : Word;
+
+Return number of help index topics in help system.
+
+See also:  1608FindNextTopic  1541HighestTopic
+;
+;------------------------------------------------------------
+!TOPIC 1543 FindTopic
+!NOINDEX
+function 1519AbstractHelpWindow.FindTopic(Name : String;
+                               MatchFunc : hwMatchFunc) : Word; virtual;
+
+Return Topic number of help with specified Name, 0 if not found.
+
+See also:  1608FindNextTopic  1546ScreenWordXY  1557DefaultTopicMatch
+;
+;------------------------------------------------------------
+!TOPIC 1544 SearchTopic
+!NOINDEX
+function 1519AbstractHelpWindow.SearchTopic(Topic, StartOfs : Word;
+                                        TxtSt : String) : Word;
+
+Start searching specific topic at StartOfs for TxtSt. Returns match offset,
+or $FFFF if no match.
+
+See also:  1545SetTopicAndPos
+;
+;------------------------------------------------------------
+!TOPIC 1545 SetTopicAndPos
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetTopicAndPos(Topic, TOfs : Word;
+                                            ShowLen : Byte); virtual;
+
+Specify next topic to display. Page or cursor will display specified text
+offset.
+
+See also:  1544SearchTopic
+;
+;------------------------------------------------------------
+!TOPIC 1546 ScreenWordXY
+!NOINDEX
+function 1519AbstractHelpWindow.ScreenWordXY(XPos, YPos : Byte;
+                                         ScanBack,
+                                         ScanForward : Boolean) : String;
+
+Parse word from screen at absolute (XPos, YPos).
+
+See also:  1543FindTopic
+;
+;------------------------------------------------------------
+!TOPIC 1547 CurrentXrefTopic
+!NOINDEX
+function 1519AbstractHelpWindow.CurrentXrefTopic : Word; virtual;
+
+Return help topic of current cross reference, $FFFF if none.
+
+See also:  1540SetNestedFunc
+;
+;------------------------------------------------------------
+!TOPIC 1548 Load,AbstractHelpWindow
+!NOINDEX
+constructor 1519AbstractHelpWindow.Load(var S : IdStream);
+
+Load a help system from a stream. The registration procedures for
+PagedHelpWindow and ScrollingHelpWindow are, respectively,
+PagedHelpWindowStream and ScrollingHelpWindowStream.
+
+See also:  2086PickList.Load  1549Store
+;
+;------------------------------------------------------------
+!TOPIC 1549 Store,AbstractHelpWindow
+!NOINDEX
+procedure 1519AbstractHelpWindow.Store(var S : IdStream);
+
+Store a help system in a stream. The registration procedures for
+PagedHelpWindow and ScrollingHelpWindow are, respectively,
+PagedHelpWindowStream and ScrollingHelpWindowStream.
+
+See also:  1548Load  2087PickList.Store
+;
+;------------------------------------------------------------
+!TOPIC 1550 ScrollingHelpWindow
+!NOINDEX
+1518OpHelp.ScrollingHelpWindow = object(1519AbstractHelpWindow)
+!LINE
+ScrollingHelpWindowPtr = ^ScrollingHelpWindow;
+
+Besides offering the ability to scroll horizontally and line-by-line,
+ScrollingHelpWindow adds commands for block marking and copying. This new
+capability was important in developing the POPHELP online help engine. By
+combining OpHelp's block copy hook with the OpReplay unit, POPHELP
+transfers selected portions of the help text to the underlying application,
+usually a text editor. Performing this feat in a swappable TSR like POPHELP
+is a difficult exercise; we refer you to the POPHELP source code to see how
+it's done. When a help system is integrated within a normal application,
+the paste procedure can be substantially simpler.
+
+In the ScrollingHelpWindow, a cross-reference is selected by moving the
+hardware cursor over its marking text and then pressing <Enter>. Cross-
+references are always drawn in the unselected attribute (see
+AbstractHelpWindow.InitDeluxe for more information).
+
+The non-object-oriented function 1556ScrollingHelpFile may be used to
+determine whether a particular help file is optimized for scrolling or
+paging.
+
+  1565Commands                  1555HideBlock               1554ResetBlock
+  1553SetBlockAttr              1551SetMaxScroll            1552SetSendFunc
+;
+;------------------------------------------------------------
+!TOPIC 1551 SetMaxScroll
+!NOINDEX
+procedure 1550ScrollingHelpWindow.SetMaxScroll(MaxFirstCol : Word);
+
+Set a new value for maximum horizontal scrolling.
+;
+;------------------------------------------------------------
+!TOPIC 1552 SetSendFunc
+!NOINDEX
+procedure 1550ScrollingHelpWindow.SetSendFunc(SF : shSendFunc);
+
+Set function to be called by ccBlkCopy command.
+
+See also:  1555HideBlock  1554ResetBlock  1553SetBlockAttr
+;
+;------------------------------------------------------------
+!TOPIC 1553 SetBlockAttr,ScrollingHelpWindow
+!NOINDEX
+procedure 1550ScrollingHelpWindow.SetBlockAttr(Color, Mono : Byte);
+
+Set the attribute for blocks.
+
+See also:  1552SetSendFunc
+;
+;------------------------------------------------------------
+!TOPIC 1554 ResetBlock
+!NOINDEX
+procedure 1550ScrollingHelpWindow.ResetBlock;
+
+Hide and clear the current block. No screen update.
+
+See also:  1552SetSendFunc
+;
+;------------------------------------------------------------
+!TOPIC 1555 HideBlock
+!NOINDEX
+procedure 1550ScrollingHelpWindow.HideBlock;
+
+Hide the current block. No screen update.
+
+See also:  1552SetSendFunc
+;
+;------------------------------------------------------------
+!TOPIC 1556 ScrollingHelpFile
+!NOINDEX
+function 1518OpHelp.ScrollingHelpFile(HelpFile : PathStr) : Boolean;
+
+Return True if HelpFile is designed for a scrolling help window.
+;
+;------------------------------------------------------------
+!TOPIC 1557 DefaultTopicMatch
+!NOINDEX
+function 1518OpHelp.DefaultTopicMatch(VaryingName, FixedName : String;
+                                  HPtr : AbstractHelpWindowPtr) : Boolean;
+
+Default match function -- performs a case-insensitive match, returns True for
+exact matches only.
+;
+;------------------------------------------------------------
+!TOPIC 1558 NoNestedAction
+!NOINDEX
+function 1518OpHelp.NoNestedAction(HPtr : AbstractHelpWindowPtr) : Boolean;
+
+Default nested xref function that does nothing.
+;
+;------------------------------------------------------------
+!TOPIC 1559 PagedHelpWindow
+!NOINDEX
+1518OpHelp.PagedHelpWindow = object(1519AbstractHelpWindow)
+!LINE
+PagedHelpWindowPtr = ^PagedHelpWindow;
+
+The behavior of PagedHelpWindow is much like the TpHelp unit in Turbo
+Professional 5.0. Scrolling occurs by page only; there is no horizontal
+scrolling support. PagedHelpWindow inherits all of the functionality
+described for AbstractHelpWindow. What it implements is the logic to
+display the help text and to manage the movement of a highlight bar from
+one cross-reference to another. Because PagedHelpWindow provides no new
+public methods, there are no method descriptions in this section.
+
+The non-object-oriented function 1556ScrollingHelpFile may be used to
+determine whether a particular help file is optimized for scrolling or
+paging.
+
+  1560Commands
+;
+;------------------------------------------------------------
+!TOPIC 1560 Commands,PagedHelpWindow
+!NOINDEX
+!NOSEARCH
+The PagedHelpWindow ProcessSelf method offers appropriate commands to browse
+through the help text and select cross-references, to back up through the
+topic stack, and to make selections from the master topic index. The list
+below arranges these commands by category. In each case the first line
+gives the name of the command, followed by the key(s) to which it is
+normally assigned. The second and following lines give a brief description
+of the command. The default key assignments are stored in the global typed
+constant HelpKeySet (in OPHELP.ICD).
+
+Help Page Scrolling
+
+ccPageUp       <PgUp>, <CtrlR>
+!LINE
+Display previous help page of current topic.
+
+ccPageDn       <PgDn>, <CtrlC>
+!LINE
+Display next help page of current topic.
+
+ccHome, ccTopOfFile <Home>, <CtrlQ><S>, <CtrlPgUp>, <CtrlQ><R>
+!LINE
+Display first help page of current topic.
+
+ccEnd, ccEndofFile  <End>, <CtrlQ><D>, <CtrlPgDn>, <CtrlQ><C>
+!LINE
+Display last help page of current topic.
+
+Cross-Reference Highlight Bar Movement
+
+ccUp, ccScrollUp    <Up>, <CtrlE>, <CtrlW>
+!LINE
+Move highlight bar to previous cross-reference in the vertical direction.
+
+ccDown, ccScrollDn  <Down>, <CtrlX>, <CtrlZ>
+!LINE
+Move highlight bar to next cross-reference in the vertical direction.
+
+ccLeft, ccPrevXref  <Left>, <CtrlS>, <ShiftTab>
+!LINE
+Move highlight bar to previous cross-reference horizontally. Wraps to end
+of previous row when the highlight bar reaches the leftmost cross-
+reference.
+
+ccRight, ccNextXref <Right>, <CtrlD>, <Tab>
+!LINE
+Move highlight bar to next cross-reference horizontally. Wraps to start of
+next row when the highlight bar reaches the rightmost cross-reference.
+
+Other
+
+ccSelect       <Enter>
+!LINE
+If there is a highlight bar visible, load the help topic indicated by its
+cross-reference and display the first page of that topic. If the topic
+number indicated by the cross-reference is zero, switch to pick mode and
+display the master topic index. If the window is in pick mode already, load
+the help topic indicated by the current pick item and display its first
+page.
+
+ccMouseSel     <ClickLeft>
+!LINE
+Move the highlight bar to the cross-reference indicated by the mouse, if
+any. If the highlight bar is already over the indicated cross-reference,
+act as if the ccSelect command were entered there. This command can also be
+used to scroll the help window by clicking on a scroll bar, or to reload
+the previous topic by clicking on a previous topic hot spot (see
+SetPrevTopicHotSpot). When the help window is in pick mode, the mouse acts
+as described for pick list commands.
+
+ccPrevTopic    <AltF1>
+!LINE
+Load the help topic, if any, loaded prior to the current one, display the
+page most recently shown, and highlight the most recent cross-reference.
+This command may also be activated by a previous topic hot spot.
+
+ccIndex        <F1>
+!LINE
+If the hwPickIndex option is enabled, switch the window into pick mode and
+display the master topic index.
+
+ccNested       no keys assigned
+!LINE
+Call the user-written nested function.
+
+ccQuit         <Esc>, <ClickRight>
+!LINE
+Exit the help window or master topic index.
+
+ccHelp         <ClickBoth>
+!LINE
+Help. If a user-written help routine has been established by calling
+SetHelpProc, this command will call that routine; otherwise this command
+does nothing. The help routine is passed the following three parameters:
+ucHelp, @Self, and a help topic number designated as the window's help
+index (see CommandWindow.SetHelpIndex), which defaults to 0. Note that the
+AbstractHelpWindow.ProcessSelf method will not allow reentry; the ccHelp
+command cannot generate a call that leads into the same OpHelp object.
+;
+;------------------------------------------------------------
+!TOPIC 1561 Pages
+!NOINDEX
+type
+  Pages = 0..MaxPagesPerSection;
+
+Defines the valid range of page numbers for each topic. Zero is reserved
+for internal use.
+;
+;------------------------------------------------------------
+!TOPIC 1562 phStackRec
+!NOINDEX
+type
+  phStackRec =
+    record
+      STopic : Word;         {Which topic}
+      SPage  : Pages;        {Page in topic}
+      SXnum  : Xrefs;        {Xref item selected}
+    end;
+
+Defines the information stored on the topic stack for each previous topic.
+;
+;------------------------------------------------------------
+!TOPIC 1563 phPageRec
+!NOINDEX
+type
+  phPageRec =                {Display state at the start of a given page}
+    record
+      TextOfs : Word;        {Offset into decompressed text}
+      FlexSP  : Byte;        {Flex stack pointer}
+      FlexStk : FlexStack;   {Stack of active attribute indexes}
+    end;
+  phPageArray = array[1..MaxPagesPerSection] of phPageRec;
+
+Information used internally by the PagedHelpWindow to scroll quickly from
+page to page of a topic. The phPageArray is initialized when the current
+topic is loaded.
+;
+;------------------------------------------------------------
+!TOPIC 1564 phXrefRec
+!NOINDEX
+type
+  phXrefRec =                  {Describes a given cross-reference}
+    record
+      XrefPage  : Pages;       {Which page the xref displays on}
+      XrefRow   : Byte;        {Which row of window}
+      XrefCol   : Byte;        {Which col of window}
+      XrefOfs   : Word;        {Offset in uncompressed text buffer}
+      XrefTopic : Word;        {Which topic is cross-referenced}
+    end;
+  phXrefArray = array[1..MaxXrefsPerSection] of phXrefRec;
+
+Information used internally by the PagedHelpWindow to move the highlight
+bar quickly from cross-reference to cross-reference. The phXrefArray is
+initialized when the current topic is loaded.
+;
+;------------------------------------------------------------
+!TOPIC 1565 Commands,ScrollingHelpWindow
+!NOINDEX
+!NOSEARCH
+The ScrollingHelpWindow ProcessSelf method offers appropriate commands to
+browse through the help text and select cross-references, to back up
+through the topic stack, and to make selections from the master topic
+index. The list below arranges these commands by category. In each case the
+first line gives the name of the command, followed by the key(s) to which
+it is normally assigned. The second and following lines give a brief
+description of the command. The default key assignments are stored in the
+global typed constant HelpKeySet (in OPHELP.ICD). Note that PagedHelpWindow
+and ScrollingHelpWindow share the same CommandProcessor and key set.
+
+Cursor Movement and Scrolling
+
+In pick mode, all relevant commands work as described for the 2027PickList.
+
+ccUp           <Up>, <CtrlE>
+!LINE
+Cursor up one line, scrolling the help window when the cursor reaches the
+top of the window.
+
+ccScrollUp     <CtrlW>
+!LINE
+Scroll the help text down one line.
+
+ccDown         <Down>, <CtrlX>
+!LINE
+Cursor down one line, scrolling the help window when the cursor reaches the
+bottom of the window.
+
+ccScrollDn     <CtrlZ>
+!LINE
+Scroll the help text up one line.
+
+ccLeft         <Left>, <CtrlS>
+!LINE
+Cursor left one column. Scroll the help window one column if the cursor
+reaches the left edge of the window and column 1 of the text is not
+currently visible.
+
+ccRight        <Right>, <CtrlD>
+!LINE
+Cursor right one column. Scroll the help window one column if the cursor
+reaches the right edge of the window and the text hasn't scrolled to the
+maximum horizontal scroll limit yet.
+
+ccPageUp       <PgUp>, <CtrlR>
+!LINE
+Scroll the help text down by the window's height.
+
+ccPageDn       <PgDn>, <CtrlC>
+!LINE
+Scroll the help text up by the window's height.
+
+ccHome         <Home>, <CtrlQ><S>
+!LINE
+Cursor to column 1 of the current row.
+
+ccTopOfFile    <CtrlPgUp>, <CtrlQ><R>
+!LINE
+Cursor to row 1, column 1 of the help text, scrolling it if necessary.
+
+ccEnd          <End>, <CtrlQ><D>
+!LINE
+Cursor to the end of the current line of help text.
+
+ccEndofFile    <CtrlPgDn>, <CtrlQ><C>
+!LINE
+Cursor to the end of the last line of help text in the current topic,
+scrolling the text if necessary.
+
+ccScreenTop    <CtrlHome>, <CtrlQ><E>
+!LINE
+Cursor to the first row of the help window without scrolling the text or
+changing the cursor column.
+
+ccScreenBot    <CtrlEnd>, <CtrlQ><X>
+!LINE
+Cursor to the last row of the help window without scrolling the text or
+changing the cursor column.
+
+ccWordLeft     <CtrlLeft>, <CtrlA>
+!LINE
+Cursor left one word. If the cursor is at the beginning of a line, it is
+moved to the end of the previous line.
+
+ccWordRight    <CtrlRight>, <CtrlF>
+!LINE
+Cursor right one word. If the cursor is at the end of a line, it is moved
+to the beginning of the following line.
+
+ccPrevXref     <ShiftTab>
+!LINE
+Cursor to the previous cross-reference, scrolling the window if necessary.
+If there are no previous cross-references, do nothing.
+
+ccNextXref     <Tab>
+!LINE
+Cursor to the next cross-reference, scrolling the window if necessary. If
+there are no more cross-references, do nothing.
+
+Block Operations
+
+The block operations are active only if the hwBlockMark option is enabled.
+
+ccBlkBegin     <F7>, <CtrlK><B>
+!LINE
+Mark the current cursor location as the start of a block. If the begin
+marker is before the end marker, the block will be highlighted.
+
+ccBlkEnd       <F8>, <CtrlK><K>
+!LINE
+Mark the current cursor location as the end of a block. Note that the last
+highlighted character is the one just before the cursor. If the cursor is
+beyond the end of a line, the block will end at the last non-blank
+character of the line.
+
+ccBlkToggle    <CtrlK><H>
+!LINE
+Toggle the highlighting of a marked block.
+
+ccBlkCopy      <CtrlK><C>
+!LINE
+If a valid block is marked and visible, call the user-written block copy
+function. Otherwise, ignore the command.
+
+Other
+
+ccSelect       <Enter>
+!LINE
+If the cursor is over a cross-reference marker, load and display the
+indicated help topic. If the topic number indicated by the cross-reference
+is zero, switch to pick mode and display the master topic index. If the
+window is in pick mode already, load and display the help topic indicated
+by the current pick item.
+
+ccMouseSel     <ClickLeft>
+!LINE
+Move the cursor to the position indicated by the mouse. If the cursor is
+already over a cross-reference and ccMouseSel is executed a second time,
+act as if the ccSelect command were entered there. This command can also be
+used to scroll the help window by clicking on a scroll bar, or to reload
+the previous topic by clicking on a previous topic hot spot (see
+SetPrevTopicHotSpot). When the help window is in pick mode, the mouse acts
+as described for pick list commands.
+
+ccPrevTopic    <AltF1>
+!LINE
+Load the help topic, if any, loaded prior to the current one and scroll the
+text to the position most recently shown. This command may also be
+activated by a previous topic hot spot.
+
+ccIndex        <F1>
+!LINE
+If the hwPickIndex option is enabled, switch the window into pick mode and
+display the master topic index.
+
+ccNested       no keys assigned
+!LINE
+Call the user-written nested function.
+
+ccQuit         <Esc>, <ClickRight>
+!LINE
+Exit the help window or master topic index.
+
+ccHelp         <ClickBoth>
+!LINE
+Help. If a user-written help routine has been established by calling
+SetHelpProc, this command will call that routine, passing it the following
+three parameters: ucHelp, @Self, and a help topic number designated as the
+window's help index (see CommandWindow.SetHelpIndex), which defaults to 0.
+Note that the AbstractHelpWindow.ProcessSelf method will not allow reentry; the
+ccHelp command cannot generate a call that leads into the same OpHelp
+object.
+;
+;------------------------------------------------------------
+!TOPIC 1566 shStackRec
+!NOINDEX
+type
+  shStackRec =
+    record
+      STopic : Word;           {Which topic}
+      First  : shLineRec;      {State of first line}
+      Last   : shLineRec;      {State of last line}
+      HorOfs : Word;           {Horizontal screen offset}
+      CursX  : Byte;           {Cursor X position}
+      CursY  : Byte;           {Cursor Y position}
+    end;
+
+Defines the information stored on the topic stack for each previous topic.
+;
+;------------------------------------------------------------
+!TOPIC 1567 shLineRec
+!NOINDEX
+type
+  shLineRec =
+    record
+      TextOfs : Word;          {Offset into decompressed text}
+      FlexSP  : Byte;          {Flex stack pointer}
+      FlexStk : FlexStack;     {Stack of active attribute indexes}
+    end;
+
+Information used internally by the ScrollingHelpWindow to scroll quickly
+from line to line of a topic.
+;
+;------------------------------------------------------------
+!TOPIC 1568 shSendFunc
+!NOINDEX
+type
+  shSendFunc = function (T : CharArrayPtr ; Len : Word;
+                         SH : ScrollingHelpWindowPtr) : Boolean;
+
+Procedure type for the block copy hook.
+
+See also:  1552ScrollingHelpWindow.SetSendFunc
+;
+;------------------------------------------------------------
+!TOPIC 1569 Declarations,OpHelp
+!NOINDEX
+!NOSEARCH
+OpHelp provides the following types, constants and variables for working
+with PagedHelpWindows and ScrollingHelpWindows:
+
+  1572BadHelpOptions            1573Configuration data      1571DefHelpOptions
+  1594FlexStack                 1578FlexStackSize           1570Help options
+  1595HelpCommands              1584HelpExitCommands        1574HelpFileOpenMode
+  1590HelpFileSection           1587HelpHeader              1579HelpId
+  1589HelpIndexRec              1591hwMatchFunc             1592hwNestedFunc
+  1575MaxPagesPerSection        1577MaxPreviousTopics       1576MaxXrefsPerSection
+  1588Miscellaneous types       1580NoHelpAvailable         1581NoTopicName
+  1561Pages                     1563phPageRec               1562phStackRec
+  1564phXrefRec                 1583PickTopic               1567shLineRec
+  1568shSendFunc                1566shStackRec              1585WordChars
+  1586XlateArray                1582XrefForIndex            1593Xrefs
+;
+;------------------------------------------------------------
+!TOPIC 1570 Help options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+hwStaticNameBuffer = $0001;
+hwPickIndex        = $0002;
+hwClearStackAtExit = $0004;
+hwMousePage        = $0008;
+hwAdjustScroll     = $0010;
+hwBlockMark        = $0020;
+hwHighlightXref    = $0040;
+!WRAP
+
+These are the options that affect the behavior of AbstractHelpWindow,
+PagedHelpWindow, and ScrollingHelpWindow.
+
+hwStaticNameBuffer forces each help window constructor to allocate heap space
+for the topic name index, the topic name buffer, and the master topic index
+and to load these buffers immediately. These heap buffers remain allocated
+until the window is disposed. If hwStaticNameBuffer is not enabled, the help
+windows allocate and load these buffers only when the window needs to display
+or search the master topic index, and deallocate them as soon as the operation
+is finished. hwPickIndex enables the ccIndex command.
+
+If hwPickIndex is disabled, the user will not be able to access the master
+topic index from within a help window.
+
+If hwClearStackAtExit is on, the ProcessSelf method clears the previous topic
+stack whenever it exits.
+
+hwMousePage affects only the ScrollingHelpWindow. If enabled, a mouse
+click on the increment/decrement arrow of a vertical scroll bar causes the
+window to scroll a full window height; otherwise, it scrolls a single
+line.
+
+hwAdjustScroll also affects only the ScrollingHelpWindow. If enabled, the
+help window constructor automatically sets the horizontal scrolling limit
+of the window to match the longest line in the help file (stored by
+MAKEHELP). If disabled, the window allows essentially unlimited horizontal
+scrolling unless a limit is set by calling SetMaxScroll.
+
+hwBlockMark determines whether block marking commands are available in the
+ScrollingHelpWindow.
+
+If the hwHighlightXref option is selected, the current cross-reference text
+will be highlighted when the cursor moves onto a cross-reference in a
+ScrollingHelpWindow.
+
+See also:
+  1533AbstractHelpWindow.hwOptionsAreOn  1532AbstractHelpWindow.hwOptionsOff
+  1531AbstractHelpWindow.hwOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1571 DefHelpOptions
+!NOINDEX
+const
+  DefHelpOptions : Word = hwPickIndex+hwAdjustScroll;
+
+The default options for a help window.
+;
+;------------------------------------------------------------
+!TOPIC 1572 BadHelpOptions
+!NOINDEX
+const
+  BadHelpOptions : Word = hwModeChangePending+hwProcessingHelp+
+                          hwHelpFrameInit+hwHelpModeActive+hwHelpFileOpen+
+                          hwHelpInMem+hwNamesLoaded;
+
+Options used internally by help window. The hwOptionsOn and hwOptionsOff
+methods will not change these bits of a help window option word.
+;
+;------------------------------------------------------------
+!TOPIC 1573 Configuration data,OpHelp
+!NOINDEX
+!NOSEARCH
+const
+  HelpKeyMax = 196;
+  HelpKeyID  : string[16] = 'ophelp key array';
+  HelpKeySet : array[0..HelpKeyMax] of Byte = (...);
+  HelpCfgEnd : Byte = 0;
+
+HelpKeyId is an ID string used to mark the beginning of the configuration
+data area for OpHelp; HelpCfgEnd marks the end of the configuration data
+area. In between them is HelpKeySet, the command table used by
+HelpCommands. HelpKeyMax is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 1574 HelpFileOpenMode
+!NOINDEX
+const
+  HelpFileOpenMode : Byte = $20; {FileMode: read only, deny write}
+
+The FileMode used to open a help file. Help window constructors use this
+value when they are called. If the DOS version is less than 3.0, they
+override this value and set it to 0, read-only, since earlier DOS versions
+didn't support the extended modes.
+;
+;------------------------------------------------------------
+!TOPIC 1575 MaxPagesPerSection
+!NOINDEX
+const
+  MaxPagesPerSection  = 20;
+
+Maximum number of help pages per topic. This limit applies only to the
+PagedHelpWindow object. A page break occurs when the number of lines
+exceeds the window height (at the time the topic was loaded) or an
+explicit page break is encountered (resulting from a !PAGE directive in
+the original help text). Pages in excess of MaxPagesPerSection are
+ignored.
+;
+;------------------------------------------------------------
+!TOPIC 1576 MaxXrefsPerSection
+!NOINDEX
+const
+  MaxXrefsPerSection  = 50;
+
+Maximum number of cross-references per topic. This limit applies to both
+PagedHelpWindow and ScrollingHelpWindow. Cross-references in excess of
+MaxXrefsPerSection are drawn in the special video attribute for unselected
+links, but they cannot be selected.
+;
+;------------------------------------------------------------
+!TOPIC 1577 MaxPreviousTopics
+!NOINDEX
+const
+  MaxPreviousTopics   = 20;
+
+Capacity of the previous topic stack. When the stack is full and a new
+topic is pushed, the oldest topic on the stack is "pushed off the end" and
+lost.
+;
+;------------------------------------------------------------
+!TOPIC 1578 FlexStackSize
+!NOINDEX
+const
+  FlexStackSize       =  4;
+
+Maximum number of nested attributes. Help highlighting activated by the
+^A, ^B, and ^C characters may be nested. For example, the string
+^Anext word ^Bis drawn in ^Canother ^Cvideo ^Battribute ^Aaltogether
+would show the word 'another' in the ^C attribute, 'video' in ^B,
+'attribute' in ^A, and 'altogether' in the normal text attribute. This
+example uses three levels of nesting.
+;
+;------------------------------------------------------------
+!TOPIC 1579 HelpId
+!NOINDEX
+const
+  HelpId : array[0..3] of Char = 'OPH1';
+
+Valid compiled help files start with this four character sequence.
+;
+;------------------------------------------------------------
+!TOPIC 1580 NoHelpAvailable
+!NOINDEX
+const
+  NoHelpAvailable = $FFFFFFFF;
+
+Seek offset (in a HelpIndexRec) that indicates no help is available for a
+particular topic number.
+;
+;------------------------------------------------------------
+!TOPIC 1581 NoTopicName
+!NOINDEX
+const
+  NoTopicName     = $FFFF;
+
+Name offset (in a topic name index) that indicates no topic name is
+available for a particular topic number.
+;
+;------------------------------------------------------------
+!TOPIC 1582 XrefForIndex
+!NOINDEX
+const
+  XrefForIndex    = 0;
+
+If a cross-reference link specifies this topic number, OpHelp will display
+the master topic index when that cross-reference is selected.
+;
+;------------------------------------------------------------
+!TOPIC 1583 PickTopic
+!NOINDEX
+const
+  PickTopic       = 0;
+
+If this topic number is specified when calling SetTopic, the next call to
+Draw or Process will display the master topic index.
+;
+;------------------------------------------------------------
+!TOPIC 1584 HelpExitCommands
+!NOINDEX
+const
+  HelpExitCommands : ByteSet = [ccPrevTopic];
+
+Dynamic exit commands that cause the ProcessSelf method of the master topic
+index PickList to exit.
+;
+;------------------------------------------------------------
+!TOPIC 1585 WordChars
+!NOINDEX
+const
+  WordChars : string[127] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789';
+
+The uppercase characters considered to form a word for the purpose of
+ScreenWordXY parsing.
+;
+;------------------------------------------------------------
+!TOPIC 1586 XlateArray
+!NOINDEX
+type
+  XlateArray = array[0..15] of Byte;
+
+The code table used for compressing and decompressing help text. Element 0
+is the character most frequently found in a particular help file. Element
+1 is the next most frequent, and so on. Element 15 isn't used.
+;
+;------------------------------------------------------------
+!TOPIC 1587 HelpHeader
+!NOINDEX
+type
+  HelpHeaderPtr = ^HelpHeader;
+  HelpHeader =
+    record
+      ID           : LongInt;    {Marks help file version}
+      HighestTopic : Word;       {Highest topic number}
+      BiggestTopic : Word;       {Size of largest topic (uncompressed)}
+      PickTopics   : Word;       {Number of topics in pick index}
+      SizeOfNames  : Word;       {Bytes in all topic names (packed table)}
+      LongestName  : Byte;       {Longest topic name}
+      LongestPick  : Byte;       {Longest name in pick index}
+      WindowWidth  : Byte;       {Preferred width of help window}
+      Scrolling    : Boolean;    {True if scrolling display is preferred}
+      MaxLineLen   : Integer;    {Maximum line length}
+      XlateTable   : XlateArray; {Table for decompression}
+    end;
+
+The header found at the beginning of a help file, and used frequently to
+manage a help window. Help window methods typically provide the access
+you'll need to the fields of this record.
+;
+;------------------------------------------------------------
+!TOPIC 1588 Miscellaneous types
+!NOINDEX
+!NOSEARCH
+type
+  BytePtr      = ^Byte;
+  CharArray    = array[0..65520] of Char;
+  CharArrayPtr = ^CharArray;
+  WordArray    = array[1..(65521 div SizeOf(Word))] of Word;
+  WordArrayPtr = ^WordArray;
+  FilePtr      = ^File;
+
+Miscellaneous data types used to manage various character buffers and
+topic number maps. When CharArray and WordArray types are allocated on the
+heap, they consume the exact size needed and not the maximum sizes
+described by these type declarations.
+;
+;------------------------------------------------------------
+!TOPIC 1589 HelpIndexRec
+!NOINDEX
+type
+  HelpIndexRec =
+    record
+      Start   : LongInt;     {File position of topic}
+      CompLen : Word;        {Compressed length of topic}
+    end;
+  HelpIndex    = array[1..(65521 div SizeOf(HelpIndexRec))] of
+                  HelpIndexRec;
+  HelpIndexPtr = ^HelpIndex;
+
+Data types for managing the help file's disk index, which specifies the
+file location and compressed data length of each topic's text. The
+complete disk index is not read into memory unless the whole help file has
+been linked into an application.
+;
+;------------------------------------------------------------
+!TOPIC 1590 HelpFileSection
+!NOINDEX
+type
+  HelpFileSection = (hwHeader,     {Fixed size header}
+                     hwNameIndex,  {Offset index for packed topic names}
+                     hwNames,      {Packed topic names}
+                     hwTopicIndex, {Sorted topic index for pick list}
+                     hwFileIndex); {Index to help topics themselves}
+
+An enumerated type naming the components of a help file.
+;
+;------------------------------------------------------------
+!TOPIC 1591 hwMatchFunc
+!NOINDEX
+type
+  hwMatchFunc     = function (VaryingName, FixedName : String;
+                              HPtr : AbstractHelpWindowPtr) : Boolean;
+
+Template for a user-written function that helps to search for a topic by
+topic name.
+
+See also:  1543AbstractHelpWindow.FindTopic
+;
+;------------------------------------------------------------
+!TOPIC 1592 hwNestedFunc
+!NOINDEX
+type
+  hwNestedFunc    = function (HPtr : AbstractHelpWindowPtr) : Boolean;
+
+Procedure type for the "nested function hook."
+;
+;------------------------------------------------------------
+!TOPIC 1593 Xrefs
+!NOINDEX
+type
+  Xrefs = 0..MaxXrefsPerSection;
+
+Defines the valid range of cross-reference indexes.
+;
+;------------------------------------------------------------
+!TOPIC 1594 FlexStack
+!NOINDEX
+type
+  FlexStack = array[0..FlexStackSize] of Char;
+
+Defines the stack of attribute codes used for flexwriting the help text.
+Note that the stack holds the control characters (^A, ^B, etc.) rather
+than the video attributes.
+;
+;------------------------------------------------------------
+!TOPIC 1595 HelpCommands
+!NOINDEX
+var
+  HelpCommands : CommandProcessor;
+
+The default CommandProcessor for a help window. This variable is
+initialized by OpHelp's initialization block. See OPHELP.ICD for details
+of the key assignments.
+;
+;------------------------------------------------------------
+!TOPIC 1596 Help file directives
+!NOINDEX
+!NOSEARCH
+The information displayed by the help system starts out as a text file that
+you must write. You put directives in that text file to tell the help
+compiler how to format and interpret it.
+
+Directives in the TXT file are denoted by an exclamation point in the first
+column of the line, immediately followed by the directive name, followed by
+optional modifiers separated by one or more spaces. Only the first five
+characters of each directive name are significant.
+
+!WIDTH Width
+!LINE
+Specifies the number of columns to be occupied by the active portion of the
+help window. By default, when the help is displayed, it will be separated
+from the edge of the active window by one column on both sides. Hence, the
+actual width for text is (Width-2) columns. When word-wrapping is
+activated, MAKEHELP wraps after (Width-2) columns. If no !WIDTH directive
+is specified, MAKEHELP assumes Width=40.
+
+The !WIDTH directive must appear before the first !TOPIC directive.
+
+Example
+  !WIDTH 70
+
+MAKEHELP's word-wrap will leave a maximum of 68 characters on each line of
+help text.
+
+!NOWRAP
+!LINE
+!WRAP
+!LINE
+The !NOWRAP commmand disables the word wrapping that MAKEHELP normally
+performs. Topic help lines are transferred directly from the input text file
+to the binary help file when wrapping is off. !WRAP turns wrapping on again.
+Wrapping is on by default.
+
+!SCROLLING
+!LINE
+This directive simply sets a flag (in the help file's header) that indicates
+the help text was optimized for a ScrollingHelpWindow. Help files are
+non-scrolling by default. The output file MAKEHELP creates is the same in
+either case (with the exception of the flag), and both PagedHelpWindow and
+ScrollingHelpWindow can read either kind of file.
+
+!TOPIC Number [Name]
+!LINE
+Each help topic must begin with a !TOPIC directive. Typically, help topics
+will be entered in ascending numerical order, starting with Number 1.
+Leaving large gaps in the topic number sequence will waste space in both the
+help file and in memory. Topic number 0 is reserved by the help system.
+
+The !TOPIC directive may also specify an optional topic name, which starts
+with the first non-blank character following the topic number. The name may
+contain spaces, and it will later appear on-screen exactly as entered in
+the !TOPIC directive. (The topic name optionally appears as the title of
+the help window, and optionally as an entry in the topic index.)
+
+The total space for Names in the help file is limited to 64K bytes. Names
+are packed one after another in the file, each consuming the actual length
+of the string plus a length byte. MAKEHELP assures that the 64K limit is
+not exceeded.
+
+Lines (even blank ones) immediately following the !TOPIC directive start
+the help text for that topic, which continues until the next !TOPIC
+directive or the end of the TXT file.
+
+Each help file must have at least one help !TOPIC.
+
+Examples
+  !TOPIC 1 First Help Section
+  !TOPIC 22
+
+Topic 1 has a name, which may appear as the title of the help window when
+that topic is displayed. The top border of the help window for topic 22
+will always be empty, and that topic will never appear in the master help
+index.
+
+!INDEX IndexNumber
+!LINE
+!NOINDEX
+!LINE
+These directives control whether a particular topic will appear in the
+master topic index, and if so, where within the index. The !INDEX
+and !NOINDEX directives, if used, should appear on the line following
+each !TOPIC directive. If they are not used for a given topic, MAKEHELP
+indexes that topic and sorts it into alphabetical position within the master
+index.
+
+Exclude any named topic from the index by specifying the !NOINDEX
+directive.
+
+Change the order in which indexed topics appear by using the !INDEX
+directive followed by an integer IndexNumber. Low values of IndexNumber
+sort to the beginning of the topic index, and high values to the end,
+overriding the normal alphabetical order. Specifically, the master topic
+index is sorted in the following order:
+
+  Topics with IndexNumber < $7777 in ascending numeric order
+  Topics without !INDEX directives in ascending alphabetic order
+  Topics with IndexNumber > $7777 in ascending numeric order
+
+As you might guess, MAKEHELP assigns a default IndexNumber of $7777 (30583
+decimal) to each topic, and the !INDEX directive overrides this value. When
+MAKEHELP sorts the topics for the help index, it uses IndexNumber as a
+primary key, and the alphabetic topic name as a secondary key.
+
+Do not specify an IndexNumber of $FFFF (65535 decimal) since MAKEHELP uses
+this special value to disable indexing for a topic.
+
+Examples
+  !TOPIC 1 Help on Help
+  !INDEX 1
+  ...
+  !TOPIC 2 A Very Minor Subtopic
+  !NOINDEX
+  ...
+  !TOPIC 3 An Alphabetic Approach
+  ...
+  !TOPIC 4 The Last Word
+  !INDEX 32000
+  ...
+
+We want the "Help on Help" topic to be listed first in the topic index, so
+we follow its !TOPIC directive with an !INDEX directive specifying item
+number 1.
+
+Topic 2, describing a very minor subtopic, should not appear on the index
+at all, so we remove it with the !NOINDEX directive.
+
+Topic 3 should appear in the help index in normal alphabetic order, so it
+needs no !INDEX directive.
+
+Topic 4 should be the last topic in the help index, so we give it a large
+IndexNumber.
+
+!NOSEARCH
+!LINE
+This directive prevents the 1543FindTopic and 1608FindNextTopic methods from
+searching the current topic's name.
+
+!LINE
+!LINE
+This directive forces MAKEHELP to finish the current line of text, inserting
+a line break. MAKEHELP also inserts a line break whenever it encounters a
+blank line or a line that begins with one or more spaces.
+
+!PAGE
+!LINE
+This directive forces MAKEHELP to finish the current page of text,
+inserting a page break. Normally, OpHelp paginates the help text only when
+the help is displayed. For best appearance, however, you may wish to force
+page breaks at selected locations in your help file. The
+ScrollingHelpWindow object treats page breaks no differently than line
+breaks.
+
+!INCLUDE IncludeFileName
+!LINE
+The specified file is read into the help text stream at this point. The
+include file capability allows for much larger help systems without using a
+virtual text editor to create them.
+
+MAKEHELP is configured to allow only one level of include file nesting
+(include files may not themselves use the !INCLUDE directive). Nesting can
+easily be increased by changing a constant (MaxIncludeNest) in the
+MAKEHELP.PAS source code.
+
+Example
+  !WIDTH 50
+  !NOWRAP
+  !INCLUDE HELP.TX1
+  !INCLUDE HELP.TX2
+
+This might be the complete top level TXT file for a particular help
+system. All of the topics are contained in the two include files HELP.TX1
+and HELP.TX2.
+
+!BIAS BiasAmount
+!LINE
+BiasAmount is an integer value between -65000 and +65000. All references to
+topic numbers following this directive are biased by the specified amount.
+This directive is useful if you're merging several independent help files
+into one large one (as would be helpful for POPHELP).
+
+Example
+  !BIAS 500
+
+Adds 500 to all topic number references for the text that follows this
+directive. Note that both cross-references to topics and the topic
+definitions themselves are adjusted.
+
+You can enter comments in the text file--they won't appear in the final
+help. Comments are indicated when a semicolon appears in the first column
+of any line.
+
+  ;ANY TEXT APPEARING AFTER THE SEMICOLON IS IGNORED.
+;
+;------------------------------------------------------------
+!TOPIC 1597 Help file ctrl chars
+!NOINDEX
+!NOSEARCH
+Special control characters provide another method to customize the
+appearance of help displays. With these, you can activate special video
+attributes; or you can specify that certain passages cross-reference other
+help topics.
+
+First, we'll describe the characters that control special video attributes.
+There are three of these:
+
+  ^A  toggles special attribute A   ColorSet.FlexAHelpColor,FlexAHelpMono
+  ^B  toggles special attribute B   ColorSet.FlexBHelpColor,FlexBHelpMono
+  ^C  toggles special attribute C   ColorSet.FlexCHelpColor,FlexCHelpMono
+
+The help window's constructor plucks the specified data fields out of a
+ColorSet variable to use for these special attributes.
+
+Place the control characters anywhere within the help text (not within help
+directives, however). The characters themselves will not be displayed and
+do not affect the length of lines as far as word-wrapping is concerned. The
+first instance of a control character causes the following text to appear
+in the associated color. The next appearance of the same character toggles
+that color off, returning the active color to its value prior to the
+previous control character. Use of these toggles may be nested, up to a
+maximum of 4 levels. The logic is the same as that of OpCrt's FlexWrite
+procedure.
+
+To enter control characters using the Turbo Pascal editor, first press
+<CtrlP>, then hold down the Ctrl key and press the desired character. For
+example, to enter a ^A into the text, press <CtrlP><CtrlA>.
+
+Two additional control characters activate the cross-reference capability
+of the help system. A cross-reference is a passage of text that refers to
+another topic within the help system. While help is displayed, the user can
+press cursor keys to position a highlight bar (for PagedHelpWindow) or the
+hardware cursor (for ScrollingHelpWindow) over the cross-reference passage.
+Then he or she can press <Enter> to select the referenced topic and display
+its help, and thus browse through many related topics. By default, any help
+topic can define up to 50 cross-references.
+
+You can use the cross-reference capability to achieve either of two
+effects. The first is to create local indexes: an entire help topic might
+be a list of other topic names. In this way, you could have hierarchical
+indexes, with the master index showing only the most general concepts, and
+each of those associated topics containing a local index that pointed to
+more detailed information. The second effect is what's popularly referred
+to as "hypertext." In this case, passages of text in one topic are used as
+links into related topics, hence allowing the user to browse through all
+the help text in a self-directed manner. ENTRY.TXT demonstrates the
+hypertext effect; the Object Professional help database used with POPHELP
+shows the local index technique as well.
+
+Control characters within the help text must therefore provide two cues to
+OpHelp. First, they must indicate which help topic will be activated when a
+given cross-reference is selected. Second, they must denote the extent of
+the highlighted passage of text. MAKEHELP uses the following scheme for
+this purpose:
+
+  ^Dnnnn^Etext^E
+
+The control character ^D precedes the referenced topic number "nnnn," which
+is expressed using decimal digits. The topic number is terminated by ^E,
+which is immediately followed by the text passage to be highlighted. A second
+^E terminates the highlighted text. Note that the ^E characters must be
+balanced while the ^D appears alone. Here's an example of two
+cross-references:
+
+  ^D10^ECompiling^E the help text is easy using ^D5^EMAKEHELP^E.
+
+In the real help text, the characters shown with carets will be real
+control characters, of course. If the user positioned the highlight bar
+over the word MAKEHELP and pressed <Enter>, the help for topic number 5
+would appear.
+
+Text marked with ^E is displayed in either of two attributes. When the
+cross-reference has been selected (in PagedHelpWindow), the text appears in
+the attribute ColorSet.SelXrefColor (or SelXrefMono). When the cross-
+reference is not selected, the text appears in the attribute
+ColorSet.UnselXrefColor (or UnselXrefMono).
+
+Zero has a special meaning when used as the topic number in a cross-
+reference. After selecting this cross-reference, instead of getting another
+topic, the user will get the master topic index (and the help window will
+switch into pick mode). The help window provides the same behavior if the
+user presses <F1>, but this special cross-reference makes it easier for you
+to remind people of the master index.
+
+The control character ^F offers a way to embed certain literal characters
+in the help text that aren't easily obtainable otherwise:
+
+  ^Fnnnn
+
+"nnnn" is any sequence of digits (0-9) that specify the ASCII value of the
+character. You can't use ^F to trick OpHelp into producing on-screen images
+of the characters ^A..^F, ^L, or ^M, however. OpHelp will still interpret
+these characters as it usually does. Probably the most valuable way to use
+the ^F option is to specify
+
+  ^F26
+
+which gives the effect of a ^Z character. ^Z terminates text files, so you
+can't embed a literal one in your help text. ^Z produces a right-arrow
+character when displayed on-screen, however, and it's sometimes nice to
+have this appear in help text.
+
+One final note: you can use IBM line-drawing characters (or other
+characters whose ASCII value exceeds 128) in your help files. OpHelp will
+display them literally. Most text editors (Turbo Pascal's included) allow
+you to enter such characters by holding down the <Alt> key, typing in the
+ASCII value on the numeric keypad, then releasing the <Alt> key.
+
+Below are the actual constant declarations for all control characters:
+
+const
+  Attr1Toggle   = ^A;     {Character toggles special attribute 1}
+  Attr2Toggle   = ^B;     {Character toggles special attribute 2}
+  Attr3Toggle   = ^C;     {Character toggles special attribute 3}
+  IndexMarker   = ^D;     {Character marks topic number that follows}
+  XrefToggle    = ^E;     {Character toggles xref highlight}
+  LiteralMarker  = ^F;    {Character marks literal ASCII char following}
+  LineBrkMark    = ^M;    {Denotes end of line of help}
+  PageBrkMark    = ^L;    {Denotes end of page of help}
+  SectEndMark    = #0;    {Denotes end of help section}
+;
+;------------------------------------------------------------
+!TOPIC 1598 MakeHelp
+!NOINDEX
+!NOSEARCH
+MAKEHELP.EXE is a command-line driven utility that reads a text file you've
+created according to the rules just described, and writes a binary help
+file ready for use by your program. You call MAKEHELP from the DOS command
+line as follows:
+
+  MAKEHELP [Options] HelpTextFile [HelpBinaryFile]
+
+MAKEHELP reads from the text file named by HelpTextFile and creates a new
+binary file HelpBinaryFile. It applies a default extension of .TXT to
+HelpTextFile. If HelpBinaryFile is not specified, MAKEHELP uses the text
+file name after forcing the extension .HLP onto it. MAKEHELP overwrites any
+existing HelpBinaryFile without warning. The input file and output file
+must have different names. For example,
+
+  MAKEHELP DEMO.TXT DEMO.HLP
+  MAKEHELP DEMO
+
+These two commands do the same thing.
+
+MAKEHELP supports the following options:
+
+  /B   write list of biggest topics to InFile.SIZ
+  /L   write topic cross-reference listing to HelpTextFile.LST
+  /Q   don't display warnings (quiet mode)
+  /S   sort cross-reference listing in index order
+  /T   write list of searchable topics to InFile.TOP
+  /U   write list of unreachable topics to InFile.UNR
+
+If your help file has lots of cross-referencing, the /L option may be
+useful. It shows all the links between topics. Here's a partial example
+created from ENTRY.TXT.
+
+  Topic Cross-Reference
+  Topic    Index  Topic Name
+      1  <alpha>  Name field
+      2  <alpha>  Address field
+                       to:     6
+      3  <alpha>  City field
+      4  <alpha>  State field
+      5  <alpha>  Zip code field
+      6  <alpha>  Phones field
+                       to:    16    17
+                     from:     2    15    24
+
+The topics are listed in numerical order. The Index column shows how the
+master topic index will order the topics: alphabetically (alpha),
+numerically (the index position shows), or not at all (blanks in this
+column). The Topic Name column shows the assigned topic name, or <no topic
+name> if none. If the topic has cross-references, like number 2, the
+listing shows the topic numbers that it links to. If other topics contain
+cross-references to this one, like number 6, a "from" line indicates the
+topics that reference it.
+
+The /S option combined with /L produces the same list, sorted into the
+order in which the master topic index will appear.
+
+The /Q option disables the display of MAKEHELP warnings (but not fatal
+errors). MAKEHELP produces only two categories of warnings:
+;
+;------------------------------------------------------------
+!TOPIC 1599 Topic control
+!NOINDEX
+!NOSEARCH
+The following methods are used by all help window objects for manipulating help
+topics:
+
+  1529CurrentTopic              1547CurrentXrefTopic        1543FindTopic
+  1526GetTopicChoice            1541HighestTopic            1542PickTopics
+  1546ScreenWordXY              1609SetAndPrepTopic         1525SetTopic
+  1528TopicStackPtr
+;
+;------------------------------------------------------------
+!TOPIC 1600 Display control,OpHelp
+!NOINDEX
+!NOSEARCH
+The following methods are used by all help window objects for controlling the
+appearance of the help display:
+
+  1537AddMoreHelpHeader         1536AddTopicHeader          1522Draw
+  1538InitHelpFrame             1535SetHelpPadSize          1540SetNestedFunc
+  1534SetPickPadSize            1539SetPrevTopicHotSpot
+;
+;------------------------------------------------------------
+!TOPIC 1601 General methods,AbstractHelpWindow
+!NOINDEX
+!NOSEARCH
+These are the help window methods that are not specifically used for managing
+help topics or controlling the display:
+
+  1520Done                      1533hwOptionsAreOn          1532hwOptionsOff
+  1531hwOptionsOn               1527InHelpMode              1602Init
+  1604InitCustom                1605InitDeluxe              1603InitMem
+  1606InitMemCustom             1607InitMemDeluxe           1521ItemString
+  1548Load                      1524ProcessSelf             1544SearchTopic
+  1545SetTopicAndPos            1549Store                   1530TopicExists
+  1523UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 1602 Init,AbstractHelpWindow
+!NOINDEX
+constructor 1519AbstractHelpWindow.Init(X1, Y1, X2, Y2 : Byte;
+                                    HelpFile : PathStr;
+                                    PickOrientation : pkGenlProc);
+
+Initialize help window and open help file.
+
+See also:  1603InitMem
+;
+;------------------------------------------------------------
+!TOPIC 1603 InitMem
+!NOINDEX
+constructor 1519AbstractHelpWindow.InitMem(X1, Y1, X2, Y2 : Byte;
+                                       HelpAddr : Pointer;
+                                       PickOrientation : pkGenlProc);
+
+Initialize help window using help bound into code.
+
+See also:  1602Init
+;
+;------------------------------------------------------------
+!TOPIC 1604 InitCustom,AbstractHelpWindow
+!NOINDEX
+constructor 1519AbstractHelpWindow.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                          var Colors : ColorSet;
+                                          Options : LongInt;
+                                          HelpFile : PathStr;
+                                          PickOrientation : pkGenlProc);
+
+Initialize help window and open help file.
+
+See also:  1606InitMemCustom
+;
+;------------------------------------------------------------
+!TOPIC 1605 InitDeluxe,AbstractHelpWindow
+!NOINDEX
+constructor 1519AbstractHelpWindow.InitDeluxe(X1, Y1, X2, Y2 : Byte;
+                                          var Colors : ColorSet;
+                                          Options : LongInt;
+                                          HelpFile : PathStr;
+                                          PickOrientation : pkGenlProc;
+                                          HelpOptions : Word);
+
+Initialize help window and open help file.
+
+See also:  1607InitMemDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 1606 InitMemCustom
+!NOINDEX
+constructor 1519AbstractHelpWindow.InitMemCustom(X1, Y1, X2, Y2 : Byte;
+                                             var Colors : ColorSet;
+                                             Options : LongInt;
+                                             HelpAddr : Pointer;
+                                             PickOrientation : pkGenlProc);
+
+Initialize help window using help bound into code.
+
+See also:  1604InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1607 InitMemDeluxe
+!NOINDEX
+constructor 1519AbstractHelpWindow.InitMemDeluxe(X1, Y1, X2, Y2 : Byte;
+                                             var Colors : ColorSet;
+                                             Options : LongInt;
+                                             HelpAddr : Pointer;
+                                             PickOrientation : pkGenlProc;
+                                             HelpOptions : Word);
+
+Initialize help window using help bound into code.
+
+See also:  1603InitMem
+;
+;------------------------------------------------------------
+!TOPIC 1608 FindNextTopic
+!NOINDEX
+function 1519AbstractHelpWindow.FindNextTopic(PrevMatch : Word;
+                                          Circular : Boolean;
+                                          var Name : String;
+                                          MatchFunc : hwMatchFunc) : Word;
+                                                             virtual;
+
+Return Topic number with specified Name, starting past PrevMatch,
+searching circularly if Circular is True.
+
+See also:  1543FindTopic  1557DefaultTopicMatch
+;
+;------------------------------------------------------------
+!TOPIC 1609 SetAndPrepTopic
+!NOINDEX
+procedure 1519AbstractHelpWindow.SetAndPrepTopic(Topic : Word);
+
+Push and pop given topic, initializing all data structures.
+Use instead of SetTopic when a help window is a child window
+of a dialog box.
+
+See also:  1525SetTopic
+

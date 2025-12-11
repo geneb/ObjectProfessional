@@ -1,0 +1,104 @@
+;
+;---------------------------------------------------------------------------
+!TOPIC 1129 OpEnhKbd
+OpEnhKbd invisibly installs a pair of interrupt handlers which trap all
+system calls that request keyboard input. Besides activating or emulating the
+enhanced keyboard, OpEnhKbd makes the Alt key act like a normal shift key
+where the numeric keypad is concerned. Hence, Alt-Left, Alt-Up, and the
+rest can be used as additional keystrokes for an application. Note, however,
+that this disables the normal ability to enter arbitrary ASCII characters
+using the Alt and the keypad. This capability is still possible by pressing
+LeftShift and Alt simultaneously.
+
+  1130EnableEnhanced             1131HasEnhancedKbd           1135Enhanced Keystrokes
+  1133InitKbdVectors             1134RestoreKbdVectors        1132FiltersEnhanced
+;
+;---------------------------------------------------------------------------
+!TOPIC 1130 EnableEnhanced
+!NOINDEX
+const
+  EnableEnhanced : Boolean = True;
+
+Set False to temporarily disable the enhanced keyboard interrupt handlers.
+
+See also: 1134RestoreKbdVectors
+;
+;---------------------------------------------------------------------------
+!TOPIC 1131 HasEnhancedKbd
+!NOINDEX
+var
+  HasEnhancedKbd : Boolean;
+
+True when a real enhanced keyboard is detected.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1132 FiltersEnhanced
+!NOINDEX
+var
+  FiltersEnhanced : Boolean;
+
+This variable is set to True by OpEnhKbd if it has been determined that
+the current machine's BIOS "filters" key codes whose scanword is greater
+than $8500.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1133 InitKbdVectors
+!NOINDEX
+procedure 1129OpEnhKbd.InitKbdVectors
+
+Save and setup vectors for interrupts $09 and $16.  This routine should be
+called only if 1134RestoreKbdVectors has been called first.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1134 RestoreKbdVectors
+!NOINDEX
+procedure 1129OpEnhKbd.RestoreKbdVectors;
+
+Restores original vectors for interrupts $09 and $16. Needed only when using
+OpEnhKbd in a TSR.
+
+See also: 1130EnableEnhanced
+;
+;---------------------------------------------------------------------------
+!TOPIC 1135 Enhanced Keystrokes
+!NOINDEX
+!NOSEARCH
+The following keystrokes are added or changed as a result of using OpEnhKbd
+in a program. Numeric values are the scan words returned by
+0406ReadKeyWord, in hexadecimal.
+
+                 Plain   Shift  Control Alt 
+  F11            8500    8700   8900    8B00
+  F12            8600    8800   8A00    8C00
+  Esc            011B    011B   011B    0100
+  Backquote      2960    297E   2960    2900
+  Backspace      0E08    0E08   0E7F    0E00
+                 Plain   Shift  Control Alt 
+  Tab            0F09    0F00   9400    A500
+  Left Bracket   1A5B    1A7B   1A1B    1A00
+  Right Bracket  1B5D    1B7D   1B1D    1B00
+  Backslash      2B5C    2B7C   2B1C    2B00
+  Semicolon      273B    273A   ----    2700
+  Quote          2827    2822   ----    2800
+  Enter          1C0D    1C0D   1C0A    1C00
+  Comma          332C    333C   ----    3300
+  Period         342E    343E   ----    3400
+                 Plain   Shift  Control Alt 
+  Slash          352F    353F   ----    3500
+  Insert         5200    5230   9200    A200
+  Del            5300    532E   9300    A300
+  Home           4700    4737   7700    9700
+  End            4F00    4F31   7500    9F00
+  PgUp           4900    4939   8400    9900
+  PgDn           5100    5133   7600    A100
+  Up             4800    4838   8D00    9800
+  Down           5000    5032   9100    A000
+                 Plain   Shift  Control Alt 
+  Left           4B00    4B34   7300    9B00
+  Right          4D00    4D36   7400    9D00
+!LINE
+On numeric keypad:
+  Pad-Asterisk   372A    ----    ----   3700
+  Pad-Minus      4A2D    4A2D    8E00   4A00
+  Pad-Plus       4E2B    4E2B    9000   4E00
+  Pad-5          4C00    4C35    8F00   9C00

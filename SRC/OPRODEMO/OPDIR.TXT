@@ -1,0 +1,1499 @@
+;
+;------------------------------------------------------------
+!TOPIC 707 OpDir
+The OpDir unit implements two objects derived from the PickList: one, the
+DirList, is for listing and selecting DOS filenames; the other, PathList, is
+for selecting subdirectory names. These objects inherit all of the flexibility
+of the window and pick list objects, and add many new features for dealing
+with the DOS directory structure:
+
+!NOWRAP
+- wildcard searches for filenames
+- selection of files by attribute
+- selection of files by user-definable criteria
+- user-definable sort order
+- user-definable name format, including size, date, and time
+- specialized header for filename search mask
+- support for multiple file marking
+- graphic tree format for path list display
+!WRAP
+
+    0708DirList                           0766PathList
+    0811Other routines
+;
+;------------------------------------------------------------
+!TOPIC 708 DirList
+!NOINDEX
+0707OpDir.DirList = object(2027PickList)
+!LINE
+DirListPtr = ^DirList;
+
+DirList can select a single file at a time or, by building on PickList's
+multiple choice capabilities, mark many files for a followup operation.
+DirList's methods are divided into the following categories:
+
+  0815Declarations              0814Display control         0813File filtering
+  0812General methods
+;
+;------------------------------------------------------------
+!TOPIC 709 Init,DirList
+!NOINDEX
+constructor 0708DirList.Init(X1, Y1, X2, Y2 : Byte;
+                         HeapToUse : LongInt;
+                         PickOrientation : pkGenlProc;
+                         CommandInit : diInitCommandProc);
+
+Initialize a directory list.
+
+See also:  0710InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 710 InitCustom,DirList
+!NOINDEX
+constructor 0708DirList.InitCustom(X1, Y1, X2, Y2 : Byte;
+                               var Colors : ColorSet;
+                               Options : LongInt;
+                               HeapToUse : LongInt;
+                               PickOrientation : pkGenlProc;
+                               CommandInit : diInitCommandProc);
+
+Initialize a directory list with custom window options.
+
+See also:  0734FileCapacity  2031PickList.InitDeluxe
+;
+;------------------------------------------------------------
+!TOPIC 711 Done,DirList
+!NOINDEX
+destructor 0708DirList.Done; virtual;
+
+Dispose of directory list.
+
+See also:  2033PickList.Done  2529StringSet.Done
+;
+;------------------------------------------------------------
+!TOPIC 712 AddMaskHeader
+!NOINDEX
+procedure 0708DirList.AddMaskHeader(FullPath : Boolean;
+                                PadSize, MaxLen : Byte;
+                                Posn : HeaderPosType);
+
+Add a header to display the search mask.
+
+See also:  0713SetMask
+;
+;------------------------------------------------------------
+!TOPIC 713 SetMask
+!NOINDEX
+procedure 0708DirList.SetMask(Mask : String; FileAttr : Byte);
+
+Set search mask and attribute and reset list.
+
+See also:  0714ResetList
+;
+;------------------------------------------------------------
+!TOPIC 714 ResetList,DirList
+!NOINDEX
+procedure 0708DirList.ResetList;
+
+Force reread of directory when it may have changed.
+
+See also:  0756RemoveMultiFile  0713SetMask
+;
+;------------------------------------------------------------
+!TOPIC 715 PreloadDirList
+!NOINDEX
+procedure 0708DirList.PreloadDirList;
+
+Read directory in advance.
+
+See also:  0721GetFileName  0716ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 716 ProcessSelf,DirList
+!NOINDEX
+procedure 0708DirList.ProcessSelf; virtual;
+
+Process pick commands leading to a file choice.
+
+See also:
+    0722ChangeDirectory              0721GetFileName
+    3048CommandWindow.Process        2037PickList.ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 717 UpdateContents,DirList
+!NOINDEX
+procedure 0708DirList.UpdateContents; virtual;
+
+Redraw the contents of the directory window.
+
+See also:  2036PickList.UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 718 SortList
+!NOINDEX
+procedure 0708DirList.SortList; virtual;
+
+Sort the list of directory entries.
+
+See also:  0747SetSortOrder
+;
+;------------------------------------------------------------
+!TOPIC 719 Reject
+!NOINDEX
+function 0708DirList.Reject(var X : DirRec) : Boolean; virtual;
+
+Return True to exclude a particular entry from pick.
+
+See also:  0749SetRejectFunc
+;
+;------------------------------------------------------------
+!TOPIC 720 Format
+!NOINDEX
+procedure 0708DirList.Format(var X : DirRec; var pkCat : Byte;
+                         var S : String); virtual;
+
+Return a formatted string and category for a directory entry.
+
+See also:
+  0741SetAllFormat              0735SetNameFormat           0736SetNameSizeFormat
+  0737SetNameSizeKFormat        0740SetNameSizeKTimeFormat  0739SetNameSizeTimeFormat
+  0738SetNameTimeFormat
+;
+;------------------------------------------------------------
+!TOPIC 721 GetFileName
+!NOINDEX
+function 0708DirList.GetFileName(Mask : String; FileAttr : Byte;
+                             var Name : PathStr) : Word;
+
+Set a new mask, pick a name and return. Returns status.
+
+See also:  0722ChangeDirectory  0871OpDos.ExistFile  0716ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 722 ChangeDirectory
+!NOINDEX
+procedure 0708DirList.ChangeDirectory(Mask : String; ChangeCode : Byte);
+
+Change to specified directory, or let user browse around to do so.
+
+See also:  0777PathList.GetPathName
+;
+;------------------------------------------------------------
+!TOPIC 723 GetMatchingFileCount
+!NOINDEX
+function 0708DirList.GetMatchingFileCount : Word;
+
+Return number of files matched in last directory.
+
+See also:  0734FileCapacity  0724GetMatchingSize
+;
+;------------------------------------------------------------
+!TOPIC 724 GetMatchingSize
+!NOINDEX
+function 0708DirList.GetMatchingSize(ClusterSize : Word) : LongInt;
+
+Return number of bytes in all matched files.
+
+See also:  0723GetMatchingFileCount
+;
+;------------------------------------------------------------
+!TOPIC 725 GetSelectedFile
+!NOINDEX
+function 0708DirList.GetSelectedFile : FileStr;
+
+Return 12-character name of selected file.
+
+See also:  0727GetSelectedDir  0728GetSelectedDirRec
+;
+;------------------------------------------------------------
+!TOPIC 726 GetSelectedPath,DirList
+!NOINDEX
+function 0708DirList.GetSelectedPath : PathStr;
+
+Return full pathname of selected file.
+
+See also:  0727GetSelectedDir  0725GetSelectedFile
+;
+;------------------------------------------------------------
+!TOPIC 727 GetSelectedDir
+!NOINDEX
+function 0708DirList.GetSelectedDir : DirStr;
+
+Return directory of selected file.
+
+See also:  0725GetSelectedFile  0726GetSelectedPath
+;
+;------------------------------------------------------------
+!TOPIC 728 GetSelectedDirRec
+!NOINDEX
+procedure 0708DirList.GetSelectedDirRec(var D : DirRec);
+
+Return full DirRec for selected file.
+
+See also:  0725GetSelectedFile  0726GetSelectedPath
+;
+;------------------------------------------------------------
+!TOPIC 729 SelectedFileInCurDir
+!NOINDEX
+function 0708DirList.SelectedFileInCurDir : Boolean;
+
+Return true if selected file is in current directory.
+
+See also:  0727GetSelectedDir  0726GetSelectedPath
+;
+;------------------------------------------------------------
+!TOPIC 730 RemoveSelectedFile
+!NOINDEX
+procedure 0708DirList.RemoveSelectedFile;
+
+Remove current file from pick list.
+
+See also:  0756RemoveMultiFile  0757RemoveSelectedFiles
+;
+;------------------------------------------------------------
+!TOPIC 731 diOptionsOn
+!NOINDEX
+procedure 0708DirList.diOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  0733diOptionsAreOn  0732diOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 732 diOptionsOff
+!NOINDEX
+procedure 0708DirList.diOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  0733diOptionsAreOn  0731diOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 733 diOptionsAreOn
+!NOINDEX
+function 0708DirList.diOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  0732diOptionsOff  0731diOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 734 FileCapacity
+!NOINDEX
+function 0708DirList.FileCapacity : Word;
+
+Return the maximum number of files list can hold.
+
+See also:  0709Init
+;
+;------------------------------------------------------------
+!TOPIC 735 SetNameFormat
+!NOINDEX
+procedure 0708DirList.SetNameFormat;
+
+Initialize for compact nnnnnnnn.xxx format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 736 SetNameSizeFormat
+!NOINDEX
+procedure 0708DirList.SetNameSizeFormat(DirStr : String);
+
+Initialize for nnnnnnn.xxx sssssssss format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 737 SetNameSizeKFormat
+!NOINDEX
+procedure 0708DirList.SetNameSizeKFormat(DirStr : String);
+
+Initialize for nnnnnnn.xxx ssssssk format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 738 SetNameTimeFormat
+!NOINDEX
+procedure 0708DirList.SetNameTimeFormat(DatePicture, TimePicture : String);
+
+Initialize for name date time format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 739 SetNameSizeTimeFormat
+!NOINDEX
+procedure 0708DirList.SetNameSizeTimeFormat(DirStr, DatePicture,
+                                        TimePicture : String);
+
+Initialize for name size date time format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 740 SetNameSizeKTimeFormat
+!NOINDEX
+procedure 0708DirList.SetNameSizeKTimeFormat(DirStr, DatePicture,
+                                         TimePicture : String);
+
+Initialize for name size date time format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 741 SetAllFormat
+!NOINDEX
+procedure 0708DirList.SetAllFormat(DirStr, DatePicture, TimePicture : String);
+
+Initialize for name size date time attr format.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 742 SetUserFormat
+!NOINDEX
+procedure 0708DirList.SetUserFormat(MaxFmatLen : Byte; FF : diFormatProc);
+
+Set up for a user-defined format function.
+
+See also:  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 743 SetFileAttr
+!NOINDEX
+procedure 0708DirList.SetFileAttr(Color, Mono : Byte);
+
+Set video attributes for files.
+
+See also:  0744SetDirAttr  2070PickList.SetPickAttr  0745SetSelectFileAttr
+;
+;------------------------------------------------------------
+!TOPIC 744 SetDirAttr
+!NOINDEX
+procedure 0708DirList.SetDirAttr(Color, Mono : Byte);
+
+Set video attributes for directories.
+
+See also:  0743SetFileAttr  2070PickList.SetPickAttr  0746SetSelectDirAttr
+;
+;------------------------------------------------------------
+!TOPIC 745 SetSelectFileAttr
+!NOINDEX
+procedure 0708DirList.SetSelectFileAttr(Color, Mono : Byte);
+
+Set video attributes for selected file.
+
+See also:  0743SetFileAttr  2070PickList.SetPickAttr  0746SetSelectDirAttr
+;
+;------------------------------------------------------------
+!TOPIC 746 SetSelectDirAttr
+!NOINDEX
+procedure 0708DirList.SetSelectDirAttr(Color, Mono : Byte);
+
+Set video attributes for selected directory.
+
+See also:  0744SetDirAttr  2070PickList.SetPickAttr  0745SetSelectFileAttr
+;
+;------------------------------------------------------------
+!TOPIC 747 SetSortOrder
+!NOINDEX
+procedure 0708DirList.SetSortOrder(SP : diSortProc);
+
+Set alternate routine for sorting.
+
+See also:
+  0796SortDirName               0718SortList                0794SortName
+  0795SortNameDirDrive          0793SortNone                0797SortSize
+  0798SortTime
+;
+;------------------------------------------------------------
+!TOPIC 748 SetDirCategory
+!NOINDEX
+procedure 0708DirList.SetDirCategory(DirCat : pkItemType);
+
+Set the pick list category for directories and drives.
+;
+;------------------------------------------------------------
+!TOPIC 749 SetRejectFunc
+!NOINDEX
+procedure 0708DirList.SetRejectFunc(RF : diRejectFunc);
+
+Set alternate reject function for file selection.
+
+See also:
+  0750AddRejectString           0719Reject                  0807RejectExtensions
+  0808RejectFiles               0806RejectNone
+;
+;------------------------------------------------------------
+!TOPIC 750 AddRejectString
+!NOINDEX
+procedure 0708DirList.AddRejectString(S : String);
+
+Add a string to the set to reject.
+
+See also:  2521StringSet.Add  0751ClearRejectStrings
+;
+;------------------------------------------------------------
+!TOPIC 751 ClearRejectStrings
+!NOINDEX
+procedure 0708DirList.ClearRejectStrings;
+
+Clear the set of strings to reject.
+
+See also:  0750AddRejectString  2529StringSet.Done
+;
+;------------------------------------------------------------
+!TOPIC 752 GetMultiFile
+!NOINDEX
+function 0708DirList.GetMultiFile(N : Word) : FileStr;
+
+Return 12-character name of specified file.
+
+See also:  0754GetMultiDirRec  0753GetMultiPath
+;
+;------------------------------------------------------------
+!TOPIC 753 GetMultiPath,DirList
+!NOINDEX
+function 0708DirList.GetMultiPath(N : Word) : PathStr;
+
+Return full pathname of specified file.
+
+See also:  0754GetMultiDirRec  0752GetMultiFile
+;
+;------------------------------------------------------------
+!TOPIC 754 GetMultiDirRec
+!NOINDEX
+procedure 0708DirList.GetMultiDirRec(N : Word; var D : DirRec);
+
+Return full DirRec for specified file.
+
+See also:  0759FormatMultiFile  0758GetMultiDirPtr
+;
+;------------------------------------------------------------
+!TOPIC 755 GetSelectedSize
+!NOINDEX
+function 0708DirList.GetSelectedSize(ClusterSize : Word) : LongInt;
+
+Return total size of all selected files.
+
+See also:  0724GetMatchingSize
+;
+;------------------------------------------------------------
+!TOPIC 756 RemoveMultiFile
+!NOINDEX
+procedure 0708DirList.RemoveMultiFile(N : Word);
+
+Remove specified file from list.
+
+See also:  0730RemoveSelectedFile  0757RemoveSelectedFiles
+;
+;------------------------------------------------------------
+!TOPIC 757 RemoveSelectedFiles
+!NOINDEX
+procedure 0708DirList.RemoveSelectedFiles;
+
+Remove all selected files from list.
+
+See also:  0756RemoveMultiFile
+;
+;------------------------------------------------------------
+!TOPIC 758 GetMultiDirPtr
+!NOINDEX
+function 0708DirList.GetMultiDirPtr(N : Word) : DirRecPtr;
+
+Return pointer to DirRec for specified file.
+
+See also:  0754GetMultiDirRec  0752GetMultiFile
+;
+;------------------------------------------------------------
+!TOPIC 759 FormatMultiFile
+!NOINDEX
+procedure 0708DirList.FormatMultiFile(N : Word);
+
+Rebuild the format string for specified file.
+
+See also:  0758GetMultiDirPtr
+;
+;------------------------------------------------------------
+!TOPIC 760 SelectItem,DirList
+!NOINDEX
+procedure 0708DirList.SelectItem(N : Word); virtual;
+
+Select an item. Overrides PickList.SelectItem to avoid selecting
+directories.
+
+See also:  2076PickList.SelectItem
+;
+;------------------------------------------------------------
+!TOPIC 761 Load,DirList
+!NOINDEX
+constructor 0708DirList.Load(var S : IdStream);
+
+Load a list from a stream. The stream registration procedure for DirList is
+DirListStream. See Store for a list of predefined registration codes.
+
+See also:  2086PickList.Load  0762Store
+;
+;------------------------------------------------------------
+!TOPIC 762 Store,DirList
+!NOINDEX
+procedure 0708DirList.Store(var S : IdStream);
+
+Store a list in a stream. The stream registration procedure for DirList is
+DirListStream.
+
+Note that each of the standard support routines provided by OpDir has a
+predefined registration code that should be used to avoid conflicts:
+
+!NOWRAP
+Procedure or Function  Pointer Registration Code  Category
+RejectNone             ptDirRejectNone            Reject filters
+RejectExtensions       ptDirRejectExtensions      "
+RejectFiles            ptDirRejectFiles           "
+SortNone               ptDirSortNone              Directory sorting
+SortName               ptDirSortName              "
+SortNameDirDrive       ptSortNameDirDrive         "
+SortDirName            ptDirSortDirName           "
+SortSize               ptDirSortSize              "
+SortTime               ptDirSortTime              "
+NameFormat             ptDirNameFormat            File formatting
+NameSizeKFormat        ptDirNameSizeKFormat       "
+NameSizeFormat         ptDirNameSizeFormat        "
+NameTimeFormat         ptDirNameTimeFormat        "
+NameSizeKTimeFormat    ptDirNameSizeKTimeFormat   "
+NameSizeTimeFormat     ptDirNameSizeTimeFormat    "
+AllFormat              ptDirAllFormat             "
+DirStringProc          ptDirStringProc            Pick string procedures
+MultiStringProc        ptDirMultiProc             "
+!WRAP
+
+Note that you'll never need to explicitly register either of the last two
+routines since OpDir registers the appropriate one for you.
+
+See also:  0761Load  2087PickList.Store
+;
+;------------------------------------------------------------
+!TOPIC 763 SkipDrives
+!NOINDEX
+procedure 0708DirList.SkipDrives(Drives : DriveSet);
+
+Specify drives not to appear in the pick list.
+
+See also:
+  0764SetDriveDelim  0818DirList options
+  0765DriveSet
+;
+;------------------------------------------------------------
+!TOPIC 764 SetDriveDelim
+!NOINDEX
+procedure 0708DirList.SetDriveDelim(Left, Right : String);
+
+Specify delimiter strings to appear left and right of drive letters. Maximum
+length of each is 5 characters.
+
+See also:  0818DirList options
+;
+;------------------------------------------------------------
+!TOPIC 765 DriveSet
+!NOINDEX
+type
+  DriveSet = set of diFirstDrive..diLastDrive;
+!LINE
+const
+  diFirstDrive = 'A';
+  diLastDrive  = 'Z';
+
+Drives that, if valid, may be displayed within a directory list.
+
+See also:  0818DirList options  0763DirList.SkipDrives
+;
+;------------------------------------------------------------
+!TOPIC 766 PathList
+!NOINDEX
+0707OpDir.PathList = object(2027PickList)
+!LINE
+PathListPtr = ^PathList;
+
+A PathList is much like a DirList except that it deals strictly with
+subdirectories and not with normal files. The PathList lists all
+subdirectories on a specified drive and allows the user to select one of
+them. The niftiest feature of PathList is its ability to display the
+subdirectories in "tree format," which connects all the directories with
+line-drawing characters which make their relationships clear. PathList can
+also display the list using the plain DOS pathnames if desired.
+
+Except for implementing the line-drawing feature, PathList is much simpler
+than DirList. It has no need for user-defined reject, sort, and formatting
+hooks, or for date and time formatting options. Nevertheless, PathList
+retains enough similarity to DirList that you'll probably want to read
+about DirList to gain additional background.
+
+  0816Declarations              0833Methods
+;
+;------------------------------------------------------------
+!TOPIC 767 Init,PathList
+!NOINDEX
+constructor 0766PathList.Init(X1, Y1, X2, Y2 : Byte;
+                          HeapToUse : LongInt;
+                          PickOrientation : pkGenlProc;
+                          CommandInit : paInitCommandProc);
+
+Initialize a path list.
+
+See also:  0768InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 768 InitCustom,PathList
+!NOINDEX
+constructor 0766PathList.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                var Colors : ColorSet;
+                                Options : LongInt;
+                                HeapToUse : LongInt;
+                                PickOrientation : pkGenlProc;
+                                CommandInit : paInitCommandProc);
+
+Initialize a path list with custom window options.
+
+See also:  0767Init  2029PickList.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 769 Done,PathList
+!NOINDEX
+destructor 0766PathList.Done; virtual;
+
+Dispose of path list.
+
+See also:  2033PickList.Done
+;
+;------------------------------------------------------------
+!TOPIC 770 SetDrive
+!NOINDEX
+procedure 0766PathList.SetDrive(Drive : Char);
+
+Specify drive for path list.
+
+See also:  0839OpDos.ValidDrive
+;
+;------------------------------------------------------------
+!TOPIC 771 ResetList,PathList
+!NOINDEX
+procedure 0766PathList.ResetList;
+
+Force reread of directories when they may have changed.
+
+See also:  0770SetDrive
+;
+;------------------------------------------------------------
+!TOPIC 772 UpdateContents,PathList
+!NOINDEX
+procedure 0766PathList.UpdateContents; virtual;
+
+Redraw the complete pick window.
+
+See also:  2036PickList.UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 773 SavePathList
+!NOINDEX
+procedure 0766PathList.SavePathList(FName : PathStr);
+
+Save the entries in the loaded path list to FName.
+
+See also:  0774LoadPathList
+;
+;------------------------------------------------------------
+!TOPIC 774 LoadPathList
+!NOINDEX
+procedure 0766PathList.LoadPathList(FName : PathStr);
+
+Load the path list in FName into the PathList.
+
+See also:  0773SavePathList
+;
+;------------------------------------------------------------
+!TOPIC 775 ProcessSelf,PathList
+!NOINDEX
+procedure 0766PathList.ProcessSelf; virtual;
+
+Display list if any, get one selection.
+
+See also:
+  0777GetPathName                 0776PreloadPathList
+  3048CommandWindow.Process       2037PickList.ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 776 PreloadPathList
+!NOINDEX
+procedure 0766PathList.PreloadPathList;
+
+Read paths in advance.
+
+See also:  0775ProcessSelf  0770SetDrive
+;
+;------------------------------------------------------------
+!TOPIC 777 GetPathName
+!NOINDEX
+function 0766PathList.GetPathName(Drive : Char) : PathStr;
+
+Set drive, pick a path, and return it. Returns empty string if error.
+
+See also:  0776PreloadPathList  0770SetDrive
+;
+;------------------------------------------------------------
+!TOPIC 778 GetSelectedPath,PathList
+!NOINDEX
+function 0766PathList.GetSelectedPath : PathStr;
+
+Return selected pathname.
+
+See also:  0788GetMultiPath  0777GetPathName
+;
+;------------------------------------------------------------
+!TOPIC 779 paOptionsOn
+!NOINDEX
+procedure 0766PathList.paOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:  0781paOptionsAreOn  0780paOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 780 paOptionsOff
+!NOINDEX
+procedure 0766PathList.paOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  0781paOptionsAreOn  0779paOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 781 paOptionsAreOn
+!NOINDEX
+function 0766PathList.paOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  0780paOptionsOff  0779paOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 782 SetClusterSize
+!NOINDEX
+procedure 0766PathList.SetClusterSize(Size : Word);
+
+Set cluster size for adjusting files to DOS boundaries.
+
+See also:  0779paOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 783 SetDrawingChars
+!NOINDEX
+procedure 0766PathList.SetDrawingChars(P : PathDrawArray);
+
+Set the characters used for line graphics.
+
+See also:  0785SetFullPathMode
+;
+;------------------------------------------------------------
+!TOPIC 784 SetLineDrawMode
+!NOINDEX
+procedure 0766PathList.SetLineDrawMode;
+
+Display hierarchy with line draw characters (default).
+
+See also:  0783SetDrawingChars  0785SetFullPathMode
+;
+;------------------------------------------------------------
+!TOPIC 785 SetFullPathMode
+!NOINDEX
+procedure 0766PathList.SetFullPathMode;
+
+Display hierarchy with full path names.
+
+See also:  0784SetLineDrawMode
+;
+;------------------------------------------------------------
+!TOPIC 786 SetPathAttr
+!NOINDEX
+procedure 0766PathList.SetPathAttr(Color, Mono : Byte);
+
+Set video attributes for paths.
+
+See also:  0787SetSelectPathAttr
+;
+;------------------------------------------------------------
+!TOPIC 787 SetSelectPathAttr
+!NOINDEX
+procedure 0766PathList.SetSelectPathAttr(Color, Mono : Byte);
+
+Set video attributes for selected path.
+
+See also:  0786SetPathAttr
+;
+;------------------------------------------------------------
+!TOPIC 788 GetMultiPath,PathList
+!NOINDEX
+function 0766PathList.GetMultiPath(N : Word) : PathStr;
+
+Return pathname of specified path.
+
+See also:  0778GetSelectedPath
+;
+;------------------------------------------------------------
+!TOPIC 789 Load,PathList
+!NOINDEX
+constructor 0766PathList.Load(var S : IdStream);
+
+Load a list from a stream. The stream registration procedure for PathList
+is PathListStream.
+
+See also:  2086PickList.Load  0790Store
+;
+;------------------------------------------------------------
+!TOPIC 790 Store,PathList
+!NOINDEX
+procedure 0766PathList.Store(var S : IdStream);
+
+Store a list in a stream. The stream registration procedure for PathList is
+PathListStream.
+
+See also:  0789Load  2087PickList.Store
+;
+;------------------------------------------------------------
+!TOPIC 791 SingleFile
+!NOINDEX
+procedure 0707OpDir.SingleFile(DirPtr : DirListPtr;
+                           var StringProc : pkStringProc;
+                           var CommandInitProc : pkGenlProc);
+
+Initialize for picking single files.
+
+See also:  0814DirList.Display control  0792MultipleFile
+;
+;------------------------------------------------------------
+!TOPIC 792 MultipleFile
+!NOINDEX
+procedure 0707OpDir.MultipleFile(DirPtr : DirListPtr;
+                             var StringProc : pkStringProc;
+                             var CommandInitProc : pkGenlProc);
+
+Initialize for picking multiple files.
+
+See also:  0814DirList.Display control  0791SingleFile
+;
+;------------------------------------------------------------
+!TOPIC 793 SortNone
+!NOINDEX
+procedure 0707OpDir.SortNone(DirPtr : DirListPtr);
+
+No sort.
+
+See also:  0814DirList.Display control
+;
+;------------------------------------------------------------
+!TOPIC 794 SortName
+!NOINDEX
+procedure 0707OpDir.SortName(DirPtr : DirListPtr);
+
+Sort alphabetically by name, then by extension.
+
+See also:  0814DirList.Display control
+;
+;------------------------------------------------------------
+!TOPIC 795 SortNameDirDrive
+!NOINDEX
+procedure 0707OpDir.SortNameDirDrive(DirPtr : DirListPtr);
+
+Sort files first, then directories, then drives.
+
+See also:  0814DirList.Display control
+;
+;------------------------------------------------------------
+!TOPIC 796 SortDirName
+!NOINDEX
+procedure 0707OpDir.SortDirName(DirPtr : DirListPtr);
+
+Sort directories first, then alphabetically by name and extension.
+
+See also:  0814DirList.Display control
+;
+;------------------------------------------------------------
+!TOPIC 797 SortSize
+!NOINDEX
+procedure 0707OpDir.SortSize(DirPtr : DirListPtr);
+
+Sort by size, then by name and extension.
+
+See also:  0814DirList.Display control
+;
+;------------------------------------------------------------
+!TOPIC 798 SortTime
+!NOINDEX
+procedure 0707OpDir.SortTime(DirPtr : DirListPtr);
+
+Sort by date, then by name/extension.
+
+See also:  0814DirList.Display control
+;
+;------------------------------------------------------------
+!TOPIC 799 NameFormat
+!NOINDEX
+procedure 0707OpDir.NameFormat(var D : DirRec; var pkCat : Byte;
+                           var S : String; DirPtr : DirListPtr);
+
+Simple default format for directory lists.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 800 NameSizeKFormat
+!NOINDEX
+procedure 0707OpDir.NameSizeKFormat(var D : DirRec; var pkCat : Byte;
+                                var S : String; DirPtr : DirListPtr);
+
+Show name and size in Kilobytes.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 801 NameSizeFormat
+!NOINDEX
+procedure 0707OpDir.NameSizeFormat(var D : DirRec; var pkCat : Byte;
+                               var S : String; DirPtr : DirListPtr);
+
+Show name and size in bytes.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 802 NameTimeFormat
+!NOINDEX
+procedure 0707OpDir.NameTimeFormat(var D : DirRec; var pkCat : Byte;
+                               var S : String; DirPtr : DirListPtr);
+
+Show name and date/time.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 803 NameSizeKTimeFormat
+!NOINDEX
+procedure 0707OpDir.NameSizeKTimeFormat(var D : DirRec;
+                                    var pkCat : Byte;
+                                    var S : String;
+                                    DirPtr : DirListPtr);
+
+Show name, size(K), time.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 804 NameSizeTimeFormat
+!NOINDEX
+procedure 0707OpDir.NameSizeTimeFormat(var D : DirRec;
+                                   var pkCat : Byte;
+                                   var S : String;
+                                   DirPtr : DirListPtr);
+
+Show name, size, time.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 805 AllFormat
+!NOINDEX
+procedure 0707OpDir.AllFormat(var D : DirRec; var pkCat : Byte;
+                          var S : String; DirPtr : DirListPtr);
+
+Show name, size, time, attr.
+
+See also:  0814DirList.Display control  0817Format examples
+;
+;------------------------------------------------------------
+!TOPIC 806 RejectNone
+!NOINDEX
+function 0707OpDir.RejectNone(var D : DirRec;
+                          DirPtr : DirListPtr) : Boolean;
+
+Don't reject any files.
+
+See also:  0813DirList.File filtering  0807RejectExtensions  0808RejectFiles
+;
+;------------------------------------------------------------
+!TOPIC 807 RejectExtensions
+!NOINDEX
+function 0707OpDir.RejectExtensions(var D : DirRec;
+                                DirPtr : DirListPtr) : Boolean;
+
+Reject files with extensions in RejectSet.
+
+See also:  0813DirList.File filtering  0808RejectFiles  0806RejectNone
+;
+;------------------------------------------------------------
+!TOPIC 808 RejectFiles
+!NOINDEX
+function 0707OpDir.RejectFiles(var D : DirRec;
+                           DirPtr : DirListPtr) : Boolean;
+
+Reject all but subdirectories.
+
+See also:  0813DirList.File filtering  0807RejectExtensions  0806RejectNone
+;
+;------------------------------------------------------------
+!TOPIC 809 SinglePath
+!NOINDEX
+procedure 0707OpDir.SinglePath(PathPtr : PathListPtr;
+                           var StringProc : pkStringProc;
+                           var CommandInitProc : pkGenlProc);
+
+Initialize for picking single paths.
+
+See also:  0810MultiplePath
+;
+;------------------------------------------------------------
+!TOPIC 810 MultiplePath
+!NOINDEX
+procedure 0707OpDir.MultiplePath(PathPtr : PathListPtr;
+                             var StringProc : pkStringProc;
+                             var CommandInitProc : pkGenlProc);
+
+Initialize for picking multiple paths.
+
+See also:  0809SinglePath
+;
+;------------------------------------------------------------
+!TOPIC 811 Other routines,OpDir
+!NOINDEX
+!NOSEARCH
+OpDir provides several non-object-oriented routines for working with DirList
+and PathList, as well as providing stream support:
+
+    0805AllFormat                         0792MultipleFile
+    0810MultiplePath                      0799NameFormat
+    0801NameSizeFormat                    0800NameSizeKFormat
+    0803NameSizeKTimeFormat               0804NameSizeTimeFormat
+    0802NameTimeFormat                    0807RejectExtensions
+    0808RejectFiles                       0806RejectNone
+    0791SingleFile                        0809SinglePath
+    0796SortDirName                       0794SortName
+    0793SortNone                          0797SortSize
+    0798SortTime
+;
+;------------------------------------------------------------
+!TOPIC 812 General methods,DirList
+!NOINDEX
+!NOSEARCH
+This category has all methods not specifically related to display control and
+file name filtering:
+
+    0722ChangeDirectory                   0733diOptionsAreOn
+    0732diOptionsOff                      0731diOptionsOn
+    0711Done                              0734FileCapacity
+    0721GetFileName                       0758GetMultiDirPtr
+    0754GetMultiDirRec                    0752GetMultiFile
+    0753GetMultiPath                      0727GetSelectedDir
+    0728GetSelectedDirRec                 0725GetSelectedFile
+    0726GetSelectedPath                   0755GetSelectedSize
+    0709Init                              0710InitCustom
+    0761Load                              0715PreloadDirList
+    0716ProcessSelf                       0756RemoveMultiFile
+    0730RemoveSelectedFile                0757RemoveSelectedFiles
+    0714ResetList                         0729SelectedFileInCurDir
+    0760SelectItem                        0762Store
+    0717UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 813 File filtering
+!NOINDEX
+!NOSEARCH
+This category has all methods related to filtering (limiting) files included
+in the directory list:
+
+  0712AddMaskHeader             0750AddRejectString         0751ClearRejectStrings
+  0723GetMatchingFileCount      0724GetMatchingSize         0719Reject
+  0713SetMask                   0749SetRejectFunc           0763SkipDrives
+;
+;------------------------------------------------------------
+!TOPIC 814 Display control,OpDir
+!NOINDEX
+!NOSEARCH
+This category has all methods related to customizing and controlling the
+format of the directory display:
+
+    0720Format                            0817Format examples
+    0759FormatMultiFile                   0741SetAllFormat
+    0744SetDirAttr                        0748SetDirCategory
+    0764SetDriveDelim                     0743SetFileAttr
+    0735SetNameFormat                     0736SetNameSizeFormat
+    0737SetNameSizeKFormat                0740SetNameSizeKTimeFormat
+    0739SetNameSizeTimeFormat             0738SetNameTimeFormat
+    0746SetSelectDirAttr                  0745SetSelectFileAttr
+    0747SetSortOrder                      0742SetUserFormat
+    0718SortList
+;
+;------------------------------------------------------------
+!TOPIC 815 Declarations,DirList
+!NOINDEX
+!NOSEARCH
+OpDir provides the following types, constants, and variables for working
+with DirLists:
+
+    0821Attribute display constants       0820BadDirOptions
+    0819DefDirOptions                     0818DirList options
+    0824DirList procedure types           0823DirRec
+    0822DispRec                           0765DriveSet
+;
+;------------------------------------------------------------
+!TOPIC 816 Declarations,PathList
+!NOINDEX
+!NOSEARCH
+OpDir provides the following types, constants, and variables for working
+with PathLists:
+
+  0827BadPathOptions            0826DefPathOptions          0829Drawing characters
+  0830PathDrawArray             0828PathDrawArray indexes   0825PathList options
+  0832PathList procedure types  0831PathRec
+;
+;------------------------------------------------------------
+!TOPIC 817 Format examples
+!NOINDEX
+!NOSEARCH
+DirList supports seven standard directory formats as well as one format
+that is completely user-defined. The seven standard formats offer added
+flexibility via specification of date and time picture masks. The formats
+that support date and time are available only if the UseDates conditional
+define has been activated in the OPDEFINE.INC file.
+
+Assuming the parameters DatePicture='mm/dd/yy' and TimePicture='hh:mm', the
+seven standard formats would produce the following output lines:
+
+!NOWRAP
+Format                  Width  Example
+SetNameFormat           12     'nnnnnnnn.eee'
+SetNameSizeKFormat      19     'nnnnnnnn.eee sssssK'
+SetNameSizeFormat       22     'nnnnnnnn.eee sssssssss'
+SetNameTimeFormat       27     'nnnnnnnn.eee 01/02/89 13:02'
+SetNameSizeKTimeFormat  34     'nnnnnnnn.eee sssssK 01/02/89 13:02'
+SetNameSizeTimeFormat   37     'nnnnnnnn.eee sssssssss 01/02/89 13:02'
+SetAllFormat            42     'nnnnnnnn.eee sssssssss 01/02/89 13:02 RHSA'
+!WRAP
+
+The following additional rules apply. Subdirectories in NameFormat and
+NameTimeFormat are indicated by appending the character '\' to the name.
+Subdirectories in the other formats are indicated by placing DirStr in the
+size column. The 'K' character used to indicate kilobytes is in uppercase
+if the diFilesUpcase option is enabled, lowercase otherwise. Kilobytes are
+1024 bytes each, and are rounded up to the next kilobyte. If the
+DatePicture or TimePicture is an empty string, the field does not appear in
+the output. The characters that appear for attributes in the AllFormat are
+controlled by the global typed constants diReadOnlyChar, diHiddenChar,
+diSystemChar, and diArchiveChar.
+
+Note: the longer the format, the fewer files that can be managed in a given
+amount of heap space.
+
+See also:
+  0741DirList.SetAllFormat            0735DirList.SetNameFormat
+  0736DirList.SetNameSizeFormat       0737DirList.SetNameSizeKFormat
+  0740DirList.SetNameSizeKTimeFormat  0739DirList.SetNameSizeTimeFormat
+  0738DirList.SetNameTimeFormat
+;
+;------------------------------------------------------------
+!TOPIC 818 DirList options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+const
+  diDirsUpcase      = $0001;
+  diFilesUpcase     = $0002;
+  diExitIfOne       = $0004;
+  diSetFirstFile    = $0008;
+  diOptimizeSize    = $0010;
+  diUserNewHdr      = $0020;
+  diShowDrives      = $0040;
+!WRAP
+
+These are the options the affect the behavior of a DirList.
+
+diDirsUpcase forces directory names to uppercase. If this option is not
+enabled, directory names are forced to lowercase. Note that the case change
+occurs immediately after the name is obtained from FindFirst/FindNext; the
+Format routine can still override the case.
+
+diFilesUpcase controls the case of non-directory files.
+
+diExitIfOne modifies the behavior of a single DirList method, GetFileName.
+When diExitIfOne is enabled and the search mask passed to GetFileName
+contains no wildcard characters, GetFileName will exit without displaying a
+pick window and without requiring further keyboard input if exactly one
+file matches the mask.
+
+If diSetFirstFile is enabled, Process positions the pick list selection bar
+over the first non-directory entry whenever it reads a new list of files.
+Otherwise it puts the bar on the first entry.
+
+diOptimizeSize enables automatic window sizing, so that the pick window
+shrinks and grows automatically depending on the number of matching files.
+The resizing is performed by PickList's OptimizeSize method. Note that this
+option works only if the UseAdjustableWindows define is active.
+
+diUserNewHdr is set by DirList whenever it updates the search mask header
+to indicate a new directory.
+
+If diShowDrives is set, DirList will display all valid drive letters (as
+determined by calling 0839OpDos.ValidDrive for all drives 'A'..'Z') using the
+format '[X:]'.
+
+See also:  0820BadDirOptions  0819DefDirOptions
+;
+;------------------------------------------------------------
+!TOPIC 819 DefDirOptions
+!NOINDEX
+const
+  DefDirOptions     : Word = diSetFirstFile;
+
+The default options for a DirList.
+
+See also:  0820BadDirOptions  0818DirList options
+;
+;------------------------------------------------------------
+!TOPIC 820 BadDirOptions
+!NOINDEX
+const
+  BadDirOptions     : Word = diUpdating+diUserNewHdr+diReadDir+
+                             diUpdateHdr+diResize+diReposition+diResort+
+                             diReformat+diFullPathHdr;
+
+Options used internally by DirList. The diOptionsOn and diOptionsOff methods
+will not change these bits of a DirList option word.
+
+See also:  0819DefDirOptions  0818DirList options
+;
+;------------------------------------------------------------
+!TOPIC 821 Attribute display constants
+!NOINDEX
+!NOSEARCH
+const
+  diReadOnlyChar    : string[1] = 'R';
+  diHiddenChar      : string[1] = 'H';
+  diSystemChar      : string[1] = 'S';
+  diArchiveChar     : string[1] = 'A';
+
+When SetAllFormat has been called to enable the most detailed filename
+display, these strings determine how OpDir displays the file attributes. For
+each bit set in the file's attribute byte, OpDir concatenates the appropriate
+string. To disable the display of a particular bit, just set the corresponding
+string to an empty string.
+;
+;------------------------------------------------------------
+!TOPIC 822 DispRec
+!NOINDEX
+type
+  DispRec     =            {Variable length record for display entry}
+    record
+      Cat     : Byte;      {Pick category}
+      Disp    : String;    {String to display - partially allocated}
+    end;
+  DispRecPtr  = ^DispRec;  {Pointer to a DispRec}
+
+OpDir manages an array of DispRec records; one for each non-rejected
+file. The Disp field only uses as much space as the selected format
+requires.
+;
+;------------------------------------------------------------
+!TOPIC 823 DirRec
+!NOINDEX
+type
+  FileStr      = String[12]; {Room for just a filename}
+  DirRec       =             {Data from DOS SearchRec}
+    record
+      Attr     : Byte;       {File attribute}
+      Time     : LongInt;    {Date/time stamp}
+      Size     : LongInt;    {Size of file}
+      Name     : FileStr;    {Name and extension of file}
+    end;
+  DirRecPtr    = ^DirRec;
+  DirRecArray  = array[1..($FFF1 div SizeOf(DirRec))] of DirRec;
+  DirArrayPtr  = ^DirRecArray;
+
+OpDir manages an array of DirRec. It copies the record returned by each call
+to FindFirst or FindNext into a DirRec. If the DirRec is not rejected by the
+reject function, it stays in the array. User-defined reject, sort, and format
+routines must refer to the fields of a DirRec. These fields are exactly
+equivalent to those defined in the SearchRec type in Turbo Pascal's DOS unit.
+For more information see the Borland Turbo Pascal Reference Guide.
+
+Note that each DirList object stores a DirRecArray and an array of DispRec
+together in at most a single 64K segment. This sets a limit on the maximum
+number of files it can display at once. The FileCapacity method returns the
+actual limit for a specific situation. With a 64K heap buffer, a DirList
+manages about 500-2000 files, depending on the display format.
+;
+;------------------------------------------------------------
+!TOPIC 824 DirList procedure types
+!NOINDEX
+!NOSEARCH
+types
+  diRejectFunc  = function (var X : DirRec; D : DirListPtr) : Boolean;
+  diSortProc    = procedure (D : DirListPtr);
+  diFormatProc  = procedure (var X : DirRec; var pkCat : Byte;
+                                 var S : String; D : DirListPtr);
+
+Types that define valid procedures and functions for user-defined reject,
+sort, and format routines.
+
+type
+  diInitCommandProc = procedure (D : DirListPtr;
+                                 var StringProc : pkStringProc;
+                                 var CommandInitProc : pkGenlProc);
+
+A procedure type used by DirList constructors to specify a single or multiple
+choice directory list. OpDir interfaces the SingleFile and MultipleFile
+procedures that match this type.
+;
+;------------------------------------------------------------
+!TOPIC 825 PathList options
+!NOINDEX
+!NOSEARCH
+!NOWRAP
+paUpcase          = $0001;
+paSetCurDir       = $0002;
+paShowSize        = $0004;
+paOptimizeSize    = $0008;
+paAltCurDir       = $0010;
+!WRAP
+
+These are the options that affect the behavior of a PathList.
+
+paUpcase forces the directory names to uppercase. If this option is not
+enabled, directory names are forced to lowercase.
+
+paSetCurDir causes the Process method to set the initial choice to the current
+directory of the specified drive.
+
+When paShowSize is enabled, PathList displays the total number of bytes in
+each directory next to the directory name.
+
+paOptimizeSize enables automatic window sizing, so that the pick window
+shrinks and grows automatically depending on the number of matching
+directories. The resizing is performed by PickList's OptimizeSize method; see
+that entry for more details. Note that this option works only if the
+UseAdjustableWindows define is active.
+
+paAltCurDir causes PathList's string procedure to categorize the drive's
+current directory as pkAlternate, so that the PickList will display it in a
+different color.
+
+See also:  0827BadPathOptions  0826DefPathOptions
+;
+;------------------------------------------------------------
+!TOPIC 826 DefPathOptions
+!NOINDEX
+const
+  DefPathOptions    : Word = paSetCurDir;
+
+The default options for a PathList.
+
+See also:  0827BadPathOptions  0825PathList options
+;
+;------------------------------------------------------------
+!TOPIC 827 BadPathOptions
+!NOINDEX
+const
+  BadPathOptions    : Word = paReadDir+paFullPathDisp+paUpdating;
+
+Options used internally by PathList. The paOptionsOn and paOptionsOff methods
+will not change these bits of a PathList option word.
+
+See also:  0826DefPathOptions  0825PathList options
+;
+;------------------------------------------------------------
+!TOPIC 828 PathDrawArray indexes
+!NOINDEX
+!NOSEARCH
+const
+  paTee    = 1;   {Â}
+  paPipe   = 2;   {³}
+  paArrow  = 3;   {Ã}
+  paBar    = 4;   {Ä}
+  paEll    = 5;   {À}
+
+Indexes to a PathDrawArray. PathList uses five unique characters to draw the
+tree diagram and refers to them by these names.
+
+See also:  0829Drawing characters  0830PathDrawArray
+;
+;------------------------------------------------------------
+!TOPIC 829 Drawing characters
+!NOINDEX
+!NOSEARCH
+const
+  paSingleDraw  : PathDrawArray = 'Â³ÃÄÀ';
+  paDoubleDraw  : PathDrawArray = 'ËºÌÍÈ';
+
+Standard arrays of line drawing characters for the tree diagram. PathList
+uses paSingleDraw by default. You can choose a different character array
+with the SetDrawingChars method.
+
+See also:  0830PathDrawArray  0828PathDrawArray indexes
+;
+;------------------------------------------------------------
+!TOPIC 830 PathDrawArray
+!NOINDEX
+type
+  PathDrawArray     = array[paTee..paEll] of Char;
+
+Collects the drawing characters used for the directory tree diagram.
+
+See also:  0829Drawing characters  0828PathDrawArray indexes
+;
+;------------------------------------------------------------
+!TOPIC 831 PathRec
+!NOINDEX
+type
+  PathRec       =             {Data from DOS SearchRec}
+    record
+      PCat      : Byte;       {Pick category}
+      PLevel    : Byte;       {Nesting level of directory. Root = 0}
+      PSize     : LongInt;    {Total bytes stored in directory}
+      PName     : FileStr;    {Name and extension of file}
+    end;
+  PathRecArray  = array[1..($FF00 div SizeOf(PathRec))] of PathRec;
+  PathArrayPtr  = ^PathRecArray;
+
+The PathList manages an array of PathRec, one for each subdirectory on a given
+drive. The array stores enough information that PathList can construct the
+directory tree, the complete pathname of each directory, and the total size of
+the files there. PathList's constructors allocate as large a PathRecArray as
+the specified amount of heap space allows. You'll note that a PathRec consumes
+19 bytes, so it's easy to figure how many directories you can manage on a
+given drive.
+;
+;------------------------------------------------------------
+!TOPIC 832 PathList procedure types
+!NOINDEX
+!NOSEARCH
+type
+  paInitCommandProc = procedure (P : PathListPtr;
+                                 var StringProc : pkStringProc;
+                                 var CommandInitProc : pkGenlProc);
+
+A procedure type used by PathList constructors to specify a single or multiple
+choice directory list. OpDir interfaces the SinglePath and MultiplePath
+procedures that match this type.
+;
+;------------------------------------------------------------
+!TOPIC 833 Methods,PathList
+!NOINDEX
+!NOSEARCH
+PathList provides the following methods:
+
+  0769Done                      0788GetMultiPath            0777GetPathName
+  0778GetSelectedPath           0767Init                    0768InitCustom
+  0789Load                      0781paOptionsAreOn          0780paOptionsOff
+  0779paOptionsOn               0776PreloadPathList         0775ProcessSelf
+  0771ResetList                 0782SetClusterSize          0783SetDrawingChars
+  0770SetDrive                  0785SetFullPathMode         0784SetLineDrawMode
+  0786SetPathAttr               0787SetSelectPathAttr       0790Store
+  0772UpdateContents            0773SavePathList            0774LoadPathList

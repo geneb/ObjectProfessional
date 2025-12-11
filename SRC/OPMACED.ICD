@@ -1,0 +1,40 @@
+{*********************************************************}
+{*                   OPMACED.ICD 1.30                    *}
+{*    Copyright (c) TurboPower Software 1989, 1992.      *}
+{*                 All rights reserved.                  *}
+{*********************************************************}
+
+const
+  MacEdKeyMax = 70;   {last available slot in MacEdKeySet}
+  {ID string for installation programs}
+  MacEdKeyID : string[12] = 'opmaced keys';
+  {default key assignments}
+  MacEdKeySet : array[0..MacEdKeyMax] of Byte = (
+   {length keys         command type      key sequence}
+    3,     $00, $3B,    ccHelp,          {F1}
+    3,     $00, $48,    ccUp,            {Up}
+    3,     $00, $4B,    ccLeft,          {Left}
+    3,     $00, $4D,    ccRight,         {Right}
+    3,     $00, $50,    ccDown,          {Down}
+    3,     $00, $52,    ccIns,           {Ins}
+    3,     $00, $53,    ccDel,           {Del}
+    2,     $08,         ccBack,          {^H, Bksp}
+    2,     $0D,         ccSelect,        {^M, Enter}
+    2,     $1B,         ccQuit,          {Esc}
+    2,     $7F,         ccDelLine,       {^Bksp}
+  {$IFDEF UseMouse}
+    3,     $00, $EE,    ccQuit,          {click right  = ESC}
+    3,     $00, $ED,    ccHelp,          {click both   = help}
+    3,     $00, $EF,    ccSelect,        {click left   = Enter}
+  {$ELSE}
+                               0,        {40}
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,        {50}
+    0,                                   {60}
+  {$ENDIF}
+    {-----------pad to end of array----------}
+       0, 0, 0, 0, 0, 0, 0, 0, 0,        {60}
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0);       {70}
+{.F+}
+
+const
+  MacEdCfgEnd : Byte = 0;

@@ -1,0 +1,1917 @@
+;
+;------------------------------------------------------------
+!TOPIC 1136 OpEntry
+OpEntry builds upon the groundwork laid by 1291OpField and
+2617OpSelect to create a flexible data entry system. The following
+hierarchy shows the objects implemented in OpEntry and, within brackets,
+those that they are derived from:
+
+[3045CommandWindow]
+  [2618AbstractSelector]
+    1137EntryScreen
+      1214ScrollingEntryScreen
+
+[0017AbstractField]
+  [1292SelectField]
+    [1303EntryField]
+      1240PickField
+      1241WindowField
+
+See also:  1232Commands
+;
+;------------------------------------------------------------
+!TOPIC 1137 EntryScreen
+!NOINDEX
+1136OpEntry.EntryScreen = object(2618AbstractSelector)
+!LINE
+EntryScreenPtr = ^EntryScreen;
+
+The EntryScreen extends the concepts introduced in the AbstractSelector. It
+not only handles cursor movement from field to field but also knows how to
+perform data entry on those fields. It can automatically invoke the
+appropriate routines to convert the raw data associated with fields into
+displayable strings, to edit those strings, to validate their contents, and to
+convert them back again.
+
+EntryScreen provides methods in the following categories:
+
+  1233Adding fields             1231Declarations            1236Delimiters
+  1239General                   1238Modifying fields        1234Setting options
+  1235Streams                   1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1138 Init,EntryScreen
+!NOINDEX
+constructor 1137EntryScreen.Init(X1, Y1, X2, Y2 : Byte);
+
+Instantiate an entry screen using the default window options and the default
+color set.
+
+See also:
+    0472OpCrt.DefaultColorSet       3115OpWindow.DefWindowOptions
+    1139InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1139 InitCustom,EntryScreen
+!NOINDEX
+constructor 1137EntryScreen.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                   var Colors : ColorSet;
+                                   Options : LongInt);
+
+Instantiate an entry screen using the specified window Options and Colors. X1,
+Y1, X2, and Y2 are the coordinates for the interior portion of the window.
+
+See also:  1239General  2619AbstractSelector.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1140 Done,EntryScreen
+!NOINDEX
+destructor 1137EntryScreen.Done; virtual;
+
+Disposes of the user record, if one was allocated dynamically by Load, then
+calls the parent's destructor to dispose of the field list, screen buffers,
+etc.
+
+See also:  2620AbstractSelector.Done  1239General
+;
+;------------------------------------------------------------
+!TOPIC 1141 ProcessSelf,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.ProcessSelf; virtual;
+
+Process data entry commands.
+
+See also:  1239General  3048CommandWindow.Process
+;
+;------------------------------------------------------------
+!TOPIC 1142 AddStringField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddStringField(Prompt : string;
+                                     pRow, pCol : Word;
+                                     Picture : string;
+                                     fRow, fCol : Word;
+                                     fWidth : Byte;
+                                     HelpIndex : Word;
+                                     var EditSt : string);
+
+Add a field of type string.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1143 AddSimpleStringField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleStringField(Prompt : string;
+                                           pRow, pCol : Word;
+                                           PicChar : Char;
+                                           fRow, fCol : Word;
+                                           fWidth, MaxLen : Byte;
+                                           HelpIndex : Word;
+                                           var EditSt : string);
+
+Add a field of type string (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1144 AddArrayField
+!NOINDEX
+procedure 1137EntryScreen.AddArrayField(Prompt : string;
+                                    pRow, pCol : Word;
+                                    Picture : string;
+                                    fRow, fCol : Word;
+                                    fWidth : Byte;
+                                    HelpIndex : Word;
+                                    var EditVar);
+
+Add a field of type array (of char).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1145 AddCharField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddCharField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   CharLo, CharHi : Char;
+                                   var EditChar : Char);
+
+Add a field of type char.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1146 AddSimpleCharField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleCharField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         fRow, fCol : Word;
+                                         HelpIndex : Word;
+                                         CharLo, CharHi : Char;
+                                         var EditChar : Char);
+
+Add a field of type char (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1147 AddBooleanField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddBooleanField(Prompt : string;
+                                      pRow, pCol : Word;
+                                      Picture : string;
+                                      fRow, fCol : Word;
+                                      HelpIndex : Word;
+                                      var EditBool : Boolean);
+
+Add a field of type boolean.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1148 AddSimpleBooleanField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleBooleanField(Prompt : string;
+                                            pRow, pCol : Word;
+                                            fRow, fCol : Word;
+                                            HelpIndex : Word;
+                                            var EditBool : Boolean);
+
+Add a field of type boolean (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1149 AddYesNoField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddYesNoField(Prompt : string;
+                                    pRow, pCol : Word;
+                                    Picture : string;
+                                    fRow, fCol : Word;
+                                    HelpIndex : Word;
+                                    var EditYesNo : Boolean);
+
+Add a field of type yes/no.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1150 AddSimpleYesNoField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleYesNoField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          fRow, fCol : Word;
+                                          HelpIndex : Word;
+                                          var EditYesNo : Boolean);
+
+Add a field of type yes/no (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1151 AddLongField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddLongField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   LongLo, LongHi : LongInt;
+                                   var EditLong : LongInt);
+
+Add a field of type LongInt.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1152 AddNumericLongField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericLongField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          Picture : string;
+                                          fRow, fCol : Word;
+                                          HelpIndex : Word;
+                                          LongLo, LongHi : LongInt;
+                                          var EditLong : LongInt);
+
+Add a field of type LongInt (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1153 AddSimpleLongField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleLongField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         fRow, fCol : Word;
+                                         fWidth : Byte;
+                                         HelpIndex : Word;
+                                         LongLo, LongHi : LongInt;
+                                         var EditLong : LongInt);
+
+Add a field of type LongInt (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1154 AddWordField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddWordField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   WordLo, WordHi : Word;
+                                   var EditWord : Word);
+
+Add a field of type word.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1155 AddNumericWordField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericWordField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          Picture : string;
+                                          fRow, fCol : Word;
+                                          HelpIndex : Word;
+                                          WordLo, WordHi : Word;
+                                          var EditWord : Word);
+
+Add a field of type word (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1156 AddSimpleWordField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleWordField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         fRow, fCol : Word;
+                                         fWidth : Byte;
+                                         HelpIndex : Word;
+                                         WordLo, WordHi : Word;
+                                         var EditWord : Word);
+
+Add a field of type word (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1157 AddIntField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddIntField(Prompt : string;
+                                  pRow, pCol : Word;
+                                  Picture : string;
+                                  fRow, fCol : Word;
+                                  HelpIndex : Word;
+                                  IntLo, IntHi : Integer;
+                                  var EditInt : Integer);
+
+Add a field of type integer.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1158 AddNumericIntField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericIntField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         Picture : string;
+                                         fRow, fCol : Word;
+                                         HelpIndex : Word;
+                                         IntLo, IntHi : Integer;
+                                         var EditInt : Integer);
+
+Add a field of type integer (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1159 AddSimpleIntField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleIntField(Prompt : string;
+                                        pRow, pCol : Word;
+                                        PicChar : Char;
+                                        fRow, fCol : Word;
+                                        fWidth : Byte;
+                                        HelpIndex : Word;
+                                        IntLo, IntHi : Integer;
+                                        var EditInt : Integer);
+
+Add a field of type integer (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1160 AddByteField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddByteField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   ByteLo, ByteHi : Byte;
+                                   var EditByte : Byte);
+
+Add a field of type byte.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1161 AddNumericByteField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericByteField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          Picture : string;
+                                          fRow, fCol : Word;
+                                          HelpIndex : Word;
+                                          ByteLo, ByteHi : Byte;
+                                          var EditByte : Byte);
+
+Add a field of type byte (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1162 AddSimpleByteField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleByteField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         fRow, fCol : Word;
+                                         fWidth : Byte;
+                                         HelpIndex : Word;
+                                         ByteLo, ByteHi : Byte;
+                                         var EditByte : Byte);
+
+Add a field of type byte (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1163 AddShortField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddShortField(Prompt : string;
+                                    pRow, pCol : Word;
+                                    Picture : string;
+                                    fRow, fCol : Word;
+                                    HelpIndex : Word;
+                                    ShortLo, ShortHi : ShortInt;
+                                    var EditShort : ShortInt);
+
+Add a field of type shortint.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1164 AddNumericShortField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericShortField(Prompt : string;
+                                           pRow, pCol : Word;
+                                           Picture : string;
+                                           fRow, fCol : Word;
+                                           HelpIndex : Word;
+                                           ShortLo, ShortHi : ShortInt;
+                                           var EditShort : ShortInt);
+
+Add a field of type shortint (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1165 AddSimpleShortField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleShortField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          PicChar : Char;
+                                          fRow, fCol : Word;
+                                          fWidth : Byte;
+                                          HelpIndex : Word;
+                                          ShortLo, ShortHi : ShortInt;
+                                          var EditShort : ShortInt);
+
+Add a field of type shortint (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1166 AddRealField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddRealField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   RealLo, RealHi : Real;
+                                   Places : Byte;
+                                   var EditReal : Real);
+
+Add a field of type real.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1167 AddNumericRealField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericRealField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          Picture : string;
+                                          fRow, fCol : Word;
+                                          HelpIndex : Word;
+                                          RealLo, RealHi : Real;
+                                          Places : Byte;
+                                          var EditReal : Real);
+
+Add a field of type real (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1168 AddSimpleRealField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleRealField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         fRow, fCol : Word;
+                                         fWidth : Byte;
+                                         HelpIndex : Word;
+                                         RealLo, RealHi : Real;
+                                         Places : Byte;
+                                         var EditReal : Real);
+
+Add a field of type real (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1169 AddDateField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddDateField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : DateString;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   DateLo, DateHi : Date;
+                                   var EditDate : Date);
+
+Add a field of type date.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1170 AddDateStField
+!NOINDEX
+procedure 1137EntryScreen.AddDateStField(Prompt : string;
+                                     pRow, pCol : Word;
+                                     Picture : DateString;
+                                     fRow, fCol : Word;
+                                     HelpIndex : Word;
+                                     var EditDate : DateString);
+
+Add a field of type date string.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1171 AddTimeField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddTimeField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : DateString;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   TimeLo, TimeHi : Time;
+                                   var EditTime : Time);
+
+Add a field of type time.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1172 AddNestedField
+!NOINDEX
+procedure 1137EntryScreen.AddNestedField(Prompt : string;
+                                     pRow, pCol : Word;
+                                     Picture : string;
+                                     fRow, fCol : Word;
+                                     fWidth : Byte;
+                                     HelpIndex : Word);
+
+Add a field that is associated with a nested form.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1173 AddNestedStringField
+!NOINDEX
+procedure 1137EntryScreen.AddNestedStringField(Prompt : string;
+                                           pRow, pCol : Word;
+                                           Picture : string;
+                                           fRow, fCol : Word;
+                                           fWidth : Byte;
+                                           HelpIndex : Word;
+                                           var EditSt : string);
+
+Add a string field that is associated with a nested form.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1174 AddChoiceField
+!NOINDEX
+procedure 1137EntryScreen.AddChoiceField(Prompt : string;
+                                     pRow, pCol : Word;
+                                     Picture : string;
+                                     fRow, fCol : Word;
+                                     HelpIndex : Word;
+                                     DataSize : Byte;
+                                     Increment : IncChoiceProc;
+                                     var EditVar);
+
+Add a multiple choice field.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1175 AddMultiLineField
+!NOINDEX
+procedure 1137EntryScreen.AddMultiLineField(Prompt : string;
+                                        pRow, pCol : Word;
+                                        PicChar : Char;
+                                        fRow, fCol : Word;
+                                        fWidth, fHeight : Byte;
+                                        HelpIndex : Word;
+                                        var EditVar);
+
+Add a multi-line field.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1176 AddPickStringField
+!NOINDEX
+procedure 1137EntryScreen.AddPickStringField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         fRow, fCol : Word;
+                                         fWidth : Byte;
+                                         HelpIndex : Word;
+                                         var EditSt : string;
+                                         var PL : PickList);
+
+Add a field of type string to be edited with a pick list.
+
+See also:  1233Adding fields  1240PickField
+;
+;------------------------------------------------------------
+!TOPIC 1177 AddUserField
+!NOINDEX
+procedure 1137EntryScreen.AddUserField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   fWidth : Byte;
+                                   HelpIndex : Word;
+                                   RangeLo, RangeHi : RangeType;
+                                   DataSize : Word;
+                                   DecimalPlaces : Byte;
+                                   Validate: ValidationFunc;
+                                   Convert : ConversionProc;
+                                   FDraw : DrawProc;
+                                   Editor : EditProc;
+                                   var EditVar);
+
+Add a field of a user-defined type.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1178 SetPreEditProc
+!NOINDEX
+procedure 1137EntryScreen.SetPreEditProc(PEP : esUserProc);
+
+Specify a pre-edit routine (PEP), which will be called by Process just before
+the field editor is called to edit the current field.
+
+See also:  1226esUserProc  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1179 SetPostEditProc
+!NOINDEX
+procedure 1137EntryScreen.SetPostEditProc(PEP : esUserProc);
+
+Specify a post-edit routine (PEP), which will be called by Process after the
+user has edited the current field.
+
+See also:  1226esUserProc  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1180 SetValidateFunc
+!NOINDEX
+procedure 1137EntryScreen.SetValidateFunc(UVF : esUserValidationFunc);
+
+Specify a global validation routine (UVF) that will be called by Process just
+before it returns permanent control to the caller. Its job is to examine the
+contents of all fields in the entry screen to determine whether the entry
+screen's collective contents are acceptable.
+
+See also:  1228esUserValidationFunc  1212RevalidateAll  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1181 SetClearFirstFilter,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetClearFirstFilter(CFF : ClearFirstFunc);
+
+Set function to call for ClearFirstChar test.
+
+See also:  1290OpFEdit.ClearFirstFunc  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1182 esOptionsOn
+!NOINDEX
+procedure 1137EntryScreen.esOptionsOn(OptionFlags : Byte);
+
+Activate multiple options.
+
+See also:  1222Options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1183 esOptionsOff
+!NOINDEX
+procedure 1137EntryScreen.esOptionsOff(OptionFlags : Byte);
+
+Deactivate multiple options.
+
+See also:  1222Options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1184 esOptionsAreOn
+!NOINDEX
+function 1137EntryScreen.esOptionsAreOn(OptionFlags : Byte) : Boolean;
+
+Return true if all specified options are on.
+
+See also:  1222Options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1185 esFieldOptionsOn
+!NOINDEX
+procedure 1137EntryScreen.esFieldOptionsOn(OptionFlags : LongInt);
+
+Activate multiple primary field options.
+
+See also:  1326EntryField.Primary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1186 esFieldOptionsOff
+!NOINDEX
+procedure 1137EntryScreen.esFieldOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple primary field options.
+
+See also:  1326EntryField.Primary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1187 esFieldOptionsAreOn
+!NOINDEX
+function 1137EntryScreen.esFieldOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified primary field options are on.
+
+See also:  1326EntryField.Primary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1188 esSecFieldOptionsOn
+!NOINDEX
+procedure 1137EntryScreen.esSecFieldOptionsOn(OptionFlags : LongInt);
+
+Activate multiple secondary field options.
+
+See also:  1327EntryField.Secondary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1189 esSecFieldOptionsOff
+!NOINDEX
+procedure 1137EntryScreen.esSecFieldOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple secondary field options.
+
+See also:  1327EntryField.Secondary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1190 esSecFieldOptionsAreOn
+!NOINDEX
+function 1137EntryScreen.esSecFieldOptionsAreOn(OptionFlags : LongInt) :
+                                                                  Boolean;
+
+Return True if all specified secondary field options are on.
+
+See also:  1327EntryField.Secondary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1191 SetForceMode,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetForceMode(Force, Overtype : Boolean);
+
+If Force is True, all fields added after the call to SetForceMode will be
+edited in either insert (Overtype = False) or overtype (Overtype = True) mode.
+If SetForceMode is called a second time with a Force parameter of False,
+fields added subsequently will be edited normally (the insert/overtype mode
+setting will be retained from one field to the next).
+
+See also:  1326EntryField.Primary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1192 SetPadChar,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetPadChar(Ch : Char);
+
+Set character used to pad the end of a field being edited. The default pad
+character is DefPadChar (= ' ').
+
+See also:  1328OpField.DefPadChar  1326EntryField.Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1193 SetPasswordChar,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetPasswordChar(Ch : Char);
+
+Set the character used to represent ordinary text within a field while in
+password mode. The default password character is DefPasswordChar (= ^G).
+
+See also:  1329OpField.DefPasswordChar  1326EntryField.Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1194 SetBeepOnError,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetBeepOnError(On : Boolean);
+
+Activates (On = True) or deactivates (On = False) the efBeepOnError option for
+all fields in an entry screen.
+
+See also:  1326EntryField.Primary options  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1195 SetDelimiters
+!NOINDEX
+procedure 1137EntryScreen.SetDelimiters(Left, Right : Char);
+
+Allows you to specify a pair of characters that will be displayed immediately
+to the left and right of each field in the entry screen. Note that neither
+delimiter will be displayed if either left or right is a null character (#0).
+
+See also:  1236Delimiters
+;
+;------------------------------------------------------------
+!TOPIC 1196 SetDelimAttr,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetDelimAttr(Color, Mono : Byte);
+
+Set attributes for delimiters (unselected fields). Note that the new
+attributes affect all fields in the entry screen.
+
+See also:  1236Delimiters
+;
+;------------------------------------------------------------
+!TOPIC 1197 SetSelectedDelimAttr,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetSelectedDelimAttr(Color, Mono : Byte);
+
+Set attributes for delimiters (selected fields). Note that the new attributes
+affect all fields in the entry screen.
+
+See also:  1236Delimiters
+;
+;------------------------------------------------------------
+!TOPIC 1198 SetProtectedDelimAttr,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetProtectedDelimAttr(Color, Mono : Byte);
+
+Set attributes for delimiters (protected fields). Note that the new attributes
+affect all fields in the entry screen.
+
+See also:  1236Delimiters
+;
+;------------------------------------------------------------
+!TOPIC 1199 Load,EntryScreen
+!NOINDEX
+constructor 1137EntryScreen.Load(var S : IdStream);
+
+Load an entry screen from a stream. The registration routine for an
+EntryScreen is EntryScreenStream.
+
+See also:  1200Store  1235Streams
+;
+;------------------------------------------------------------
+!TOPIC 1200 Store,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.Store(var S : IdStream);
+
+Store an entry screen in a stream. The registration routine for an EntryScreen
+is EntryScreenStream.
+
+See also:  1199Load  1235Streams
+;
+;------------------------------------------------------------
+!TOPIC 1201 SetUserRecord,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.SetUserRecord(var UserRec; UserRecSize : Word);
+
+Set the address and size of the user record. Needed only in cases where an
+EntryScreen is to be stored in a stream.
+
+See also:  1235Streams
+;
+;------------------------------------------------------------
+!TOPIC 1202 GetUserRecord,EntryScreen
+!NOINDEX
+function 1137EntryScreen.GetUserRecord : Pointer;
+
+Return a pointer to the user record. Needed only in cases where an EntryScreen
+has been loaded from a stream and the Load constructor has had to allocate the
+record used to store data being edited.
+
+See also:  1235Streams
+;
+;------------------------------------------------------------
+!TOPIC 1203 GetUserRecordSize,EntryScreen
+!NOINDEX
+function 1137EntryScreen.GetUserRecordSize : Word;
+
+Return the size of the user record. Needed only in cases where an EntryScreen
+has been loaded from a stream and the Load constructor has had to allocate the
+record used to store data being edited.
+
+See also:  1235Streams
+;
+;------------------------------------------------------------
+!TOPIC 1204 ChangeRequired
+!NOINDEX
+procedure 1137EntryScreen.ChangeRequired(ID : Word; On : Boolean);
+
+Modify the required status of a field after it has been added. If On is True,
+the field will be marked as required following the call.
+
+See also:  1238Modifying fields
+;
+;------------------------------------------------------------
+!TOPIC 1205 ChangeValidation,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.ChangeValidation(ID : Word; VF : ValidationFunc);
+
+Change the validation routine for the specified field. ID is the ID number for
+the field. VF is the new validation routine.
+
+See also:  1238Modifying fields  1313OpField.Validation routines
+;
+;------------------------------------------------------------
+!TOPIC 1206 ChangeConversion,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.ChangeConversion(ID : Word; CP : ConversionProc);
+
+Change the conversion routine for the specified field. ID is the ID number for
+the field. CP is the new conversion routine.
+
+See also:  1331OpField.Conversion routines  1238Modifying fields
+;
+;------------------------------------------------------------
+!TOPIC 1207 ChangeRange
+!NOINDEX
+procedure 1137EntryScreen.ChangeRange(ID : Word; var RangeLo, RangeHi);
+
+Change the valid range for the specified field. ID is the ID number for the
+field. RangeLo and RangeHi specify the new lower and upper bounds for the
+field.
+
+See also:  1238Modifying fields
+;
+;------------------------------------------------------------
+!TOPIC 1208 CurrentFieldModified
+!NOINDEX
+function 1137EntryScreen.CurrentFieldModified : Boolean;
+
+Return True if current field was modified. Call only from within a
+post-edit routine.
+
+See also:  1209EvaluateCommand  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1209 EvaluateCommand,EntryScreen
+!NOINDEX
+function 1137EntryScreen.EvaluateCommand(var Cmd : Word) : Word;
+
+Given a command, return the ID for the field the cursor will move to next. Cmd
+may be modified on return. This routine is intended to be called only from
+within a post-edit routine.
+
+See also:  1208CurrentFieldModified  1179SetPostEditProc  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1210 GetFieldCoordinates
+!NOINDEX
+procedure 1137EntryScreen.GetFieldCoordinates(var Row, Col, Wid : Byte);
+
+Intended to be called only from within a pre-edit routine. What it returns are
+the absolute screen coordinates for the soon-to-be current field (Row and
+Col), along with its width (Wid).
+
+See also:  1178SetPreEditProc  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1211 GetLastField
+!NOINDEX
+function 1137EntryScreen.GetLastField : EntryFieldPtr;
+
+Return pointer to last field in entry screen.
+
+See also:  1239General
+;
+;------------------------------------------------------------
+!TOPIC 1212 RevalidateAll
+!NOINDEX
+function 1137EntryScreen.RevalidateAll(var EFP : EntryFieldPtr;
+                                   var ErrCode : Word;
+                                   var ErrMsg : StringPtr) : Boolean;
+
+Intended to be called only from a global validation routine. Invokes the
+validation routine for each field in the entry screen. If one of them reports
+an error, RevalidateAll will return False, EFP will point to the field
+containing the error, ErrCode will contain the code for the error, and ErrMsg
+will point to a string that describes the error.
+
+See also:  1180SetValidateFunc  1237User hooks
+;
+;------------------------------------------------------------
+!TOPIC 1213 VisitAllEntryFields
+!NOINDEX
+procedure 1137EntryScreen.VisitAllEntryFields(FProc : esFieldProc; var D);
+
+Call the specified procedure for all fields in the entry screen.
+
+See also:
+  1228esUserValidationFunc
+  1238Modifying fields
+  2662AbstractSelector.VisitAllSelectFields
+  2663AbstractSelector.VisitAllTextFields
+;
+;------------------------------------------------------------
+!TOPIC 1214 ScrollingEntryScreen
+!NOINDEX
+1136OpEntry.ScrollingEntryScreen = object(1137EntryScreen)
+!LINE
+ScrollingEntryScreenPtr = ^ScrollingEntryScreen;
+
+The ScrollingEntryScreen is to the EntryScreen what the ScrollingSelector is
+to the Selector. That is, it differs from the EntryScreen in the same two
+respects: it allows you to define a list of fields that cannot be displayed
+all at once within the entry screen's window, and it allows that window to be
+zoomed and resized. A non-scrolling EntryScreen is constrained by the limits
+of its window.
+
+ScrollingEntryScreen provides the following methods:
+
+  1218AllocateScreen            1231Declarations            1217Done
+  1215Init                      1216InitCustom              1220Load
+  1221Store                     1219VScreenToScreen
+;
+;------------------------------------------------------------
+!TOPIC 1215 Init,ScrollingEntryScreen
+!NOINDEX
+constructor 1214ScrollingEntryScreen.Init(X1, Y1, X2, Y2 : Byte);
+
+Instantiates a ScrollingEntryScreen using the default window options and the
+default color set.
+
+See also:
+    0472OpCrt.DefaultColorSet         3115OpWindow.DefWindowOptions
+    1216InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1216 InitCustom,ScrollingEntryScreen
+!NOINDEX
+constructor 1214ScrollingEntryScreen.InitCustom(X1, Y1, X2, Y2 : Byte;
+                                            var Colors : ColorSet;
+                                            Options : LongInt);
+
+Instantiates an EntryScreen using the specified window Options and Colors. X1,
+Y1, X2, and Y2 are the coordinates for the interior portion of the window.
+
+See also:  1139EntryScreen.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 1217 Done,ScrollingEntryScreen
+!NOINDEX
+destructor 1214ScrollingEntryScreen.Done; virtual;
+
+Disposes of the virtual screen associated with the ScrollingEntryScreen, then
+calls the parent's destructor to dispose of the field list, screen buffers,
+etc.
+
+See also:  1140EntryScreen.Done
+;
+;------------------------------------------------------------
+!TOPIC 1218 AllocateScreen,ScrollingEntryScreen
+!NOINDEX
+procedure 1214ScrollingEntryScreen.AllocateScreen;
+
+Should be called after the last field has been added to the
+ScrollingEntryScreen. It determines the maximum row and column values for any
+field in the list, then tries to allocate a virtual screen large enough to
+allow all the fields to be drawn on it at once. To determine whether or not
+the virtual screen was allocated successfully, you should call GetLastError
+immediately following the call to AllocateScreen.
+
+See also:  3062CommandWindow.GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 1219 VScreenToScreen,ScrollingEntryScreen
+!NOINDEX
+procedure 1214ScrollingEntryScreen.VScreenToScreen; virtual;
+
+This method is intended strictly for internal use, and should never be called
+directly. It is documented only because it is one that you might want to
+override in an object derived from a ScrollingEntryScreen. It copies the
+relevant portion of the virtual screen to the physical screen when the entry
+screen is being redrawn in its entirety or scrolled.
+
+See also:  2625AbstractSelector.SetScreenUpdateProc
+;
+;------------------------------------------------------------
+!TOPIC 1220 Load,ScrollingEntryScreen
+!NOINDEX
+constructor 1214ScrollingEntryScreen.Load(var S : IdStream);
+
+Load a scrolling entry screen from a stream. The registration routine for a
+ScrollingEntryScreen is ScrollingEntryScreenStream.
+
+See also:  1221Store  1235EntryScreen.Streams
+;
+;------------------------------------------------------------
+!TOPIC 1221 Store,ScrollingEntryScreen
+!NOINDEX
+procedure 1214ScrollingEntryScreen.Store(var S : IdStream);
+
+Store a scrolling entry screen in a stream. The registration routine for a
+ScrollingEntryScreen is ScrollingEntryScreenStream.
+
+See also:  1220Load  1235EntryScreen.Streams
+;
+;------------------------------------------------------------
+!TOPIC 1222 Options,EntryScreens
+!NOINDEX
+!NOSEARCH
+The following options are available for EntryScreens:
+
+!NOWRAP
+esScrollByPage     = $01;
+esMousePage        = $02;
+esReadOnly         = $04;
+esSamePosition     = $08;
+esUpdateActive     = $10;
+esDeallocUserRec   = $40;
+esFastUpdates      = $80;
+!WRAP
+
+esScrollbyPage affects the vertical scrolling behavior of a
+ScrollingEntryScreen when the cursor is moved to a field not currently on
+screen. If the option is off, the display will be scrolled only enough to
+reveal the field to move to. If the option is on, the display will be scrolled
+by a full page (usually equal to the number of rows that can be displayed at
+one time).
+
+esMousePage determines what happens when you click on the increment or
+decrement hot spots of a scroll bar. If the option is off, clicking on these
+spots is equivalent to pressing <Down> or <Up>, respectively. If the option is
+on, clicking on them is equivalent to pressing <PgDn> or <PgUp>.
+
+esReadOnly specifies that the EntryScreen should operate in "read-only" mode,
+meaning that the user may not alter the contents of any of the fields.
+
+esSamePosition is to be used in situations where you need to return to a field
+that you just left (or started to leave) with the cursor at the same position
+it was at previously.
+
+esUpdateActive, esDeallocUserRec, and esFastUpdates are internal flags.
+
+See also:  1224BadEntryOptions  1223DefEntryOptions  1234Setting options
+;
+;------------------------------------------------------------
+!TOPIC 1223 DefEntryOptions
+!NOINDEX
+const
+  DefEntryOptions : Byte = esMousePage;
+
+The default options for an EntryScreen or ScrollingEntryScreen.
+
+See also:  1222Options
+;
+;------------------------------------------------------------
+!TOPIC 1224 BadEntryOptions
+!NOINDEX
+const
+  BadEntryOptions : Byte = esFastUpdates+esDeallocUserRec+esUpdateActive;
+
+EntryScreen options that exist for internal use, and may not be altered by
+calling esOptionsOn or esOptionsOff.
+
+See also:  1222Options
+;
+;------------------------------------------------------------
+!TOPIC 1225 BadEsFieldOptions
+!NOINDEX
+const
+  BadEsFieldOptions : LongInt = efMultChoice;
+
+Entry field options that exist for internal use, and may not be altered by
+calling esFieldOptionsOn or esFieldOptionsOff.
+
+See also:  1326EntryField.Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1226 esUserProc
+!NOINDEX
+type
+  esUserProc = procedure(ESP : EntryScreenPtr);
+
+A user-written procedure called when the cursor is about to be moved to a
+new field (a pre-edit routine) or the cursor is about to leave the current
+field (a post-edit routine).
+
+See also:  1179SetPostEditProc  1178SetPreEditProc
+;
+;------------------------------------------------------------
+!TOPIC 1227 esFieldProc
+!NOINDEX
+type
+  esFieldProc = procedure(EFP : EntryFieldPtr; var D;
+                          ESP : EntryScreenPtr);
+
+A user-written procedure called by VisitAllEntryFields to perform a
+particular action on all EntryFields associated with an EntryScreen.
+
+See also:  1213VisitAllEntryFields
+;
+;------------------------------------------------------------
+!TOPIC 1228 esUserValidationFunc
+!NOINDEX
+type
+  esUserValidationFunc = function(ESP : EntryScreenPtr;
+                                  var EFP : EntryFieldPtr;
+                                  var ErrCode : Word;
+                                  var ErrMsg : StringPtr) : Boolean;
+
+A user-written procedure called to validate the collective contents of a
+data entry screen. ESP is a pointer to the entry screen to be validated. If
+a problem is found, the function must return False and set the three VAR
+parameters as follows: EFP must point to the field that caused the error,
+ErrCode should contain the code for the error, and ErrorSt must point to a
+message that describes the error.
+
+See also:  1180SetValidateFunc
+;
+;------------------------------------------------------------
+!TOPIC 1229 EntryCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  EntryCommands : DragProcessor;
+  {$ELSE}
+  EntryCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for an EntryScreen or ScrollingEntryScreen.
+
+See also:  0218CommandProcessor
+;
+;------------------------------------------------------------
+!TOPIC 1230 Configuration data,OpEntry
+!NOINDEX
+!NOSEARCH
+const
+  EntryKeyMax = 250;
+  EntryKeyID  : string[12] = 'opentry keys';
+  EntryKeySet : array[0..EntryKeyMax] of Byte = (...);
+  EntryCfgEnd : Byte = 0;
+
+EntryKeyMax is the last available slot in EntryKeySet. EntryKeyID is an ID
+string that allows installation programs to locate the configuration data.
+EntryKeySet contains the default key assignments for the quick reference
+chart. EntryCfgEnd marks the end of the configuration data.
+;
+;------------------------------------------------------------
+!TOPIC 1231 Declarations,OpEntry
+!NOINDEX
+!NOSEARCH
+OpEntry declares the following types, constants, and variables:
+
+    1224BadEntryOptions                   1225BadEsFieldOptions
+    1230Configuration data                1223DefEntryOptions
+    1229EntryCommands                     1227esFieldProc
+    1226esUserProc                        1228esUserValidationFunc
+    1222Options
+;
+;------------------------------------------------------------
+!TOPIC 1232 Commands,OpEntry
+!NOINDEX
+!NOSEARCH
+The editing and field movement commands supported by the EntryScreen are
+arranged by category in the list below. In each case the first line gives
+the name of the command, followed by the key(s) to which it is normally
+assigned. The second and following lines give a brief description of the
+command.
+
+Because most of the commands behave differently depending on the field
+editor in use, the descriptions are generally preceded by one or more
+abbreviations, indicating the field editor being described. These are the
+abbreviations used, followed by the complete name of the field editor, and
+the corresponding methods:
+
+!NOWRAP
+SS  SimpleStringEditor  AddSimpleXxxField
+SC  SimpleCharEditor    AddSimpleCharField, AddSimpleBooleanField,
+                        AddSimpleYesNoField
+SE  StringEditor        AddXxxField
+CE  CharEditor          AddCharField, AddBooleanField, AddYesNoField
+NE  NumberEditor        AddNumericXxxField
+MC  ChoiceField.Edit    AddChoiceField
+ML  MultiLine.Edit      AddMultiLineField
+PE  PickField.Edit      AddPickStringField
+!WRAP
+
+Now, here are the commands recognized by the various field editors and by the
+EntryScreen.
+
+Cursor Movement
+
+!NOWRAP
+ccLeft        <Left>, <CtrlS>
+!WRAP
+SS, SE, ML: Cursor left one character. If the cursor is already at the
+beginning of the field, and the efAutoAdvCurBegin option is on, the cursor
+will be moved left one field.
+!LINE
+!NOWRAP
+PE: Cursor left one item.
+Else: Cursor left one field.
+
+ccRight       <Right>, <CtrlD>
+!WRAP
+SS, SE, ML: Cursor right one character. If the cursor is already at the end of
+the field, and the efAutoAdvCurEnd option is on, the cursor will be moved
+right one field.
+!LINE
+!NOWRAP
+PE: Cursor right one item.
+Else: Cursor right one field.
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+SS, SE, ML: Cursor left one word.
+Else: Cursor left one field.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+SS, SE, ML: Cursor right one word.
+Else: Cursor right one field.
+
+ccHome        <Home>, <CtrlQ><S>
+SS, SE: Cursor to beginning of field.
+ML: Cursor to beginning of line.
+PE: Cursor to first item in pick list.
+
+ccEnd         <End>, <CtrlQ><D>
+SS, SE: Cursor to end of field.
+ML: Cursor to end of line.
+PE: Cursor to last item in pick list.
+
+ccUp          <Up>, <CtrlE>
+ML: If cursor is not on top line of edit field, moves cursor up one line.
+PE: Cursor up one item.
+
+ccDown        <Down>, <CtrlX>
+ML: If cursor not on bottom line of edit field, moves cursor down one line.
+PE: Cursor down one item.
+
+ccTab         <Tab>, <CtrlI>
+Cursor to next subfield.
+
+ccBackTab     <ShiftTab>
+Cursor to previous subfield.
+
+ccPageUp      <PgUp>
+PE: Cursor up one page (within pick list).
+Else: Cursor up one page (within entry screen).
+
+ccPageDn      <PgDn>
+PE: Cursor down one page (within pick list).
+Else: Cursor down one page (within entry screen).
+
+ccFirstFld    <CtrlPgUp>, <CtrlQ><R>
+Cursor to first field.
+
+ccLastFld     <CtrlPgDn>, <CtrlQ><C>
+Cursor to last field.
+
+Insertion and Deletion
+
+ccDel         <Del>, <CtrlG>
+SS, SE, NE, ML: Delete character at cursor.
+
+ccBack        <Bksp>, <CtrlH>, <CtrlBksp>
+SS, SE, ML: Delete character to left of cursor.
+NE: Delete character at cursor.
+
+ccDelLine     <CtrlY>
+SS, SE, NE: Clear entire field.
+ML: Delete current line.
+
+ccDelEol      <CtrlEnd>, <CtrlQ><Y>
+SS, SE: Delete from cursor to end of subfield.
+ML: Delete from cursor to end of line.
+
+ccDelBol      <CtrlHome>
+SS, SE: Delete from beginning of subfield to cursor.
+ML: Delete from beginning of line to cursor.
+
+ccDelWord     <CtrlT>
+SS, SE: Delete word to right of cursor.
+!WRAP
+ML: Delete word to right of cursor. If cursor is beyond the end of line, and
+the following line will fit at the end of the current line, the following line
+is joined with the current line.
+
+!NOWRAP
+ccCtrlChar    <CtrlP>
+!WRAP
+SS, SE, ML: Insert control character. For example, to insert a ^G, you would
+enter <CtrlP><CtrlG>.
+
+!NOWRAP
+ccIns         <Ins>, <CtrlV>
+!WRAP
+SS, SE, ML: Toggle insert mode on and off. A fat cursor indicates insert mode;
+a thin cursor indicates overtype mode.
+
+!NOWRAP
+Other
+
+ccSelect      <Enter>, <CtrlM>, <ClickCenter>
+SS, SC, SE, CE, NE, MC: Accept contents of field.
+!WRAP
+ML: If in overtype mode, moves cursor to beginning of next line. If in insert
+mode, inserts new line at position of cursor and moves cursor to beginning of
+new line (if possible).
+!LINE
+PE: Accept current item and advance cursor to the next field. Note that this
+command will not get the cursor out of the pick list if the field is the last
+one in the entry screen and the wrap mode is StopAtEdges.
+
+!NOWRAP
+ccDone        <^Enter>, <CtrlJ>, <CtrlK><D>, <CtrlK><Q>
+Accept contents of field.
+
+ccMouseSel    <ClickLeft>
+!WRAP
+SS, SC, SE, CE, NE, MC: Move cursor to field pointed to by mouse cursor. If
+the mouse cursor is on the current field, and the field is a boolean, yes-no,
+or multiple choice field, the value of the field will be toggled/incremented.
+!LINE
+ML, PE: If mouse is within field, moves cursor to position of mouse, else to
+the field pointed to by the mouse cursor.
+
+!NOWRAP
+ccRestore     <CtrlR>, <CtrlQ><L>
+SS, SC, SE, CE, NE, MC: Restore original contents of the field.
+ML: Restore original contents of current line.
+
+ccIncChoice   <+>, <Space>
+!WRAP
+MC: Increment a multiple choice field. This command is meaningful only if
+EditChoice was called. In all other cases, <+> and <Space> will be treated as
+ordinary characters.
+
+!NOWRAP
+ccDecChoice   <->
+!WRAP
+MC: Decrement a multiple choice field. This command is meaningful only if
+EditChoice was called. In all other cases, <-> will be treated as an ordinary
+character.
+
+!NOWRAP
+ccHelp        <F1>, <ClickBoth>
+!WRAP
+Request help.
+
+!NOWRAP
+ccQuit        <Esc>, <CtrlBreak>, <ClickRight>
+Quit editing.
+!WRAP
+;
+;------------------------------------------------------------
+!TOPIC 1233 Adding fields,EntryScreen
+!NOINDEX
+!NOSEARCH
+The following methods are used to add fields to an EntryScreen:
+
+    1144AddArrayField                     1243AddBcdField
+    1147AddBooleanField                   1160AddByteField
+    1145AddCharField                      1174AddChoiceField
+    1255AddCompField                      1169AddDateField
+    1170AddDateStField                    1249AddDblField
+    1246AddExtField                       1157AddIntField
+    1151AddLongField                      1175AddMultiLineField
+    1172AddNestedField                    1173AddNestedStringField
+    1244AddNumericBcdField                1161AddNumericByteField
+    1256AddNumericCompField               1250AddNumericDblField
+    1247AddNumericExtField                1158AddNumericIntField
+    1152AddNumericLongField               1167AddNumericRealField
+    1253AddNumericSglField                1164AddNumericShortField
+    1155AddNumericWordField               1176AddPickStringField
+    1166AddRealField                      1252AddSglField
+    1163AddShortField                     1245AddSimpleBcdField
+    1148AddSimpleBooleanField             1162AddSimpleByteField
+    1146AddSimpleCharField                1257AddSimpleCompField
+    1251AddSimpleDblField                 1248AddSimpleExtField
+    1159AddSimpleIntField                 1153AddSimpleLongField
+    1168AddSimpleRealField                1254AddSimpleSglField
+    1165AddSimpleShortField               1143AddSimpleStringField
+    1156AddSimpleWordField                1150AddSimpleYesNoField
+    1142AddStringField                    1171AddTimeField
+    1177AddUserField                      1258AddWindowField
+    1154AddWordField                      1149AddYesNoField
+;
+;------------------------------------------------------------
+!TOPIC 1234 Setting options,EntryScreen
+!NOINDEX
+!NOSEARCH
+The following methods are used to set options for an EntryScreen:
+
+    1187esFieldOptionsAreOn               1186esFieldOptionsOff
+    1185esFieldOptionsOn                  1184esOptionsAreOn
+    1183esOptionsOff                      1182esOptionsOn
+    1190esSecFieldOptionsAreOn            1189esSecFieldOptionsOff
+    1188esSecFieldOptionsOn               1222Options
+    1194SetBeepOnError                    1191SetForceMode
+    1192SetPadChar                        1193SetPasswordChar
+;
+;------------------------------------------------------------
+!TOPIC 1235 Streams,EntryScreens
+!NOINDEX
+!NOSEARCH
+The following methods and routines are used for working with EntryScreens
+stored in streams:
+
+    1242Field registration                1202GetUserRecord
+    1203GetUserRecordSize                 1199Load
+    1201SetUserRecord                     1200Store
+;
+;------------------------------------------------------------
+!TOPIC 1236 Delimiters
+!NOINDEX
+!NOSEARCH
+The following methods are provided for working with field delimiters in
+data entry screens:
+
+  1196SetDelimAttr              1195SetDelimiters           1198SetProtectedDelimAttr
+  1197SetSelectedDelimAttr
+;
+;------------------------------------------------------------
+!TOPIC 1237 User hooks,EntryScreens
+!NOINDEX
+!NOSEARCH
+The following methods are provided for hooking user-written routines into
+the data entry process and to aid in the writing of them:
+
+    1208CurrentFieldModified              1209EvaluateCommand
+    1210GetFieldCoordinates               1212RevalidateAll
+    1181SetClearFirstFilter               1179SetPostEditProc
+    1178SetPreEditProc                    1180SetValidateFunc
+;
+;------------------------------------------------------------
+!TOPIC 1238 Modifying fields
+!NOINDEX
+!NOSEARCH
+The following methods are provided for modifying existing fields in an
+EntryScreen:
+
+  1206ChangeConversion          1207ChangeRange             1204ChangeRequired
+  1205ChangeValidation          1213VisitAllEntryFields
+;
+;------------------------------------------------------------
+!TOPIC 1239 General,EntryScreens
+!NOINDEX
+!NOSEARCH
+The following general purpose methods are provided for working with
+EntryScreens:
+
+  1140Done                      1211GetLastField            1138Init
+  1139InitCustom                1141ProcessSelf
+;
+;------------------------------------------------------------
+!TOPIC 1240 PickField
+!NOINDEX
+1136OpEntry.PickField = object(1303EntryField)
+!LINE
+PickFieldPtr = ^PickField;
+
+A field "edited" using a pick list rather than a regular field editor.
+
+See also:  1136OpEntry  1176AddPickStringField
+;
+;------------------------------------------------------------
+!TOPIC 1241 WindowField
+!NOINDEX
+1136OpEntry.WindowField = object(1303EntryField)
+!LINE
+WindowFieldPtr = ^WindowField;
+
+A "field" corresponding to a child window.
+
+See also:  1136OpEntry  1258AddWindowField  3140Child windows
+;
+;------------------------------------------------------------
+!TOPIC 1242 Field registration,EntryScreens
+!NOINDEX
+!NOSEARCH
+When storing an EntryScreen in a stream, or loading one from a stream, you
+must register the individual fields in the EntryScreen as well as the
+EntryScreen itself. In some cases, you may wish to use one of the following
+stream registration routines, which register multiple field types at once:
+
+!NOWRAP
+AllEntryFieldsStream
+AllPictureFieldsStream
+AllSimpleFieldsStream
+AllNumericFieldsStream
+!WRAP
+
+More often, however, you will want to register each field type
+individually, to prevent unused code from being linked into your program.
+
+The following table shows the various field registration routines provided
+by OpEntry and OpField. An 'x' in the Picture column indicates that a
+field type is registered by AllPictureFieldsStream. An 'x' in the Simple
+column indicates that it is registered by AllSimpleFieldsStream. And an 'x'
+in the Numeric column indicates that it is registered by
+AllNumericFieldsStream. Field types that do not have in an 'x' in one of
+the three columns can be registered only by calling the routine in the
+Stream registration column or by calling AllEntryFieldsStream.
+
+!NOWRAP
+AddField routine         Stream registration       Picture  Simple  Numeric
+AddStringField           StringFieldStream         x
+AddArrayField            ArrayFieldStream          x
+AddCharField             CharFieldStream           x
+AddBooleanField          BooleanFieldStream        x
+AddYesNoField            YesNoFieldStream          x
+AddLongField             LongIntFieldStream        x
+AddWordField             WordFieldStream           x
+AddIntField              IntegerFieldStream        x
+AddByteField             ByteFieldStream           x
+AddShortField            ShortIntFieldStream       x
+AddField routine         Stream registration       Picture  Simple  Numeric
+AddRealField             RealFieldStream           x
+AddBcdField              BcdFieldStream            x
+AddExtField              ExtendedFieldStream       x
+AddDblField              DoubleFieldStream         x
+AddSglField              SingleFieldStream         x
+AddCompField             CompFieldStream           x
+AddDateField             DateFieldStream           x
+AddDateStField           DateStFieldStream         x
+AddTimeField             TimeFieldStream           x
+AddSimpleStringField     StringFieldSimStream               x
+AddField routine         Stream registration       Picture  Simple  Numeric
+AddSimpleCharField       CharFieldSimStream                 x
+AddSimpleBooleanField    BooleanFieldSimStream              x
+AddSimpleYesNoField      YesNoFieldSimStream                x
+AddSimpleLongField       LongIntFieldSimStream              x
+AddSimpleWordField       WordFieldSimStream                 x
+AddSimpleIntField        IntegerFieldSimStream              x
+AddSimpleByteField       ByteFieldSimStream                 x
+AddSimpleShortField      ShortIntFieldSimStream             x
+AddSimpleRealField       RealFieldSimStream                 x
+AddSimpleBcdField        BcdFieldSimStream                  x
+AddField routine         Stream registration       Picture  Simple  Numeric
+AddSimpleExtField        ExtendedFieldSimStream             x
+AddSimpleDblField        DoubleFieldSimStream               x
+AddSimpleSglField        SingleFieldSimStream               x
+AddSimpleCompField       CompFieldSimStream                 x
+AddNumericLongField      LongIntFieldNumStream                      x
+AddNumericWordField      WordFieldNumStream                         x
+AddNumericIntField       IntegerFieldNumStream                      x
+AddNumericByteField      ByteFieldNumStream                         x
+AddNumericShortField     ShortIntFieldNumStream                     x
+AddNumericRealField      RealFieldNumStream                         x
+AddField routine         Stream registration       Picture  Simple  Numeric
+AddNumericBcdField       BcdFieldNumStream                          x
+AddNumericExtField       ExtendedFieldNumStream                     x
+AddNumericDblField       DoubleFieldNumStream                       x
+AddNumericSglField       SingleFieldNumStream                       x
+AddNumericCompField      CompFieldNumStream                         x
+AddNestedField           NestedFieldStream
+AddNestedStringField     StringFieldStream         x
+AddChoiceField           ChoiceFieldStream
+AddMultiLineField        MultiLineFieldStream
+AddPickStringField       PickFieldStream
+AddWindowField           WindowFieldStream
+!WRAP
+;
+;------------------------------------------------------------
+!TOPIC 1243 AddBcdField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddBcdField(Prompt : string;
+                                  pRow, pCol : Word;
+                                  Picture : string;
+                                  fRow, fCol : Word;
+                                  HelpIndex : Word;
+                                  BcdLo, BcdHi : BCD;
+                                  Places : Byte;
+                                  var EditBcd : BCD);
+
+Add a field of type BCD.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1244 AddNumericBcdField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericBcdField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         Picture : string;
+                                         fRow, fCol : Word;
+                                         HelpIndex : Word;
+                                         BcdLo, BcdHi : BCD;
+                                         Places : Byte;
+                                         var EditBcd : BCD);
+
+Add a field of type BCD (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1245 AddSimpleBcdField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleBcdField(Prompt : string;
+                                        pRow, pCol : Word;
+                                        PicChar : Char;
+                                        fRow, fCol : Word;
+                                        fWidth : Byte;
+                                        HelpIndex : Word;
+                                        BcdLo, BcdHi : BCD;
+                                        Places : Byte;
+                                        var EditBcd : BCD);
+
+Add a field of type BCD (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1246 AddExtField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddExtField(Prompt : string;
+                                  pRow, pCol : Word;
+                                  Picture : string;
+                                  fRow, fCol : Word;
+                                  HelpIndex : Word;
+                                  ExtLo, ExtHi : Extended;
+                                  Places : Byte;
+                                  var EditExt : Extended);
+
+Add a field of type extended.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1247 AddNumericExtField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericExtField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         Picture : string;
+                                         fRow, fCol : Word;
+                                         HelpIndex : Word;
+                                         ExtLo, ExtHi : Extended;
+                                         Places : Byte;
+                                         var EditExt : Extended);
+
+Add a field of type extended (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1248 AddSimpleExtField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleExtField(Prompt : string;
+                                        pRow, pCol : Word;
+                                        PicChar : Char;
+                                        fRow, fCol : Word;
+                                        fWidth : Byte;
+                                        HelpIndex : Word;
+                                        ExtLo, ExtHi : Extended;
+                                        Places : Byte;
+                                        var EditExt : Extended);
+
+Add a field of type extended (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1249 AddDblField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddDblField(Prompt : string;
+                                  pRow, pCol : Word;
+                                  Picture : string;
+                                  fRow, fCol : Word;
+                                  HelpIndex : Word;
+                                  DblLo, DblHi : Double;
+                                  Places : Byte;
+                                  var EditDbl : Double);
+
+Add a field of type double.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1250 AddNumericDblField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericDblField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         Picture : string;
+                                         fRow, fCol : Word;
+                                         HelpIndex : Word;
+                                         DblLo, DblHi : Double;
+                                         Places : Byte;
+                                         var EditDbl : Double);
+
+Add a field of type double (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1251 AddSimpleDblField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleDblField(Prompt : string;
+                                        pRow, pCol : Word;
+                                        PicChar : Char;
+                                        fRow, fCol : Word;
+                                        fWidth : Byte;
+                                        HelpIndex : Word;
+                                        DblLo, DblHi : Double;
+                                        Places : Byte;
+                                        var EditDbl : Double);
+
+Add a field of type double (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1252 AddSglField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddSglField(Prompt : string;
+                                  pRow, pCol : Word;
+                                  Picture : string;
+                                  fRow, fCol : Word;
+                                  HelpIndex : Word;
+                                  SglLo, SglHi : Single;
+                                  Places : Byte;
+                                  var EditSgl : Single);
+
+Add a field of type single.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1253 AddNumericSglField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericSglField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         Picture : string;
+                                         fRow, fCol : Word;
+                                         HelpIndex : Word;
+                                         SglLo, SglHi : Single;
+                                         Places : Byte;
+                                         var EditSgl : Single);
+
+Add a field of type single (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1254 AddSimpleSglField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleSglField(Prompt : string;
+                                        pRow, pCol : Word;
+                                        PicChar : Char;
+                                        fRow, fCol : Word;
+                                        fWidth : Byte;
+                                        HelpIndex : Word;
+                                        SglLo, SglHi : Single;
+                                        Places : Byte;
+                                        var EditSgl : Single);
+
+Add a field of type single (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1255 AddCompField,EntryScreen
+!NOINDEX
+procedure 1137EntryScreen.AddCompField(Prompt : string;
+                                   pRow, pCol : Word;
+                                   Picture : string;
+                                   fRow, fCol : Word;
+                                   HelpIndex : Word;
+                                   CompLo, CompHi : Comp;
+                                   var EditComp : Comp);
+
+Add a field of type comp.
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1256 AddNumericCompField
+!NOINDEX
+procedure 1137EntryScreen.AddNumericCompField(Prompt : string;
+                                          pRow, pCol : Word;
+                                          Picture : string;
+                                          fRow, fCol : Word;
+                                          HelpIndex : Word;
+                                          CompLo, CompHi : Comp;
+                                          var EditComp : Comp);
+
+Add a field of type comp (numeric).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1257 AddSimpleCompField
+!NOINDEX
+procedure 1137EntryScreen.AddSimpleCompField(Prompt : string;
+                                         pRow, pCol : Word;
+                                         PicChar : Char;
+                                         fRow, fCol : Word;
+                                         fWidth : Byte;
+                                         HelpIndex : Word;
+                                         CompLo, CompHi : Comp;
+                                         var EditComp : Comp);
+
+Add a field of type comp (simple).
+
+See also:  1233Adding fields
+;
+;------------------------------------------------------------
+!TOPIC 1258 AddWindowField
+!NOINDEX
+procedure 1137EntryScreen.AddWindowField(Prompt : string;
+                                     pRow, pCol : Word;
+                                     fRow, fCol: Word;
+                                     HelpIndex : Word;
+                                     var CW : CommandWindow);
+
+Add a child window that is to be treated as a "field".
+
+See also:  1233Adding fields  1241WindowField

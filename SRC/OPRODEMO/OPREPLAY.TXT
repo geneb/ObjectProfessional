@@ -1,0 +1,200 @@
+;
+;------------------------------------------------------------
+!TOPIC 2288 OpReplay
+OpReplay, which implements a subset of the features found in
+1752OpMacro, does only one thing: execute (or "replay") pre-recorded
+macros on demand. It cannot record macros, or attach names to them, nor can
+it play them back automatically when a user presses a particular key.
+
+OpReplay provides the following routines:
+
+    2290CharToMacro                       2304Declarations
+    2295InitScrapMacroPtr                 2293Int16
+    2294SetEndOfMacroProc                 2296SetWaitCount
+    2289StartMacro                        2292StringToMacro
+    2291StringToScrapMacro
+;
+;------------------------------------------------------------
+!TOPIC 2289 StartMacro,OpReplay
+!NOINDEX
+procedure 2288OpReplay.StartMacro(Macro : MacroRecPtr);
+
+This routine lets you start a macro that you've created by passing a
+pointer to it. If a macro is already in progress it will immediately be
+replaced by the macro passed.
+
+See also:  2303CurrentMacroPtr  2302MacroInProgressPtr  2299MacroRec
+;
+;------------------------------------------------------------
+!TOPIC 2290 CharToMacro,OpReplay
+!NOINDEX
+function 2288OpReplay.CharToMacro(MacroChar : Char) : Word;
+
+Allows you to easily convert ASCII characters to key codes that can be
+inserted into a macro. If you need to convert an entire string into a
+macro, use StringToMacro instead.
+
+See also:  2292StringToMacro  2291StringToScrapMacro
+;
+;------------------------------------------------------------
+!TOPIC 2291 StringToScrapMacro,OpReplay
+!NOINDEX
+procedure 2288OpReplay.StringToScrapMacro(S : string);
+
+Converts S to a macro and stores it in the global variable ScrapMacro. Note
+that ScrapMacro should be initialized--either by a call to
+InitScrapMacroPtr or by setting it to point to your own scrap macro
+area--before calling this routine.
+
+See also:  2295InitScrapMacroPtr  2301ScrapMacroPtr  2292StringToMacro
+;
+;------------------------------------------------------------
+!TOPIC 2292 StringToMacro,OpReplay
+!NOINDEX
+procedure 2288OpReplay.StringToMacro(S : string; MRP : MacroRecPtr;
+                                 MaxKeys : Word);
+
+This routine turns a string (S) into a macro. MRP should point to the macro
+record used to store the macro. MaxKeys is the maximum number of keys that
+MRP^ can hold.
+
+See also:  2290CharToMacro  2295InitScrapMacroPtr  2291StringToScrapMacro
+;
+;------------------------------------------------------------
+!TOPIC 2293 Int16
+!NOINDEX
+procedure 2288OpReplay.Int16;
+
+The interrupt handler that processes keyboard macros. It is your
+responsibility to activate this interrupt handler at the beginning of your
+program, and to deactivate it at the end.
+;
+;------------------------------------------------------------
+!TOPIC 2294 SetEndOfMacroProc,OpReplay
+!NOINDEX
+procedure 2288OpReplay.SetEndOfMacroProc(P : Pointer);
+
+SetEndOfMacroProc provides a hook that allows you to chain macros together.
+P is the address of a routine that is to be called immediately after a macro
+has been played back.
+
+See also:  1769OpMacro.SetEndOfMacroProc
+;
+;------------------------------------------------------------
+!TOPIC 2295 InitScrapMacroPtr
+!NOINDEX
+procedure 2288OpReplay.InitScrapMacroPtr;
+
+Initializes ScrapMacroPtr to point to a macro declared in OpReplay's code
+segment that can hold up to 127 keys, and it sets ScrapMacroSize to 127. If
+this routine is not called, then you must manually initialize these two
+variables to point to a region of memory set aside for scrap macros before
+using ScrapMacroPtr explicitly or calling StringToScrapMacro.
+
+See also:  2301ScrapMacroPtr  2291StringToScrapMacro
+;
+;------------------------------------------------------------
+!TOPIC 2296 SetWaitCount
+!NOINDEX
+procedure 2288OpReplay.SetWaitCount(Count : Byte);
+
+Set a wait count. This count is the number of times INT $16 function 1 will
+pause before returning the next character in the macro. This fixes
+compatibility problems with some applications, such as Clipper programs.
+The default wait count is 0. A Wait count of 5 is recommended for Clipper
+based programs.
+;
+;------------------------------------------------------------
+!TOPIC 2297 MaxKeysInMacro,OpReplay
+!NOINDEX
+const
+  MaxKeysInMacro = 1000;
+
+The maximum number of keys in a macro.
+
+See also:  2299MacroRec
+;
+;------------------------------------------------------------
+!TOPIC 2298 EndOfMacro,OpReplay
+!NOINDEX
+const
+  EndOfMacro = $0FFFF;
+
+Used to mark the end of a macro.
+
+See also:  2299MacroRec
+;
+;------------------------------------------------------------
+!TOPIC 2299 MacroRec,OpReplay
+!NOINDEX
+type
+  MacroRecPtr = ^MacroRec;
+  MacroRec =
+    record
+      NumKeys  : Word;
+      KeyArray : array[1..MaxKeysInMacro] of Word;
+      Overflow : Word;
+    end;
+
+A macro. NumKeys is the number of keys in the macro, not counting the last,
+which is always EndOfMacro ($FFFF). KeyArray contains the actual keystrokes.
+Overflow holds the end of macro marker when KeyArray is completely full.
+
+See also:  2298EndOfMacro  2297MaxKeysInMacro
+;
+;------------------------------------------------------------
+!TOPIC 2300 ScrapMacroSize
+!NOINDEX
+const
+  ScrapMacroSize : Word = 0;
+
+Maximum number of keys in ScrapMacroPtr^. After a call to
+InitScrapMacroPtr, its value will be 127.
+
+See also:  2301ScrapMacroPtr
+;
+;------------------------------------------------------------
+!TOPIC 2301 ScrapMacroPtr
+!NOINDEX
+const
+  ScrapMacroPtr : MacroRecPtr = nil;
+
+If InitScrapMacroPtr has been called, this variable points to a "scrap"
+macro stored in OpReplay's code segment. It is meant to provide a
+convenient place to store small macros. With the exception of the
+StringToScrapMacro routine, OpReplay never uses it explicitly. The
+maximum size of the scrap macro is stored in ScrapMacroSize.
+
+See also:  2295InitScrapMacroPtr  2300ScrapMacroSize  2291StringToScrapMacro
+;
+;------------------------------------------------------------
+!TOPIC 2302 MacroInProgressPtr
+!NOINDEX
+var
+  MacroInProgressPtr : ^Boolean;
+
+Points to a boolean that indicates whether a macro is currently being
+played back.
+
+See also:  2303CurrentMacroPtr
+;
+;------------------------------------------------------------
+!TOPIC 2303 CurrentMacroPtr
+!NOINDEX
+var
+  CurrentMacroPtr : ^Pointer;
+
+Pointer to address of current macro.
+
+See also:  2302MacroInProgressPtr
+;
+;------------------------------------------------------------
+!TOPIC 2304 Declarations,OpReplay
+!NOINDEX
+!NOSEARCH
+OpReplay declares the following types, constants, and variables:
+
+    2303CurrentMacroPtr                   2298EndOfMacro
+    2302MacroInProgressPtr                2299MacroRec
+    2297MaxKeysInMacro                    2301ScrapMacroPtr
+    2300ScrapMacroSize

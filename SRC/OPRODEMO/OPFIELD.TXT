@@ -1,0 +1,817 @@
+;
+;------------------------------------------------------------
+!TOPIC 1291 OpField
+The basic building block of Object Professional's data entry system is
+the "field," an abstract concept that can mean different things in
+different contexts. The following is a hierarchy of the various field types
+in Object Professional. Those that are not implemented in OpField are
+surrounded by brackets:
+
+[2425SingleListNode]
+  1314TextField
+    1315TextLineField
+    1316TextBoxField
+
+[2446DoubleListNode]
+  [0017AbstractField]
+    1292SelectField
+      1303EntryField
+        1330StringField
+          ...
+        1330MultiLineField
+        [1240PickField]
+    [1334PrintField]
+      [StringPrintField]
+        ...
+      [LineField]
+        [ShadedField]
+
+TextFields (and its descendants) are used by Selectors and EntryScreens to
+create display-only fields. SelectFields are used by Selectors to store
+information about the location, size, and appearance of a field.
+EntryFields (or rather the various descendants of the EntryField) are used
+by EntryScreens to store all relevant information about a field within a
+data entry screen.
+
+    1331Conversion routines               1330Derived field types
+    1332Draw routines                     1313Validation routines
+;
+;------------------------------------------------------------
+!TOPIC 1292 SelectField
+!NOINDEX
+1291OpSelect.SelectField = object(0017AbstractField)
+!LINE
+SelectFieldPtr = ^SelectField;
+
+The SelectField serves two main purposes. On the one hand, a doubly-linked
+list of SelectFields can be used by a Selector to describe a series of
+regions on the screen that represent "fields." On the other hand, the
+SelectField represents the main building block for the EntryField, lists of
+which form the main components of an EntryScreen. This in turn allows an
+EntryScreen to be derived from a Selector (actually an abstract object
+called an AbstractSelector), since any method that works strictly with the
+fields and methods of a SelectField will work equally well with an
+EntryField.
+
+SelectField provides the following methods:
+
+    1317Declarations                      1302SetCtrlAttr
+    1299SetFieldAttr                      1296SetPromptAttr
+    1301SetProtectedFieldAttr             1298SetProtectedPromptAttr
+    1300SetSelectedFieldAttr              1297SetSelectedPromptAttr
+    1295sfOptionsAreOn                    1294sfOptionsOff
+    1293sfOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1293 sfOptionsOn
+!NOINDEX
+procedure 1292SelectField.sfOptionsOn(OptionFlags : LongInt);
+
+Activate multiple options.
+
+See also:  1320Option flags  1295sfOptionsAreOn  1294sfOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1294 sfOptionsOff
+!NOINDEX
+procedure 1292SelectField.sfOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple options.
+
+See also:  1320Option flags  1295sfOptionsAreOn  1293sfOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1295 sfOptionsAreOn
+!NOINDEX
+function 1292SelectField.sfOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  1320Option flags  1294sfOptionsOff  1293sfOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1296 SetPromptAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetPromptAttr(Color, Mono : Byte);
+
+Set attributes for prompts for unselected fields.
+
+See also:  1298SetProtectedPromptAttr  1297SetSelectedPromptAttr
+;
+;------------------------------------------------------------
+!TOPIC 1297 SetSelectedPromptAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetSelectedPromptAttr(Color, Mono : Byte);
+
+Set attributes for prompts for selected fields.
+
+See also:  1296SetPromptAttr
+;
+;------------------------------------------------------------
+!TOPIC 1298 SetProtectedPromptAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetProtectedPromptAttr(Color, Mono : Byte);
+
+Set attributes for prompts for protected fields.
+
+See also:  1296SetPromptAttr
+;
+;------------------------------------------------------------
+!TOPIC 1299 SetFieldAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetFieldAttr(Color, Mono : Byte);
+
+Set attributes for unselected fields.
+
+See also:  1302SetCtrlAttr  1301SetProtectedFieldAttr  1300SetSelectedFieldAttr
+;
+;------------------------------------------------------------
+!TOPIC 1300 SetSelectedFieldAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetSelectedFieldAttr(Color, Mono : Byte);
+
+Set attributes for selected fields.
+
+See also:  1299SetFieldAttr
+;
+;------------------------------------------------------------
+!TOPIC 1301 SetProtectedFieldAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetProtectedFieldAttr(Color, Mono : Byte);
+
+Set attributes for protected fields.
+
+See also:  1299SetFieldAttr
+;
+;------------------------------------------------------------
+!TOPIC 1302 SetCtrlAttr,SelectField
+!NOINDEX
+procedure 1292SelectField.SetCtrlAttr(Color, Mono : Byte);
+
+Set attributes for control characters.
+
+See also:  1299SetFieldAttr
+;
+;------------------------------------------------------------
+!TOPIC 1303 EntryField
+!NOINDEX
+1291OpField.EntryField = object(1292SelectField)
+!LINE
+EntryFieldPtr = ^EntryField;
+
+The EntryField is a true abstract object. It exists to define the common
+denominators among all the specific field types--StringField, LongIntField,
+ChoiceField, MultiLineField--and thereby allow an EntryScreen to treat all
+fields derived from it as interchangeable.
+
+EntryField provides the following methods, in addition to those it inherits
+from SelectField:
+
+  1321Declarations              1306efOptionsAreOn          1305efOptionsOff
+  1304efOptionsOn               1309sefOptionsAreOn         1308sefOptionsOff
+  1307sefOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1304 efOptionsOn
+!NOINDEX
+procedure 1303EntryField.efOptionsOn(OptionFlags : LongInt);
+
+Activate multiple primary options.
+
+See also:  1306efOptionsAreOn  1305efOptionsOff  1326Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1305 efOptionsOff
+!NOINDEX
+procedure 1303EntryField.efOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple primary options.
+
+See also:  1306efOptionsAreOn  1304efOptionsOn  1326Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1306 efOptionsAreOn
+!NOINDEX
+function 1303EntryField.efOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified primary options are on.
+
+See also:  1305efOptionsOff  1304efOptionsOn  1326Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1307 sefOptionsOn
+!NOINDEX
+procedure 1303EntryField.sefOptionsOn(OptionFlags : LongInt);
+
+Activate multiple secondary options.
+
+See also:  1327Secondary options  1309sefOptionsAreOn  1308sefOptionsOff
+;
+;------------------------------------------------------------
+!TOPIC 1308 sefOptionsOff
+!NOINDEX
+procedure 1303EntryField.sefOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple secondary options.
+
+See also:  1327Secondary options  1309sefOptionsAreOn  1307sefOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1309 sefOptionsAreOn
+!NOINDEX
+function 1303EntryField.sefOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified secondary options are on.
+
+See also:  1327Secondary options  1308sefOptionsOff  1307sefOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1310 ValidateNoBlanks
+!NOINDEX
+function 1291OpField.ValidateNoBlanks(EFP : EntryFieldPtr; var ErrCode : Word;
+                                  var ErrorSt : StringPtr) : Boolean;
+
+Validate that no usable subfields in a string contain spaces.
+
+See also:  1311ValidateNotPartial  1312ValidateSubfields  1313Validation routines
+;
+;------------------------------------------------------------
+!TOPIC 1311 ValidateNotPartial
+!NOINDEX
+function 1291OpField.ValidateNotPartial(EFP : EntryFieldPtr;
+                                    var ErrCode : Word;
+                                    var ErrorSt : StringPtr) : Boolean;
+
+Validate that no usable subfields in a string contain spaces unless all do.
+
+See also:  1310ValidateNoBlanks  1312ValidateSubfields  1313Validation routines
+;
+;------------------------------------------------------------
+!TOPIC 1312 ValidateSubfields
+!NOINDEX
+function 1291OpField.ValidateSubfields(SubfieldMask : string;
+                                   EFP : EntryFieldPtr;
+                                   var ErrCode : Word;
+                                   var ErrorSt : StringPtr) : Boolean;
+
+Validate that subfields in a string meet the requirements of SubfieldMask.
+This is NOT a regular validation routine. It should be called only by a
+higher-level validation routine that has a SubfieldMask to give it.
+
+See also:  1310ValidateNoBlanks  1311ValidateNotPartial  1313Validation routines
+;
+;------------------------------------------------------------
+!TOPIC 1313 Validation routines
+!NOINDEX
+!NOSEARCH
+A validation routine has the following basic form:
+
+!NOWRAP
+{$F+}
+function MyValidationFunc(EFP : EntryFieldPtr; var ErrCode : Word;
+                          var ErrorSt : StringPtr) : Boolean;
+begin
+  with EFP^ do begin
+    {try to convert efEditSt^ to native type}
+    {if conversion fails then begin}
+      {MyValidationFunc := False;}
+      {set ErrCode and ErrorSt}
+    {end}
+    {else if value in acceptable range then}
+      {MyValidationFunc := True;}
+    {else begin}
+      {MyValidationFunc := False;}
+      {set ErrCode and ErrorSt}
+    {end;}
+  end;
+end;
+!WRAP
+
+The EFP parameter is a pointer to the field to be validated, and
+EFP^.efEditSt^ points to the string entered by the user. The function
+returns True if the input is valid, or False if isn't. If the input is not
+valid, then ErrCode should be initialized with an appropriate error code,
+and ErrorSt should be assigned the address of a static string containing a
+brief error message.
+
+See also:  1310ValidateNoBlanks  1311ValidateNotPartial  1312ValidateSubfields
+;
+;------------------------------------------------------------
+!TOPIC 1314 TextField
+!NOINDEX
+1291OpSelect.TextField = object(2425SingleListNode)
+!LINE
+TextFieldPtr = ^TextField;
+
+TextFields are used to create display-only fields in Selectors and
+EntryScreens. They are typically added to a Selector/EntryScreen by
+calling one of the AddTextField methods, which instantiate them and add
+them to a singly-linked list stored in the larger object, and then left
+alone.
+
+All of the methods declared by TextField are intended for internal use.
+
+See also:
+  2640AbstractSelector.AddTextField  1316TextBoxField  1315TextLineField
+;
+;------------------------------------------------------------
+!TOPIC 1315 TextLineField
+!NOINDEX
+1291OpField.TextLineField = object(1314TextField)
+!LINE
+TextLineFieldPtr = ^TextLineField;
+
+TextLineFields are used to draw horizontal and vertical lines in Selectors
+and EntryScreens.
+
+All of the methods declared by TextLineField are intended for internal use.
+
+See also:  2644AbstractSelector.AddLineField
+;
+;------------------------------------------------------------
+!TOPIC 1316 TextBoxField
+!NOINDEX
+1291OpField.TextBoxField = object(1314TextField)
+!LINE
+TextBoxFieldPtr = ^TextBoxField;
+
+TextBoxFields are used to draw (shadowed) boxes in Selectors and
+EntryScreens.
+
+All of the methods declared by TextBoxField are intended for internal use.
+
+See also:  2644AbstractSelector.AddLineField
+;
+;------------------------------------------------------------
+!TOPIC 1317 Declarations,SelectField
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to SelectFields:
+
+  1318BadSFieldOptions          1319DefSFieldOptions        1320Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1318 BadSFieldOptions
+!NOINDEX
+const
+  BadSFieldOptions : LongInt = sfProtected+sfHidden+sfInvisible;
+
+Internal SelectField options that should not be set directly.
+
+See also:  1320Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1319 DefSFieldOptions
+!NOINDEX
+const
+  DefSFieldOptions : LongInt = sfMapCtrls;
+
+Default options for a SelectField.
+
+See also:  1320Option flags
+;
+;------------------------------------------------------------
+!TOPIC 1320 Option flags,SelectField
+!NOINDEX
+!NOSEARCH
+These are the various options available for a SelectField:
+
+!NOWRAP
+sfProtected        = $00000001;
+sfHidden           = $00000002;
+sfMapCtrls         = $00000004;
+sfIncDec           = $00000008;
+sfInvisible        = $00000010;
+!WRAP
+
+sfProtected indicates that the user may not move the cursor onto the field.
+sfHidden indicates that the field is not to be displayed, and the cursor
+may not be moved to it. sfMapCtrls indicates that, when the field is
+displayed, control characters should be mapped to uppercase alphabetics (^A
+to 'A', for example) and displayed in a different video attribute. sfIncDec
+indicates that the field may be incremented by the ccIncChoice command or
+decremented by the ccDecChoice command. sfInvisible is similar to sfHidden,
+except that the field is never drawn at all. This option is generally used
+only for EntryFields. It allows multiple fields to share the same location
+on the screen.
+
+See also:  1295sfOptionsAreOn  1294sfOptionsOff  1293sfOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1321 Declarations,EntryField
+!NOINDEX
+!NOSEARCH
+The following declarations pertain to EntryFields:
+
+    1322BadEFieldOptions                  1324BadSEFieldOptions
+    1323DefEFieldOptions                  1328DefPadChar
+    1329DefPasswordChar                   1325DefSEFieldOptions
+    1326Primary options                   1327Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1322 BadEFieldOptions
+!NOINDEX
+const
+  BadEFieldOptions : LongInt = efProtected+efMultChoice;
+
+Primary EntryField options that should not be changed directly.
+
+See also:  1326Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1323 DefEFieldOptions
+!NOINDEX
+const
+  DefEFieldOptions : LongInt =
+    efInsertPushes+efAutoAdvance+efTrimBlanks+efMapCtrls+
+    efAllowEscape+efDefaultAccepted+efShowReadChar;
+
+Default primary EntryField options. Note that certain derived types may
+force some of these options off or activate additional ones. An ArrayField,
+for example, always forces efTrimBlanks off.
+
+See also:  1326Primary options
+;
+;------------------------------------------------------------
+!TOPIC 1324 BadSEFieldOptions
+!NOINDEX
+const
+  BadSEFieldOptions : LongInt =
+    ifBoolean+ifNumeric+ifSimple+ifNested+ifMultiLine+ifModified+
+    ifNotNext+ifNotPrev+ifNoMouseExit+ifSuppressFirst+ifNoLiterals+
+    ifEditing+ifHexadecimal+ifSemiHidden+ifRealVar;
+
+Secondary EntryField options that should not be changed directly.
+
+See also:  1327Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1325 DefSEFieldOptions
+!NOINDEX
+const
+  DefSEFieldOptions : LongInt = 0;
+
+Default secondary EntryField options. Note that certain derived types may
+force some of these options off or activate additional ones.
+
+See also:  1327Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1326 Primary options,EntryFields
+!NOINDEX
+!NOSEARCH
+EntryFields have two sets of option flags, one for primary options and one
+for secondary options. The following are the primary options:
+
+!NOWRAP
+efProtected        = $00000001;
+efHidden           = $00000002;
+efMapCtrls         = $00000004;
+efMultChoice       = $00000008;
+efInvisible        = $00000010;
+!WRAP
+
+efProtected indicates that the user may not move the cursor onto the field.
+efHidden indicates that the field is not to be displayed, and the cursor
+may not be moved to it. efMapCtrls indicates that, when the field is
+displayed, control characters should be mapped to uppercase alphabetics (^A
+to 'A', for example) and displayed in a different video attribute.
+efMultChoice is an internal flag indicating that the field is a
+ChoiceField; it should not be modified. efInvisible is similar to efHidden,
+except that the field is never drawn at all. This option allows multiple
+EntryFields to share the same location on the screen.
+
+!NOWRAP
+efAutoAdvCharBegin = $00000020;
+efAutoAdvCharEnd   = $00000040;
+efAutoAdvCurBegin  = $00000080;
+efAutoAdvCurEnd    = $00000100;
+efAutoAdvanceChar  = efAutoAdvCharBegin+efAutoAdvCharEnd;
+efAutoAdvanceCursor= efAutoAdvCurBegin+efAutoAdvCurEnd;
+efAutoAdvanceBegin = efAutoAdvCharBegin+efAutoAdvCurBegin;
+efAutoAdvanceEnd   = efAutoAdvCharEnd+efAutoAdvCurEnd;
+efAutoAdvance      = efAutoAdvanceBegin+efAutoAdvanceEnd;
+!WRAP
+
+These options all pertain to a feature referred to generically as
+"auto-advance." efAutoAdvCharEnd determines what happens during editing if
+the cursor is at the end of a field and the user enters another character:
+if the option is on, the cursor will be "auto-advanced" to the next field;
+if it is off, the cursor will remain where it is. efAutoAdvCurEnd
+determines what happens if the user is at the end of the field and issues a
+command that would normally move the cursor to the right: if the option is
+on, the cursor is advanced to the next field; if it is off, the cursor will
+remain where it is. efAutoAdvCurBegin determines what happens if the user
+is at the start of the field and issues a command that would normally move
+the cursor to the left: if the option is on, the cursor is moved to the
+previous field; if it is off, the cursor will remain where it is.
+efAutoAdvCharBegin is currently unused.
+
+efAutoAdvanceChar, efAutoAdvanceCursor, efAutoAdvanceBegin, and
+efAutoAdvanceEnd, and efAutoAdvance simply provide a convenient means of
+referring to two or more of the first four options as a logical group.
+
+!NOWRAP
+efInsertPushes     = $00000200;
+efRightJustify     = $00000400;
+efPasswordMode     = $00000800;
+efCursorToEnd      = $00001000;
+efTrimBlanks       = $00002000;
+!WRAP
+
+efInsertPushes indicates that, if the field is full, inserting a character
+can "push" the last character off the end of the field. efRightJustify
+indicates that the field is to be displayed right-justified. efPasswordMode
+indicates that all meaningful characters in the field are to be suppressed,
+and represented with another character (usually ^G), called the
+PasswordChar. efCursorToEnd indicates that, by default, the cursor should
+be positioned just beyond the last meaningful character in the field on
+entry to the field editor. efTrimBlanks indicates that any blank spaces at
+the end of a field should be stripped.
+
+!NOWRAP
+efClearFirstChar   = $00004000;
+efForceOvertype    = $00008000;
+efForceMode        = $00010000;
+efClickExit        = $00020000;
+!WRAP
+
+efClearFirstChar indicates that the existing contents of the field should
+be cleared if the first key pressed during editing is a character.
+efForceMode indicates that either insert or overtype mode should be forced
+on (and not changed) when the field is being edited. If efForceMode is in
+effect, efForceOvertype indicates whether the mode forced on is overtype or
+insert. efClickExit is meaningful only if the field is part of an
+EntryScreen. If the option is on, and the mouse is clicked on the current
+field (with the button assigned to ccMouseSel), the EntryScreen will exit
+and return ccClickExit as the last command.
+
+!NOWRAP
+efBeepOnError      = $00040000;
+efAutoNumLock      = $00080000;
+efParensForMinus   = $00100000;
+!WRAP
+
+efBeepOnError indicates whether or not the field editor should beep when
+the user enters an invalid command. efAutoNumLock allows you to specify
+that NumLock should temporarily be activated when the field is edited.
+efParensForMinus indicates that negative numbers should be displayed within
+parentheses--like so '(123.45)', rather than '-123.45'. This option applies
+only to numeric fields (those that use NumberEditor), and it requires that
+the picture mask have a blank space at the end, to be used for the closing
+')' if necessary: for example, '######.## '.
+
+!NOWRAP
+efExitAtEdges      = $00200000;
+efRequired         = $00400000;
+efReadOnly         = $00800000;
+!WRAP
+
+efExitAtEdges, which applies only to pick list fields, indicates that
+cursor movement commands at the edges of the pick list can cause the cursor
+to jump to another field. efRequired is meaningful only for fields in an
+EntryScreen. It indicates that the field may not be left blank. If
+efReadOnly is set, the user may move the cursor around in the field, but
+may not modify its contents.
+
+!NOWRAP
+efHouseCursorAtEnd = $01000000;
+!WRAP
+
+This option is meaningful only for fields that use SimpleStringEditor. It
+indicates that an extra space should be reserved just beyond the end of the
+field to house the cursor when the field is full.
+
+!NOWRAP
+efForceUpper       = $02000000;
+efForceLower       = $04000000;
+!WRAP
+
+These options are meaningful only for simple fields. efForceUpper indicates
+that all characters entered should be forced to upper case. efForceLower
+indicates that all characters entered should be forced to lower case. For
+non-simple fields, these effects can be accomplished only by means of the
+picture mask. For a simple field, these two options can override the case
+change characteristics of the field's picture mask.
+
+!NOWRAP
+efAllowEscape      = $08000000;
+!WRAP
+
+This option is meaningful only to fields that use the SimpleCharEditor and
+to PickFields. It indicates whether or not <Esc> (ccQuit) is an acceptable
+response. The flag is set by default, but you may wish to clear it, for
+example, when LineEditor.YesOrNo needs to force an answer of 'Y' or 'N'.
+
+!NOWRAP
+efShowReadChar     = $10000000;
+efHideCursor       = $20000000;
+efDefaultAccepted  = $40000000;
+efMapExtended      = $80000000;
+!WRAP
+
+These options are meaningful only to fields that use the SimpleCharEditor.
+Their default settings should not be changed when working with
+EntryScreens. They are intended to be used only in conjunction with a
+LineEditor.
+
+See also:
+  1306efOptionsAreOn            1305efOptionsOff            1304efOptionsOn
+  1327Secondary options
+;
+;------------------------------------------------------------
+!TOPIC 1327 Secondary options,EntryFields
+!NOINDEX
+!NOSEARCH
+This set of options actually consists of two kinds of bit flags: secondary
+field options ('sef' prefix) and internal flags ('if' prefix).
+
+!NOWRAP
+ifBoolean          = $00000001; {flags a boolean or yes/no field}
+ifNumeric          = $00000002; {field uses numeric editor}
+ifSimple           = $00000004; {flags a "simple" field}
+ifNested           = $00000008; {field is assoc with a nested entry screen}
+ifMultiLine        = $00000010; {flags a multi-line field}
+ifModified         = $00000020; {marks fields modified while editing}
+ifNotNext          = $00000040; {disallow ccNextField}
+ifNotPrev          = $00000080; {disallow ccPrevField}
+ifNoMouseExit      = $00000100; {ccMouseSel can't exit (multi-line only)}
+ifSuppressFirst    = $00000200; {don't display first time--simple char only}
+ifNoLiterals       = $00000400; {picture mask has no literal characters}
+ifEditing          = $00000800; {set while field is being edited}
+ifHexadecimal      = $00001000; {if set, field's value is shown in hex}
+ifSemiHidden       = $00002000; {if set, field is semi-hidden}
+ifRealVar          = $00004000; {if set, field is of a real/BCD/8087 real}
+!WRAP
+
+These options are all internal flags that should not be modified unless
+absolutely necessary. The only one that should be of general interest is
+ifModified, a flag set by a field editor on exit if the field was modified
+by the user.
+
+!NOWRAP
+sefSmartExponents  = $02000000;
+sefSwitchCommands  = $04000000;
+sefPadCurrentOnly  = $08000000;
+!WRAP
+
+sefSmartExponents selects alternate behavior for fields using the 'E' picture
+mask character: rather than always using scientific notation, decimal notation
+will be used if possible. sefSwitchCommands, an option meaningful only to
+window fields, indicates that the command processor for the parent window
+(entry screen) should be used by the child window. This option should normally
+be used in cases where the child window is based on a PickList.
+sefPadCurrentOnly indicates that the special pad character for a field ('_'
+for example) should be used only while the field is being edited; if the field
+is not being edited, ' ' will be used instead.
+
+!NOWRAP
+sefSuppressZero    = $10000000;
+sefNoFieldMovement = $20000000;
+!WRAP
+
+sefSuppressZero is meaningful only for a field of an integer type. It
+indicates that the field should blanked out (semi-hidden) when the field is
+not being edited. That is, if a Word field's value is 0, it is treated the
+same way as a Real field whose value is BadReal. sefNoFieldMovement is an
+option normally used only by a LineEditor. It tells a field editor not to
+exit when a field movement command such as ccDown is issued. The only other
+case where it is useful is that of an EntryScreen with a single field.
+
+!NOWRAP
+sefWindowRelative  = $40000000;
+sefInsertByDefault = $80000000;
+!WRAP
+
+These options are meaningful only to a LineEditor. They are declared in
+OpField only to reserve space for the two flags.
+
+See also:
+  1326Primary options           1309sefOptionsAreOn         1308sefOptionsOff
+  1307sefOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 1328 DefPadChar
+!NOINDEX
+const
+  DefPadChar : Char = ' ';
+
+Default character used to pad the end of a partially empty field.
+;
+;------------------------------------------------------------
+!TOPIC 1329 DefPasswordChar
+!NOINDEX
+const
+  DefPasswordChar : Char = ^G;
+
+Default character used to represent the text in a field while in password
+mode.
+;
+;------------------------------------------------------------
+!TOPIC 1330 Derived field types
+!NOINDEX
+!NOSEARCH
+The following hierarchy shows all of the field types derived from
+EntryField. All but the PickField and WindowField objects are implemented
+in OpField; the PickField and WindowField are implemented in OpEntry.
+
+1303EntryField
+  ArrayField
+  BcdField
+  BooleanField
+  ByteField
+  CharField
+  ChoiceField
+  CompField
+  DateField
+  DateStField
+  DoubleField
+  ExtendedField
+  IntegerField
+  LongIntField
+  MultiLineField
+  NestedField
+  [1240PickField]
+  RealField
+  ShortIntField
+  SingleField
+  StringField
+  TimeField
+  [1241WindowField]
+  WordField
+  YesNoField
+;
+;------------------------------------------------------------
+!TOPIC 1331 Conversion routines
+!NOINDEX
+!NOSEARCH
+A conversion routine has the following form:
+
+!NOWRAP
+{$F+}
+procedure MyConversionProc(EFP : EntryFieldPtr; PostEdit : Boolean);
+begin
+  with EFP^ do
+    if PostEdit then
+      {convert efEditSt^ to efVarPtr^}
+    else
+      {convert efVarPtr^ to efEditSt^} ;
+end;
+!WRAP
+
+The EFP parameter is a pointer to the field to be converted. The PostEdit
+parameter will be True if the user has just finished editing the field. It
+means that the contents of the string pointed to by efEditSt needs to be
+converted into the field's native type and then stored in the variable pointed
+to by efVarPtr. If PostEdit is False, the field is about to be displayed, and
+the variable needs to be converted from its native type into a formatted
+string, stored in efEditSt^.
+;
+;------------------------------------------------------------
+!TOPIC 1332 Draw routines
+!NOINDEX
+!NOSEARCH
+A draw routine has the following basic form:
+
+!NOWRAP
+{$F+}
+procedure MyDrawProc(var Field;      St : string;     Row, Col : Word;
+                     FA, CA : Byte;  POffset : Byte;  PasswordChar : Char;
+                     Flags : PictureFlags);
+var
+  EF : EntryField absolute Field;
+begin
+  with EF do begin
+    {draw St}
+  end;
+end;
+!WRAP
+
+The first parameter is the Field itself. It is declared as an untyped
+parameter because the compiler does not permit circular type references.
+
+St is the string to be displayed. Row and Col specify the absolute screen
+coordinates where St should be displayed. FA and CA contain the video
+attributes in which normal characters (FA) and control characters (CA)
+should be displayed. POffset is the horizontal offset for the string being
+displayed, which is usually 0. It is non-zero only if the draw routine is
+being called by a field editor that has scrolled the field horizontally.
+
+PasswordChar is meaningful only if the expression
+
+  LongFlagIsSet(EF.sfOptions, efPasswordMode)
+
+is True, indicating that password mode is in effect. If it is True, then all
+meaningful characters in St should be represented as PasswordChar.
+
+The Flags parameter, needed only when password mode is in effect, is used
+to identify literal and semi-literal characters that should never be
+represented with PasswordChar.
+
+Note that a draw routine must check to see if the efHidden option is set
+for the field:
+
+  IsHidden := LongFlagIsSet(EF.sfOptions, sfHidden);
+
+If it is hidden, then the draw routine must fill the width of the field
+with spaces using the FA attribute, and ignore the contents of St.

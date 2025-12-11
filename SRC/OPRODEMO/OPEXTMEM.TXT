@@ -1,0 +1,119 @@
+;
+;------------------------------------------------------------
+!TOPIC 1279 OpExtMem
+OpExtMem gives you all the tools you need to use extended memory for your
+data storage needs. These routines allow you to access extended memory
+under DOS 3.x or 4.x without colliding with VDISK.SYS, MicroSoft's
+RAMDRIVE.SYS, or with any other program compatible with either of the two.
+
+OpExtMem provides the following:
+
+  1283ExtMemAvail               1282ExtMemTotal             1285FreeExtMem
+  1284GetExtMem                 1288HugePtr                 1286MarkExtMem
+  1281MoveExtMem                1280PtrToHuge               1287ReleaseExtMem
+;
+;------------------------------------------------------------
+!TOPIC 1280 PtrToHuge
+!NOINDEX
+function 1279OpExtMem.PtrToHuge(P : Pointer) : HugePtr;
+
+Converts a regular pointer representing a segmented address to a huge
+pointer representing a linear address. The pointer must be in the range
+$0:$0 to $FFFF:$000F.
+
+See also:  1288HugePtr
+;
+;------------------------------------------------------------
+!TOPIC 1281 MoveExtMem
+!NOINDEX
+procedure 1279OpExtMem.MoveExtMem(Src, Dest : HugePtr; WCount : Word);
+
+Allows you to move blocks of data between any two locations in memory. That
+is, you can use it to transfer data from extended memory to normal memory
+(or vice versa), or between two regions of extended memory. Note that the
+amount of memory to be moved between Src and Dest (both of type HugePtr)
+must be a multiple of 2, since WCount indicates the number of words to be
+moved, not the number of bytes.
+
+When transferring data from normal to extended memory and back again, the
+address in normal memory must first be converted from a segmented address
+(pointer) to a linear address (huge pointer, or HugePtr) using PtrToHuge.
+
+See also:  1288HugePtr  1280PtrToHuge
+;
+;------------------------------------------------------------
+!TOPIC 1282 ExtMemTotal
+!NOINDEX
+function 1279OpExtMem.ExtMemTotal : LongInt;
+
+Returns the total number of bytes of extended memory installed in the
+system.
+
+See also:  1283ExtMemAvail
+;
+;------------------------------------------------------------
+!TOPIC 1283 ExtMemAvail
+!NOINDEX
+function 1279OpExtMem.ExtMemAvail : Word;
+
+ExtMemAvail allows you to determine how much extended memory is available
+for your program's use. The number it returns is in kilobytes (1024 bytes),
+since that is the unit used by GetExtMem when allocating extended memory.
+
+See also:  1282ExtMemTotal  1284GetExtMem
+;
+;------------------------------------------------------------
+!TOPIC 1284 GetExtMem
+!NOINDEX
+function 1279OpExtMem.GetExtMem(N : Word) : HugePtr;
+
+GetExtMem lets you allocate a block of extended memory, but it can allocate
+memory only in 1K (1,024 byte) blocks. The function returns Nil if there is
+insufficient memory to fill the request. A block of extended memory
+allocated with GetExtMem can later be disposed of using FreeExtMem.
+
+See also:  1283ExtMemAvail  1285FreeExtMem  1288HugePtr
+;
+;------------------------------------------------------------
+!TOPIC 1285 FreeExtMem,OpExtMem
+!NOINDEX
+function 1279OpExtMem.FreeExtMem(P : HugePtr) : Boolean;
+
+Deallocates a block of extended memory allocated with GetExtMem. It works
+only if the block to deallocate is the last block allocated. The function
+returns False if it was unable to deallocate the memory.
+
+See also:  1284GetExtMem  1288HugePtr
+;
+;------------------------------------------------------------
+!TOPIC 1286 MarkExtMem
+!NOINDEX
+procedure 1279OpExtMem.MarkExtMem(var P : HugePtr);
+
+Allows you to store the location of the next free memory block in a
+variable. You can then allocate multiple blocks of extended memory using
+GetExtMem, and dispose of all of them at once with ReleaseExtMem.
+
+See also:  1284GetExtMem  1288HugePtr  1287ReleaseExtMem
+;
+;------------------------------------------------------------
+!TOPIC 1287 ReleaseExtMem
+!NOINDEX
+procedure 1279OpExtMem.ReleaseExtMem(P : HugePtr);
+
+Lets you dispose of all memory blocks above a given point in memory, a point
+whose location was stored in a HugePtr variable (P) using MarkExtMem.
+
+See also:  1288HugePtr  1286MarkExtMem
+;
+;------------------------------------------------------------
+!TOPIC 1288 HugePtr
+!NOINDEX
+type
+  HugePtr = Pointer;
+
+A HugePtr holds a 24-bit linear address. It can be cast to a LongInt (and
+vice versa) for indexing purposes, and you can test it for a value of Nil,
+just like a normal pointer (which holds a segmented address).
+
+See also:  1280PtrToHuge

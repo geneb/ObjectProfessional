@@ -1,0 +1,379 @@
+;
+;------------------------------------------------------------
+!TOPIC 2591 OpSEdit
+OpSEdit provides a simplified version of the 0942LineEditor called,
+aptly enough, the 2592SimpleLineEditor. It offers far fewer options than
+the LineEditor, and it works only with string variables, but it does
+implement the same set of basic editing commands and most of the more
+commonly used options.
+
+See also:  2607Commands
+;
+;------------------------------------------------------------
+!TOPIC 2592 SimpleLineEditor
+!NOINDEX
+2591OpSEdit.SimpleLineEditor = object(2306Root)
+!LINE
+SimpleLineEditorPtr = ^SimpleLineEditor;
+
+An object that offers basic line editing capabilities. Far less powerful
+than a 0942LineEditor, but also far smaller.
+
+The SimpleLineEditor provides methods that generally fall into one of the
+following categories:
+
+  2606Declarations              2616General                 2615Setting colors
+  2614Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2593 Init,SimpleLineEditor
+!NOINDEX
+constructor 2592SimpleLineEditor.Init(var Colors : ColorSet);
+
+Initializes the SimpleLineEditor in preparation for a call to ReadString.
+
+See also:
+    2616General                   2596ReadString
+    2615Setting colors            2614Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2594 GetLastCommand,SimpleLineEditor
+!NOINDEX
+function 2592SimpleLineEditor.GetLastCommand : Word;
+
+Returns the last command entered by the user.
+
+See also:  2595GetLastKey
+;
+;------------------------------------------------------------
+!TOPIC 2595 GetLastKey,SimpleLineEditor
+!NOINDEX
+function 2592SimpleLineEditor.GetLastKey : Word;
+
+Returns the last keystroke entered by the user.
+
+See also:  2594GetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 2596 ReadString,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.ReadString(Prompt : string;
+                                      Row, Col, MaxLen, Width : Byte;
+                                      var S : string);
+
+Edit a string. Prompt is a string to be displayed on the screen at Row,Col.
+S, the string to be edited, is displayed immediately to its right. MaxLen
+is the maximum length of the string (1..254). Width is the width of the
+edit field (the region of the screen in which editing takes place). If
+MaxLen is greater than Width, then the edit field will be scrolled
+horizontally as necessary when editing.
+
+See also:  2616General  2594GetLastCommand
+;
+;------------------------------------------------------------
+!TOPIC 2597 seOptionsOn
+!NOINDEX
+procedure 2592SimpleLineEditor.seOptionsOn(OptionFlags : LongInt);
+
+Activate multiple options.
+
+See also:  2608Options  2614Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2598 seOptionsAreOn
+!NOINDEX
+function 2592SimpleLineEditor.seOptionsAreOn(OptionFlags : LongInt) : Boolean;
+
+Return True if all specified options are on.
+
+See also:  2608Options  2614Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2599 seOptionsOff
+!NOINDEX
+procedure 2592SimpleLineEditor.seOptionsOff(OptionFlags : LongInt);
+
+Deactivate multiple options.
+
+See also:  2608Options  2614Setting options
+;
+;------------------------------------------------------------
+!TOPIC 2600 SetPromptAttr,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.SetPromptAttr(Color, Mono : Byte);
+
+Set attributes for prompts.
+
+See also:  2593Init  2615Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2601 SetFieldAttr,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.SetFieldAttr(Color, Mono : Byte);
+
+Set attributes for line being edited.
+
+See also:  2593Init  2615Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2602 SetCtrlAttr,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.SetCtrlAttr(Color, Mono : Byte);
+
+Set attributes for control characters.
+
+See also:  2593Init  2615Setting colors
+;
+;------------------------------------------------------------
+!TOPIC 2603 SetHelpIndex,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.SetHelpIndex(Index : Word);
+
+Set the help index for the line editor.
+
+See also:  2616General
+;
+;------------------------------------------------------------
+!TOPIC 2604 SetCommandProcessor,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.SetCommandProcessor(var CP : CommandProcessor);
+
+Allows you to specify an alternate command processor (CP) to be used in
+conjunction with the line editor.
+
+See also:  0218CommandProcessor  2612SimpEditCommands
+;
+;------------------------------------------------------------
+!TOPIC 2605 SetClearFirstFilter,SimpleLineEditor
+!NOINDEX
+procedure 2592SimpleLineEditor.SetClearFirstFilter(CFF : ClearFirstFunc);
+
+Set function to call for ClearFirstChar test.
+
+See also:  2611ClearFirstFunc
+;
+;------------------------------------------------------------
+!TOPIC 2606 Declarations,OpSEdit
+!NOINDEX
+!NOSEARCH
+OpSEdit declares the following types, constants, and variables:
+
+    2609BadSimpEditOptions                2611ClearFirstFunc
+    2613Configuration data                2610DefSimpEditOptions
+    2608Options                           2612SimpEditCommands
+;
+;------------------------------------------------------------
+!TOPIC 2607 Commands,SimpleLineEditor
+!NOINDEX
+!NOSEARCH
+The editing commands supported by the SimpleLineEditor are arranged by
+category in the list below. In each case the first line gives the name of
+the command, followed by the key(s) to which it is normally assigned. The
+second and following lines give a brief description of the command.
+
+!NOWRAP
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+Cursor left one character.
+
+ccRight       <Right>, <CtrlD>
+Cursor right one character.
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+Cursor left one word.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+Cursor right one word.
+
+ccHome        <Home>, <CtrlQ><S>
+Cursor to beginning of line.
+
+ccEnd         <End>, <CtrlQ><D>
+Cursor to end of line.
+
+Insertion and Deletion
+
+ccDel         <Del>, <CtrlG>
+Delete character at cursor.
+
+ccBack        <Bksp>, <CtrlH>, <CtrlBksp>
+Delete character to left of cursor.
+
+ccDelLine     <CtrlY>
+Delete entire line.
+
+ccDelEol      <CtrlEnd>, <CtrlQ><Y>
+Delete from cursor to end of line.
+
+ccDelBol      <CtrlHome>
+Delete from start of line to cursor.
+
+ccDelWord     <CtrlT>
+Delete word to right of cursor.
+
+ccCtrlChar    <CtrlP>
+!WRAP
+Insert control character. For example, to insert a ^G, you would enter
+<CtrlP><CtrlG>.
+
+!NOWRAP
+ccIns         <Ins>, <CtrlV>
+!WRAP
+Toggle insert mode on and off. A fat cursor indicates insert mode; a thin
+cursor indicates overtype mode.
+
+!NOWRAP
+Other
+
+ccSelect      <Enter>, <CtrlM>, <ClickCenter>
+Accept contents of line.
+
+ccMouseSel    <ClickLeft>
+Same as ccSelect.
+
+ccRestore     <CtrlR>, <CtrlQ><L>
+Restore original contents of the current line.
+
+ccHelp        <F1>, <ClickBoth>
+!WRAP
+Request help.
+
+!NOWRAP
+ccQuit        <Esc>, <CtrlBreak>, <ClickRight>
+Quit editing.
+;
+;------------------------------------------------------------
+!TOPIC 2608 Options,SimpleLineEditor
+!NOINDEX
+!NOSEARCH
+The following options are available for a SimpleLineEditor:
+
+!NOWRAP
+seMapCtrls         = $00000001;
+seCursorToEnd      = $00000002;
+seTrimBlanks       = $00000004;
+seClearFirstChar   = $00000008;
+seBeepOnError      = $00000010;
+seHouseCursorAtEnd = $00000020;
+seForceUpper       = $00000040;
+seForceLower       = $00000080;
+seWindowRelative   = $00000100;
+seInsertByDefault  = $00000200;
+!WRAP
+
+seMapCtrls indicates that any control characters in the string being edited
+should be mapped to uppercase alphabetics (^A to 'A', for example) and
+displayed in a different video attribute. seCursorToEnd indicates that, by
+default, the cursor should initially be positioned just beyond the last
+character in the line. seTrimBlanks indicates that any blank spaces at the
+end of the line should be stripped. seClearFirstChar indicates that the
+existing contents of the line should be cleared if the first key pressed
+during editing is a character.
+
+seBeepOnError indicates whether or not the editor should beep when the user
+enters an invalid command or tries to enter a character when the line is
+already full. seHouseCursorAtEnd indicates that an extra space should be
+reserved just beyond the end of the edit field to house the cursor when the
+line is full. seForceUpper indicates that all characters entered by the
+user should be forced to upper case. seForceLower indicates that all
+characters entered by the user should be forced to lower case.
+seWindowRelative indicates that all screen coordinates passed to the line
+editor should be considered relative to the current window.
+seInsertByDefault indicates that insert mode should be activated each time
+that the ReadString method is called.
+
+See also:  2609BadSimpEditOptions  2610DefSimpEditOptions
+;
+;------------------------------------------------------------
+!TOPIC 2609 BadSimpEditOptions
+!NOINDEX
+const
+  BadSimpEditOptions : LongInt = 0;
+
+Options that exist for internal use, and may not be altered by calling
+seOptionsOn or seOptionsOff.
+
+See also:  2608Options
+;
+;------------------------------------------------------------
+!TOPIC 2610 DefSimpEditOptions
+!NOINDEX
+const
+  DefSimpEditOptions : LongInt =
+    seCursorToEnd+seTrimBlanks+seClearFirstChar+seMapCtrls+
+    seHouseCursorAtEnd+seInsertByDefault;
+
+The default options for a SimpleLineEditor.
+
+See also:  2608Options
+;
+;------------------------------------------------------------
+!TOPIC 2611 ClearFirstFunc,OpSEdit
+!NOINDEX
+type
+  ClearFirstFunc = function(var Cmd, Key : Word) : Boolean;
+
+A function called by ReadString when the seClearFirstChar option is in
+effect to determine whether or not a given command (Cmd) should cause the
+field to be cleared. The function should return True if the field should be
+cleared. The default function returns True only if Cmd = ccChar.
+
+See also:  2605SetClearFirstFilter
+;
+;------------------------------------------------------------
+!TOPIC 2612 SimpEditCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  SimpEditCommands : DragProcessor;
+  {$ELSE}
+  SimpEditCommands : CommandProcessor;
+  {$ENDIF}
+
+Default command processor for a SimpleLineEditor.
+
+See also:  0218CommandProcessor  2604SetCommandProcessor
+;
+;------------------------------------------------------------
+!TOPIC 2613 Configuration data,OpSEdit
+!NOINDEX
+!NOSEARCH
+const
+  SimpEditKeyMax = 150;
+  SimpEditKeyID  : string[16] = 'opsedit keys 1.0';
+  SimpEditKeySet : array[0..SimpEditKeyMax] of Byte = (...);
+  SimpEditCfgEnd : Byte = 0;
+
+SimpEditKeyId is an ID string used to mark the beginning of the
+configuration data area for OpSEdit; SimpEditCfgEnd marks the end of the
+configuration data area. In between them is SimpEditKeySet, the command
+table used by SimpEditCommands. SimpEditKeyMax is the last valid index into
+the table.
+;
+;------------------------------------------------------------
+!TOPIC 2614 Setting options,SimpleLineEditor
+!NOINDEX
+!NOSEARCH
+SimpleLineEditor provides the following methods for setting options:
+
+  2598seOptionsAreOn            2599seOptionsOff            2597seOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 2615 Setting colors,SimpleLineEditor
+!NOINDEX
+!NOSEARCH
+SimpleLineEditor provides the following methods for setting colors:
+
+  2602SetCtrlAttr               2601SetFieldAttr            2600SetPromptAttr
+;
+;------------------------------------------------------------
+!TOPIC 2616 General,SimpleLineEditor
+!NOINDEX
+!NOSEARCH
+SimpleLineEditor provides the following general purpose methods:
+
+    2594GetLastCommand                    2595GetLastKey
+    2593Init                              2596ReadString
+    2605SetClearFirstFilter               2604SetCommandProcessor
+    2603SetHelpIndex

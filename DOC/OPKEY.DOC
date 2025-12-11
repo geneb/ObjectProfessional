@@ -1,0 +1,88 @@
+OPKEY - Named keycodes
+-------------------------------------------------------
+TurboPower Software
+1/90
+Version 1.00
+Released to the public domain
+
+OPKEY simply declares a number of constants that represent IBM PC keystroke
+values. When a program refers to keys by name rather than by literal numeric
+value, it becomes more readable and self-documenting. All of the names in
+OPKEY are what you'd expect them to be: F1 is the <F1> key, AltZ is <AltZ>,
+and so on. Only one name is changed to allow the unit to compile: <End> is
+referred to as EndKey.
+
+The constants represent the full 2-byte scan word for each keystroke.
+The high byte of this word is the scan code, and the low byte is the ASCII
+value of the key. The scan code is produced directly by the keyboard
+controller and is related to the physical position of the key on the keyboard.
+The ASCII code is produced by the BIOS keyboard interrupt handler (by
+combining the scan code and the current shift flags) and represents the
+position of the character within the familiar 256 character ASCII array.
+
+The high byte is most important when the low byte is zero -- such combinations
+are called extended keystrokes. These include the cursor keys, the function
+keys, and the alt keys. When the low byte is not zero, the high byte can often
+be ignored. There are a few cases where the high byte is still important,
+however. Usually these involve distinguishing between two keys that have the
+same ASCII values: <CtrlM> vs. <Enter>, <Numeric_1> vs. <Keypad_1>, and
+<GrayPlus> vs. <WhitePlus>, for example.
+
+The constants declared by OPKEY may be compared directly to the values
+returned by OPCRT's ReadKeyWord function. Typical usage is within a Case
+statement:
+
+   case ReadKeyWord of
+     F1 : {F1 key} ;
+     Enter : {Enter key, but not CtrlM} ;
+     AltZ : {AltZ key} ;
+     ...
+   end;
+
+The constants may also be used with ReadKey after appropriate typecasting:
+
+    Ch := ReadKey;
+    if Ch <> #0 then
+      {Normal key}
+      case Byte(Ch) of
+        Lo(Enter) : {Enter or CtrlM key} ;
+      end
+    else
+      {Extended key}
+      case Byte(ReadKey) of
+        Hi(F1) : {F1 key} ;
+        Hi(AltZ) : {AltZ key} ;
+      end;
+
+The keystrokes defined by OPKEY are arranged in four columns. The first column
+shows keys that are produced when no shift keys are being held down. The other
+columns are for keys returned when Shift, Ctrl, or Alt is held down. Not every
+combination of shift key and another key produces a keystroke; this accounts
+for gaps in the tables. OPKEY does not attempt to provide an exhaustive list
+of keystrokes, either. Missing are most punctuation keys, because if these are
+used at all they are usually referenced literally ("if ReadKey = ':'") and
+because they usually don't produce meaningful output in combination with shift
+keys.
+
+Some of the keys defined by OPKEY are returned only by the enhanced keyboard
+with the enhanced keyboard BIOS functions. These keys (marked with '*' in
+OPKEY) are available only when OPCRT's UseEnhancedKbd flag is set to True or
+when the OPENHKBD unit has been used in the program. Other keys are available
+only when OPENHKBD is being used; these are marked with '#'. Note that neither
+OPCRT nor OPENHKBD allows you to distinguish between keys pressed on the
+dedicated cursor keypad and the combination numeric/cursor keypad of an
+enhanced keyboard.
+
+Using OPKEY in a program doesn't increase its code or data size. The only
+disadvantage of using OPKEY is that it consumes over 4000 bytes of compiler
+symbol space. This may be important if you have a large program that is
+pushing the compiler's capacity limits. If you won't be using some of the
+constants that OPKEY defines, there's no problem deleting them to save symbol
+space.
+
+OPKEY includes the OPDEFINE.INC file only to check whether InitAllUnits has
+been conditionally defined. This identifier determines whether OPKEY has a
+(do-nothing) initialization block to work around a bug in Turbo Debugger
+version 1.5. If you don't have OPDEFINE.INC, just delete the {$I OPDEFINE.INC}
+statement from OPKEY.PAS.
+

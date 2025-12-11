@@ -1,0 +1,80 @@
+OPSWITCH - Routine for switching screens on dual-display systems
+----------------------------------------------------------------
+TurboPower Software
+1/90
+Version 1.0
+Released to the public domain
+
+Overview
+------------------------------------------------------------------------------
+
+Working in conjunction with the OPCRT unit in Object Professional 1.0,
+OPSWITCH allows you to write programs that write to two different displays
+(one color, one monochrome).
+
+The possible uses for OPSWITCH are many. You could use it to write a text
+editor that maintains two windows--one on the monochrome display, one on the
+color display. You could use it write a program that displays text on the mono
+display, graphs on the color display. (With some effort, you could even write
+these programs in such a way that dual displays would be used if they are
+available, and a single display would be used if they weren't.)
+
+For a simple example of how to use OPSWITCH, see the demonstration program
+SWTEST.PAS.
+
+Using OPSWITCH
+------------------------------------------------------------------------------
+
+OPSWITCH interfaces the following types, variables, and routines:
+
+type
+  WhichScreen = (Screen1, Screen2);
+
+  This type is used to distinguish between the primary screen (the video
+  display that was active when the program began) and the secondary screen.
+  Screen1 represents the primary screen, Screen2 the secondary screen.
+
+const
+  MonoMode : Word = Mono;
+  ColorMode : Word = CO80;
+
+  These typed constants are used to indicate the mode to switch to the first
+  time that you switch from Screen1 to Screen2. If the primary screen is a
+  monochrome display, the first call to SwitchScreens will select the mode
+  indicated by ColorMode for the secondary screen. If the primary screen is a
+  color display, the first call will select the mode indicated by MonoMode.
+
+const
+  SwitchedOnce : Boolean = False;
+
+  Indicates whether or not one screen switch has occurred. This information is
+  sometimes useful because, as noted above, an actual mode reset occurs the
+  first time that you switch screens.
+
+var
+  CurrentScreen : WhichScreen;
+
+  This variable keeps track of the current screen. When the program begins, it
+  will be initialized to Screen1.
+
+var
+  HasDualDisplays : Boolean;
+
+  This variable, initialized when the program begins, indicates whether dual
+  displays are present. If it is False, SwitchScreens will do nothing.
+
+procedure SwitchScreens(SC : WhichScreen);
+  {-Switch from the current screen to the specified screen}
+
+  This is the only routine interfaced by OPSWITCH. It should be called each
+  time you want to switch to a particular screen (Screen1 or Screen2). Note
+  that SwitchScreens will do nothing if 1) HasDualDisplays is False or 2) SC
+  is the same as CurrentScreen.
+
+  After the screen switch has occurred, the Font8x8Selected routine in OPCRT
+  will be called to reinitialize most of the state variables used by OPCRT.
+  Font8x8Selected does not alter WindMin and WindMax (the variables that hold
+  the current window coordinates), nor does it alter CheckSnow. In fact,
+  OPSWITCH maintains two sets of window coordinates, one for each screen, and
+  these coordinates are saved/restored each time you switch screens.
+

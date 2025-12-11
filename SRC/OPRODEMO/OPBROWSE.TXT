@@ -1,0 +1,717 @@
+;
+;------------------------------------------------------------
+!TOPIC 101 OpBrowse
+The OpBrowse unit contains the Browser object (capable of browsing almost
+any size text or binary file) and related procedures.
+
+  0102Browser                   0134Browser procedures      0136Commands
+  0135Declarations
+;
+;------------------------------------------------------------
+!TOPIC 102 Browser
+!NOINDEX
+Browser = object(3045CommandWindow)
+    ...
+    brLPT : Byte;               {line printer (1-3)}
+    brDefExt : ExtStr;          {default extension}
+    brSearchSt : string[MaxSearchLen]; {String to search for}
+    brOptionSt : string[5];     {Search options}
+    brLastPos : LongInt;        {Highest file offset = size-1}
+    brCurPos : LongInt;         {Current display position in file}
+    brCurLine : LongInt;        {Current display line in file, 1..Max}
+    brLastLine : LongInt;       {Last line number in file}
+    brLastLine2 : LongInt;      {Last line number in secondary mode (hex)}
+    brColOfs : Integer;         {Horizontal scroll offset, 0..MaxCol}
+    brBlkBegin : MarkerRec;     {Start of block}
+    brBlkEnd : MarkerRec;       {End of block}
+    brWorkingFlag : ShortInt;   {non-0 when in time-consuming routine}
+    brBlockOn : Boolean;        {True when block is visible}
+    ...
+  end;
+!LINE
+BrowserPtr = ^Browser;
+
+A file browser. The data fields shown above should not be modified directly.
+They are documented here primarily to assist in the writing of status routines
+and menu-driven interfaces (see DESKPOP for examples).
+
+brLPT is the line printer to use for the ccBlkPrint command (defaults to 1,
+meaning LPT1). brDefExt is the default file extension. brSearchSt is the last
+search string. brOptionSt contains the search options last used. brLastPos is
+the last valid offset in the file (FileSize-1). brCurPos is the file offset
+for the line currently displayed at the top of the browse window. brCurLine is
+its line number (means different things in hex and ASCII modes). brLastLine is
+the line number for the last line in the file (0 if unknown). If a mode change
+(ASCII to hex) has occurred, brLastLine2 has the value of brLastLine before
+the mode change. brColOfs is the column currently displayed at the left edge
+of the window minus 1.
+
+brBlkBegin and brBlkEnd contain the locations for the start and end of a
+marked block. The block is undefined if brBlkBegin.FilePos <= 0 or
+brBlkBegin.FilePos >= brBlkEnd.FilePos. brWorkingFlag is set to a non-0 value
+when a time consuming operation is in progress (such as a search) or new data
+has to be read in from disk. brBlockOn is an internal flag set to True when
+marked blocks are visible.
+
+The Browser object browses text and binary files. Data is read into memory
+only as required. The data is maintained in two or more 4K "pages." When a new
+page is required from disk, the contents of the least used page in memory are
+discarded and that page is filled with new data from disk. Theoretically, this
+permits browsing file of up to 2 gigabytes. The speed of a Browser object is
+highly dependent on the number of 4K pages it allocates.
+
+  0101OpBrowse                  0129brBufferLoaded          0127brEdit
+  0126brGetFileName             0113brOptionsAreOn          0112brOptionsOff
+  0111brOptionsOn               0128brShowStatus            0109CloseFile
+  0110CurrentFileName           0105Done                    0130GotoLine
+  0131GotoOffset                0103Init                    0104InitCustom
+  0124Load                      0108OpenFile                0107ProcessSelf
+  0121SetBlockAttr              0116SetDefaultExtension     0119SetEditProc
+  0120SetGetFileProc            0123SetHighlightAttr        0122SetMarkerAttr
+  0117SetPrinter                0118SetStatusProc           0125Store
+  0115ToggleHighBitStripping    0114ToggleModes             0132Transfer
+  0106UpdateContents
+;
+;------------------------------------------------------------
+!TOPIC 103 Init,Browser
+!NOINDEX
+constructor 102Browser.Init(X1, Y1, X2, Y2 : Byte; HeapToUse : LongInt);
+
+Initialize the browser.
+
+See also:  0104InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 104 InitCustom,Browser
+!NOINDEX
+constructor 102Browser.InitCustom(X1, Y1, X2, Y2 : Byte;
+                               var Colors : ColorSet;
+                               Options : LongInt;
+                               HeapToUse : LongInt);
+
+Initialize the browser with custom window options.
+
+See also:  0103Init  3047CommandWindow.InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 105 Done,Browser
+!NOINDEX
+destructor 102Browser.Done; virtual;
+
+Deallocate page buffers.
+
+See also:  2927RawWindow.Done  0103Init  0104InitCustom
+;
+;------------------------------------------------------------
+!TOPIC 106 UpdateContents,Browser
+!NOINDEX
+procedure 102Browser.UpdateContents; virtual;
+
+Redraw the complete browse window.
+;
+;------------------------------------------------------------
+!TOPIC 107 ProcessSelf,Browser
+!NOINDEX
+procedure 102Browser.ProcessSelf; virtual;
+
+Process browse commands.
+
+See also:  3048CommandWindow.Process  0118SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 108 OpenFile
+!NOINDEX
+procedure 102Browser.OpenFile(FName : String);
+
+Open file for browsing.
+
+See also:  0109CloseFile
+;
+;------------------------------------------------------------
+!TOPIC 109 CloseFile
+!NOINDEX
+procedure 102Browser.CloseFile;
+
+Close the current browse file.
+
+See also:  0108OpenFile
+;
+;------------------------------------------------------------
+!TOPIC 110 CurrentFileName
+!NOINDEX
+function 102Browser.CurrentFileName : String;
+
+Return the name of the current browse file.
+
+See also:  0118SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 111 brOptionsOn
+!NOINDEX
+procedure 102Browser.brOptionsOn(OptionFlags : Word);
+
+Activate multiple options.
+
+See also:
+  0113brOptionsAreOn            0112brOptionsOff            0139Browser options
+  0115ToggleHighBitStripping    0114ToggleModes
+;
+;------------------------------------------------------------
+!TOPIC 112 brOptionsOff
+!NOINDEX
+procedure 102Browser.brOptionsOff(OptionFlags : Word);
+
+Deactivate multiple options.
+
+See also:  0113brOptionsAreOn  0111brOptionsOn  0139Browser options
+;
+;------------------------------------------------------------
+!TOPIC 113 brOptionsAreOn
+!NOINDEX
+function 102Browser.brOptionsAreOn(OptionFlags : Word) : Boolean;
+
+Return true if all specified options are on.
+
+See also:  0112brOptionsOff  0111brOptionsOn  0139Browser options
+;
+;------------------------------------------------------------
+!TOPIC 114 ToggleModes
+!NOINDEX
+procedure 102Browser.ToggleModes;
+
+Toggle between hex and ASCII modes.
+;
+;------------------------------------------------------------
+!TOPIC 115 ToggleHighBitStripping
+!NOINDEX
+procedure 102Browser.ToggleHighBitStripping;
+
+Toggle stripping of high bits.
+;
+;------------------------------------------------------------
+!TOPIC 116 SetDefaultExtension,Browser
+!NOINDEX
+procedure 102Browser.SetDefaultExtension(DefExt : ExtStr);
+
+Default extension to use when prompting for filenames.
+
+See also:  0120SetGetFileProc
+;
+;------------------------------------------------------------
+!TOPIC 117 SetPrinter,Browser
+!NOINDEX
+procedure 102Browser.SetPrinter(LptNum : Byte);
+
+Set printer (1-3).
+;
+;------------------------------------------------------------
+!TOPIC 118 SetStatusProc,Browser
+!NOINDEX
+procedure 102Browser.SetStatusProc(SP : BrowseStatusProc);
+
+Set status procedure.
+
+See also:  0133BrowseStatus  0147BrowseStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 119 SetEditProc,Browser
+!NOINDEX
+procedure 102Browser.SetEditProc(EF : BrowseEditFunc);
+
+Set edit function.
+
+See also:  0145BrowseEditFunc  0120SetGetFileProc
+;
+;------------------------------------------------------------
+!TOPIC 120 SetGetFileProc,Browser
+!NOINDEX
+procedure 102Browser.SetGetFileProc(GF : BrowseGetFileFunc);
+
+Set edit function.
+
+See also:  0146BrowseGetFileFunc  0119SetEditProc
+;
+;------------------------------------------------------------
+!TOPIC 121 SetBlockAttr,Browser
+!NOINDEX
+procedure 102Browser.SetBlockAttr(Color, Mono : Byte);
+
+Set attributes for marked blocks.
+;
+;------------------------------------------------------------
+!TOPIC 122 SetMarkerAttr,Browser
+!NOINDEX
+procedure 102Browser.SetMarkerAttr(Color, Mono : Byte);
+
+Set attributes for text markers.
+;
+;------------------------------------------------------------
+!TOPIC 123 SetHighlightAttr,Browser
+!NOINDEX
+procedure 102Browser.SetHighlightAttr(Color, Mono : Byte);
+
+Set attributes for found text.
+;
+;------------------------------------------------------------
+!TOPIC 124 Load,Browser
+!NOINDEX
+constructor 102Browser.Load(var S : IdStream);
+
+Load a browser from a stream. The registration procedure for Browser is
+BrowserStream.
+
+See also:  3068CommandWindow.Load  0125Store
+;
+;------------------------------------------------------------
+!TOPIC 125 Store,Browser
+!NOINDEX
+procedure 102Browser.Store(var S : IdStream);
+
+Store a browser in a stream. The registration procedure for Browser is
+BrowserStream.
+
+See also:  0124Load  3069CommandWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 126 brGetFileName
+!NOINDEX
+function 102Browser.brGetFileName(MsgCode : Word;
+                               Prompt : string;
+                               ForceUp, TrimBlanks : Boolean;
+                               Writing, MustExist : Boolean;
+                               MaxLen : Byte; var S : string) : Boolean;
+                                                                virtual;
+
+Called to get a filename.
+;
+;------------------------------------------------------------
+!TOPIC 127 brEdit
+!NOINDEX
+function 102Browser.brEdit(MsgCode : Word; Prompt : string;
+                        ForceUp, TrimBlanks : Boolean;
+                        MaxLen : Byte; var S : string) : Boolean; virtual;
+
+Called to edit a string.
+;
+;------------------------------------------------------------
+!TOPIC 128 brShowStatus
+!NOINDEX
+procedure 102Browser.brShowStatus; virtual;
+
+Called to display a status line.
+;
+;------------------------------------------------------------
+!TOPIC 129 brBufferLoaded
+!NOINDEX
+procedure 102Browser.brBufferLoaded(var Buffer;
+                                 ByteCount : Word); virtual;
+
+Called when ByteCount bytes of data are loaded into Buffer from disk.
+;
+;------------------------------------------------------------
+!TOPIC 130 GotoLine
+!NOINDEX
+procedure 102Browser.GotoLine(LineNum : LongInt);
+
+Scroll display to the specified line.
+
+See also:  0131GotoOffset
+;
+;------------------------------------------------------------
+!TOPIC 131 GotoOffset,Browser
+!NOINDEX
+procedure 102Browser.GotoOffset(Offset : LongInt);
+
+Scroll display to the line nearest Offset.
+
+See also:  0130GotoLine
+;
+;------------------------------------------------------------
+!TOPIC 132 Transfer,Browser
+!NOINDEX
+procedure 102Browser.Transfer(StartPos, StopPos : LongInt;
+                           var Buffer; BufSize : Word);
+
+Copy browse characters from StartPos to StopPos into Buffer.
+;
+;------------------------------------------------------------
+!TOPIC 133 BrowseStatus
+!NOINDEX
+procedure 101OpBrowse.BrowseStatus(BP : BrowserPtr);
+
+Display status line.
+;
+;------------------------------------------------------------
+!TOPIC 134 Browser procedures
+!NOSEARCH
+!NOINDEX
+These are normal procedures to be used with Browser objects.
+
+  0133BrowseStatus
+;
+;------------------------------------------------------------
+!TOPIC 135 Declarations,OpBrowse
+!NOINDEX
+!NOSEARCH
+OPBROWSE provides the following types, constants, and variables for working
+with the Browser object:
+
+  0137BadBrowseOptions          0149BrowseCommands          0145BrowseEditFunc
+  0146BrowseGetFileFunc         0139Browser options         0147BrowseStatusProc
+  0140Configuration data        0141DefBrowseExt            0142DefBrowseOptions
+  0148MarkerRec                 0143MaxScrollCol            0144MaxSearchLen
+  0138Search options
+;
+;------------------------------------------------------------
+!TOPIC 136 Commands,OpBrowse
+!NOSEARCH
+!NOINDEX
+The commands available while browsing through a file are arranged by category
+in the list below. In each case the first line gives the name of the command,
+followed by the key(s) to which it is normally assigned. The second and
+following lines give a brief description of the command.
+
+Note that several of the commands in the list are enabled only if one or more
+user-written procedures are in place. In each of these cases, the entry for
+the command ends with the name(s) of the Browser method(s) that provide the
+relevant programming hook(s) (the names are actually cross-reference links).
+
+Cursor Movement
+
+ccLeft        <Left>, <CtrlS>
+!LINE
+Scroll window left 1 column.
+
+ccRight       <Right>, <CtrlD>
+!LINE
+Scroll window right 1 column.
+
+ccWordLeft    <CtrlLeft>, <CtrlA>
+!LINE
+Scroll window left 10 columns.
+
+ccWordRight   <CtrlRight>, <CtrlF>
+!LINE
+Scroll window right 10 columns.
+
+ccHome        <Home>, <CtrlQ><S>
+!LINE
+Scroll window to column 1.
+
+ccEnd         <End>, <CtrlQ><D>
+!LINE
+Scroll window to leftmost column, so that the end of the longest line on the
+screen is displayed.
+
+ccUp          <Up>, <CtrlE>, <CtrlW>
+!LINE
+Scroll window up one line.
+
+ccDown        <Down>, <CtrlX>, <CtrlZ>
+!LINE
+Scroll window down one line.
+
+ccPageUp      <PgUp>, <CtrlR>
+!LINE
+Scroll window up one page.
+
+ccPageDn      <PgDn>, <CtrlC>
+!LINE
+Scroll window down one page.
+
+ccTopOfFile   <CtrlPgUp>, <CtrlQ><R>
+!LINE
+Scroll to beginning of file.
+
+ccEndOfFile   <CtrlPgDn>, <CtrlQ><C>
+!LINE
+Scroll to end of file.
+
+ccJmpLine     <CtrlJ><L>
+!LINE
+Prompts the user for a line number, then scrolls the window such that the
+specified line is at the top of the window. If the line number specified is
+greater than the number of lines in the file, the window will be scrolled to
+the end of the file. 0119SetEditProc
+
+File Commands
+
+ccNewFile     <F3>, <CtrlK><N>
+!LINE
+Load a new file into the browser. 0120SetGetFileProc
+
+Block Commands
+
+ccBlkBegin    <F7>, <CtrlK><B>
+!LINE
+Marks the line at the top of the window as the start of a block. Note that the
+browser allows only whole lines to be part of a block.
+
+ccBlkEnd      <F8>, <CtrlK><K>
+!LINE
+Marks the line at the top of the window as the end of a block.
+
+ccBlkBottom   <CtrlB><K>
+!LINE
+Marks the line at the bottom of the window as the end of a block.
+
+ccJmpBegin    <CtrlQ><B>
+!LINE
+Jump to the beginning of the currently marked block.
+
+ccJmpEnd      <CtrlQ><K>
+!LINE
+Jump to the end of the currently marked block.
+
+ccBlkToggle   <CtrlK><H>
+!LINE
+Toggle the display of marked blocks. Note that the ccBlkWrite and ccBlkPrint
+commands both generate errors if a marked block is not displayed.
+
+ccBlkWrite    <CtrlK><W>
+!LINE
+Writes the currently marked and displayed block to a file. Note that this
+command writes the actual contents of the file being browsed, not the image
+of it that is being displayed on the screen. The command does the same thing
+whether in ASCII or hex mode. 0120SetGetFileProc
+
+ccBlkPrint    <CtrlK><P>
+!LINE
+Writes the currently marked and displayed block to the printer. As with the
+ccBlkWrite command, this option writes the actual contents of the file being
+browsed to the printer. By default, ccBlkPrint directs output to LPT1; to
+select LPT2 or LPT3, call the SetPrinter method.
+
+Search
+
+ccSearch      <CtrlQ><F>
+!LINE
+Allows the user to search for any string of up to 30 characters. After
+entering a search string, the user is prompted for search options, which are
+handled in the same fashion as the Borland editors. Valid search options are
+'B' (search Backwards), 'G' (search Globally), and 'U' (ignore case). If the
+search string is found, the line where the text is found will be highlighted
+until another search operation is performed or the mode is toggled between hex
+and ASCII. 0119SetEditProc
+
+ccReSearch    <CtrlL>
+!LINE
+Repeat the last search operation. The string used in the last search operation
+will be used again, as will the previous search options. If no search
+operation has yet been performed, this command does nothing.
+
+Text Markers
+
+ccSetMark0..9 <CtrlK><0>..<CtrlK><3>
+!LINE
+Sets one of the ten text markers at the start of the line at the top of the
+window. <CtrlK><0> sets marker 0, <CtrlK><1> sets marker 1, etc. Note that the
+default command table supplied by OPBROWSE does not assign any keys to
+ccSetMark4..ccSetMark9.
+
+ccJmpMark0..9 <CtrlQ><0>..<CtrlQ><3>
+!LINE
+Scrolls the window such that the line associated with the specified text
+marker is at the top of the window. <CtrlQ><0> jumps to marker 0, <CtrlQ><1>
+jumps to marker 1, etc. Note that the default command table supplied by
+OPBROWSE does not assign any keys to ccJmpMark4..ccJmpMark9.
+
+Mode Toggles
+
+ccHexMode     <CtrlH>
+!LINE
+Toggles between ASCII mode (the default) and hex mode. In hex mode, either 8
+or 16 characters are displayed per line, depending on the width of the window.
+(If the inner portion of the window is <= 50 columns 8 characters are
+displayed per line). The leftmost column displays the offset within the file
+(in hex) for the first character in the "line," the middle columns display the
+contents of the line in hex, and the rightmost column displays the contents of
+the line in ASCII.
+
+ccStripHigh   <CtrlQ><H>
+!LINE
+Activates or deactivates the option to suppress (strip) the eighth (high) bit
+for each character in the file. In ASCII mode, this option affects only
+characters with an ordinal value of 128 or higher (10000000 in binary),
+causing #228, for example, to be displayed as #100 ('d'). In hex mode, it
+affects control characters as well, causing them to be represented as periods
+('.'). The hex values in the middle columns are not affected by this option.
+
+ccTabExpand   <CtrlQ><T>
+!LINE
+Enables or disables tab expansion. When this option is on, tab characters (^I)
+are expanded to spaces, aligning the text that follows at the next tab stop.
+(Tab stops occur every 8 columns: 1, 9, 17, etc.) This option does nothing in
+hex mode.
+
+Other
+
+ccQuit        <CtrlBreak>, <Esc>, <ClickRight>
+!LINE
+Quit browsing.
+
+ccHelp        <F1>, <ClickBoth>
+!LINE
+Help. If a user-written help routine has been established by calling
+BrowseCommands.SetHelpProc, pressing <F1> will call that routine; otherwise
+this command does nothing. If there is a GetHelpProc, the Browser will pass it
+the following three parameters: ucBrowse, @Self, and the value designated as
+the window's help index (see 3058CommandWindow.SetHelpIndex), which defaults to 0.
+
+ccMouseSel    <ClickLeft>
+!LINE
+This command does nothing unless the browse window has a scroll bar or mouse
+hot spots associated with it.
+;
+;------------------------------------------------------------
+!TOPIC 137 BadBrowseOptions
+!NOINDEX
+const
+  BadBrowseOptions : Word = 0;
+
+Options that exist for internal use, and may not be altered by calling
+brOptionsOn or brOptionsOff. No options currently fall into this category.
+;
+;------------------------------------------------------------
+!TOPIC 138 Search options,OpBrowse
+!NOINDEX
+!NOSEARCH
+const
+  brBackward  = 'B';
+  brNoCase    = 'U';
+  brGlobal    = 'G';
+
+Search option characters. 'B' means search backward. 'U' means ignore case.
+'G' means search globally, starting at the beginning (if searching forward) or
+end (if searching backward) of the file.
+;
+;------------------------------------------------------------
+!TOPIC 139 Browser options
+!NOINDEX
+!NOSEARCH
+const
+  brHexMode        = $0001;  {hex mode}
+  brTabExpand      = $0002;  {tab expansion}
+  brStripHigh      = $0004;  {strip high bits (except hex mode)}
+  brMousePage      = $0008;  {clicking on scroll bar scrolls by page}
+  brNewFile        = $0010;  {flag set when a new file is loaded}
+  brStreamReload   = $0020;  {reload previous file when activating a
+                              Browser stored in a stream}
+
+See also:
+   0113Browser.brOptionsAreOn       0112Browser.brOptionsOff
+   0111Browser.brOptionsOn
+;
+;------------------------------------------------------------
+!TOPIC 140 Configuration data,OpBrowse
+!NOINDEX
+!NOSEARCH
+const
+  BrowseKeyMax = 260;
+  BrowseKeyID  : string[13] = 'opbrowse keys';
+  BrowseKeySet : array[0..BrowseKeyMax] of Byte = (...);
+  BrowseCfgEnd : Byte = 0;
+
+BrowseKeyId is an ID string used to mark the beginning of the configuration
+data area for OpBrowse; BrowseCfgEnd marks the end of the configuration
+data area. In between them is BrowseKeySet, the command table used by
+BrowseCommands. BrowseKeyMax is the last valid index into the table.
+;
+;------------------------------------------------------------
+!TOPIC 141 DefBrowseExt
+!NOINDEX
+const
+  DefBrowseExt : ExtStr = '';
+
+Default file extension to be used when prompting for filenames.
+;
+;------------------------------------------------------------
+!TOPIC 142 DefBrowseOptions
+!NOINDEX
+const
+  DefBrowseOptions : Word = brTabExpand+brMousePage;
+
+The default options for a Browser.
+;
+;------------------------------------------------------------
+!TOPIC 143 MaxScrollCol
+!NOINDEX
+const
+  MaxScrollCol : Word = 999;
+
+Maximum column for horizontal scrolling. (999 is arbitrary and may be
+adjusted). The value is 0-based, meaning that if MaxScrollCol is 999 then the
+last column that may be displayed at the left edge of the screen would be
+1000. MaxScrollCol = 0 would disable horizontal scrolling.
+;
+;------------------------------------------------------------
+!TOPIC 144 MaxSearchLen,OpBrowse
+!NOINDEX
+const
+  MaxSearchLen = 30;
+
+Maximum length of a search string.
+;
+;------------------------------------------------------------
+!TOPIC 145 BrowseEditFunc
+!NOINDEX
+type
+  BrowseEditFunc = function (MsgCode : Word; Prompt : string;
+                             ForceUp, TrimBlanks : Boolean;
+                             MaxLen : Byte; var S : string) : Boolean;
+
+A user-written procedure that prompts the user for a string.
+
+See also:  0119Browser.SetEditProc
+;
+;------------------------------------------------------------
+!TOPIC 146 BrowseGetFileFunc
+!NOINDEX
+type
+  BrowseGetFileFunc = function (MsgCode : Word; Prompt : string;
+                                ForceUp, TrimBlanks : Boolean;
+                                Writing, MustExist : Boolean;
+                                MaxLen : Byte; DefExt : ExtStr;
+                                var S : string) : Boolean;
+
+A user-written procedure that prompts the user for a filename.
+
+See also:  0120Browser.SetGetFileProc
+;
+;------------------------------------------------------------
+!TOPIC 147 BrowseStatusProc
+!NOINDEX
+type
+  BrowseStatusProc = procedure (BP : BrowserPtr);
+
+A user-written routine that displays status information (current line, column,
+etc.). BP is a pointer to the Browser that is making the call.
+
+See also:  0118Browser.SetStatusProc
+;
+;------------------------------------------------------------
+!TOPIC 148 MarkerRec,OpBrowse
+!NOINDEX
+type
+  MarkerRec =
+    record
+      FilePos : LongInt;
+      LineNum : LongInt;
+    end;
+  MarkerArray = array[0..MaxMarker] of MarkerRec;
+
+A MarkerRec is an internal data structure used to represent individual text
+and block markers. A MarkerArray is used to hold the entire group of text
+markers.
+;
+;------------------------------------------------------------
+!TOPIC 149 BrowseCommands
+!NOINDEX
+var
+  {$IFDEF UseDrag}
+  BrowseCommands : DragProcessor;
+  {$ELSE}
+  BrowseCommands : CommandProcessor;
+  {$ENDIF}
+
+The default CommandProcessor for a Browser.

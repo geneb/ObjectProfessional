@@ -1,0 +1,701 @@
+{*********************************************************}
+{*                    OPDOS.IN2 1.30                     *}
+{*    Copyright (c) TurboPower Software 1991, 1992.      *}
+{*                 All rights reserved.                  *}
+{*********************************************************}
+
+(* !!.21
+const
+  WindowsEnvLen : Word = 1024;
+*)
+
+  procedure ClearEnvRec(var Env : EnvRec);
+    {-Initialize an environment record}
+  begin
+    FillChar(Env, SizeOf(Env), 0);
+  end;
+
+  function SetBaseAndLimit(Selector : Word;
+                           Address : Pointer;
+                           Limit : LongInt) : Pointer;
+  var
+    W : Word;
+  begin
+    W := SetSegmentBaseAddr(Selector, Linear(Address));
+    W := SetSegmentLimit(Selector, Limit);
+    SetBaseAndLimit := Ptr(Selector, 0);
+  end;
+
+type
+  McbPtr = ^McbRec;
+  McbRec    =
+    record
+      mcbType      : Char;
+      mcbOwnerPSP  : Word;
+      mcbSize      : Word; {in paragraphs}
+      mcbUnused    : Array[1..3] of Char;
+      mcbDos4      : Array[1..8] of Char;
+    end;
+  HandleTable      = Array[1..255] of Byte;
+  HandleTablePtr   = ^HandleTable;
+  FcbType =
+    record
+      Ofs0         : Byte;
+      Ofs1         : Array[1..11] of Char;
+      Ofs2         : Array[1..4] of Byte;
+    end;
+  PSPPtr           = ^PSPType;
+  PSPType =
+    record
+      Fini         : Word;
+      NextUnused   : Word;
+      Filler       : Byte;
+      CpmCall      : Array[1..5] of Byte;
+      ISV22        : Pointer;
+      ISV23        : Pointer;
+      ISV24        : Pointer;
+      PSPofParent  : Word;
+      Handles      : Array[1..20] of Byte;
+      EnvSeg       : Word;
+      SaveStack    : Pointer;
+      NumHandles   : Word;
+      HandleTable  : HandleTablePtr;
+      SharesPrev   : Pointer;
+      Reserved1    : Array[1..20] of Byte;
+      UnixDispatch : Array[1..3] of Byte;
+      Reserved2    : Array[1..9] of Byte;
+      FCB1         : FcbType;
+      FCB2         : FcbType;
+      Reserved3    : Array[1..4] of Byte;
+      TailCount    : Byte;
+      Tail         : Array[1..127] of Char;
+    end;
+
+  {!!.21 - Rewritten}
+  function CommandPsp(First : WordBool) : Word;
+  {-Return segment of COMMAND.COM PSP.
+    If First is True, return first one, else return last one}
+  var
+    CommandSeg : Word;
+    PspSeg : Word;
+    McbSeg : Word;
+    TmpSeg : Word;
+    Sele : Word;
+    PspP : PspPtr;
+    McbP : MCBPtr;
+    R : DpmiRegisters;
+  begin
+    CommandPSP := $FFFF;
+    {get selector for later use}
+    if AllocLDTDescriptors(1, Sele) <> 0 then exit;
+
+    {get the list-of-lists segment}
+    FillChar(R, SizeOf(R), 0);
+    R.AX := $5200;
+    if SimulateRealModeInt($21, R) <> 0 then exit;
+    if GetSelectorForRealMem(Ptr(R.ES, R.BX-2), $FFFF, TmpSeg) <> 0 then exit;
+    McbSeg := Word(Ptr(TmpSeg, 0)^);
+    TmpSeg := FreeLDTDescriptor(TmpSeg);
+
+    CommandSeg := 0;
+    {walk the MCB chain looking for our PSP}
+    repeat
+      McbP := SetBaseAndLimit(Sele, Ptr(McbSeg, 0), SizeOf(MCBRec));
+      PspSeg := McbP^.mcbOwnerPSP;
+      PspP := SetBaseAndLimit(Sele, Ptr(PspSeg, 0), SizeOf(PSPType));
+
+      if (PspP^.PSPOfParent = PspSeg) and (McbSeg+1 = PspSeg) then begin
+        {Found a COMMAND.COM}
+        CommandPsp := PspSeg;
+        if First then begin
+          TmpSeg := FreeLDTDescriptor(TmpSeg);
+          PspSeg := FreeLDTDescriptor(PspSeg);
+          McbSeg := FreeLDTDescriptor(McbSeg);
+          Sele := FreeLDTDescriptor(Sele);
+          Exit;
+        end;
+      end;
+
+      McbP := SetBaseAndLimit(Sele, Ptr(McbSeg, 0), SizeOf(McbRec));
+      inc(McbSeg, McbP^.mcbSize + 1);
+      McbP := SetBaseAndLimit(Sele, Ptr(McbSeg, 0), SizeOf(McbRec));
+    until McbP^.mcbType = 'Z';
+    CommandPsp := CommandSeg;
+    Sele := FreeLDTDescriptor(Sele);
+  end;
+
+  function ValidPspMcb(Mcb, Psp : Word) : WordBool;
+    {-Return True if McbSeg is the Mcb of a Psp (except for very last Psp)}
+  var
+    Sele : Word;
+    P : MCBPtr;
+  begin
+    if AllocLDTDescriptors(1, Sele) <> 0 then begin
+      ValidPspMcb := False;
+      Exit;
+    end;
+    P := SetBaseAndLimit(Sele, Ptr(Mcb, 0), 6);
+    ValidPspMcb := (P^.mcbType = 'M') and (P^.mcbOwnerPSP = Psp);
+    Sele := FreeLDTDescriptor(Sele);
+  end;
+
+  procedure FindCommandEnv(Psp : Word; var Env : EnvRec);
+    {-Initialize environment record for the Psp of a COMMAND.COM}
+  var
+    Mcb : Word;
+    Eseg : Word;
+    Sele : Word;
+    McbP : MCBPtr;
+    PspP : PspPtr;
+  begin
+    with Env do begin
+      ClearEnvRec(Env);
+
+      {Mcb points to memory control block for COMMAND}
+      Mcb := Psp-1;
+      if not ValidPspMcb(Mcb, Psp) then
+        Exit;
+      if AllocLDTDescriptors(1, Sele) <> 0 then
+        Exit;
+      PspP := SetBaseAndLimit(Sele, Ptr(Psp, 0), SizeOf(PspType));
+      {Read segment of environment from PSP of COMMAND}
+      Eseg := PspP^.EnvSeg;
+
+      Mcb := Eseg-1;
+
+      McbP := SetBaseAndLimit(Sele, Ptr(Mcb, 0), SizeOf(McbRec));
+      {Return segment and length of environment}
+      EnvSeg := Eseg;
+      EnvLen := McbP^.mcbSize shl 4;
+      EnvRealMode := True;
+      Sele := FreeLDTDescriptor(Sele);
+    end;
+  end;
+
+  procedure MasterEnv(var Env : EnvRec);
+    {-Initialize environment record for first copy of COMMAND.COM in memory}
+  begin
+    FindCommandEnv(CommandPsp(True), Env);
+  end;
+
+  procedure CommandEnv(var Env : EnvRec);
+    {-Initialize environment record for last copy of COMMAND.COM in memory}
+  begin
+    FindCommandEnv(CommandPsp(False), Env);
+  end;
+
+  {!!.21 - Rewritten}
+  procedure InitEnv(Mcb, Eseg : Word; RealMode : Boolean; var Env : EnvRec);
+    {-Initialize environment record given environment's segment}
+  var
+    Sele : Word;
+    McbP : MCBPtr;
+    L : LongInt;
+    P : Pointer;
+  begin
+    if Eseg = 0 then
+      MasterEnv(Env)
+    else begin
+      ClearEnvRec(Env);
+
+      if GetSegmentBaseAddr(ESeg, L) <> 0 then
+        Exit;
+      P := Unlinear(L);
+      if AllocLDTDescriptors(1, Sele) <> 0 then
+        Exit;
+      McbP := SetBaseAndLimit(Sele, Ptr(OS(P).S-1, 0), SizeOf(MCBRec));
+      with Env do begin
+        EnvSeg := Eseg;
+        EnvLen := McbP^.mcbSize shl 4;
+        EnvRealMode := RealMode;
+      end;
+      Sele := FreeLDTDescriptor(Sele);
+    end;
+  end;
+
+  procedure CurrentEnv(var Env : EnvRec);
+    {-Return current environment record}
+  var
+    Eseg : Word;
+    Mcb : Word;
+  begin
+    ClearEnvRec(Env);
+    Eseg := PspPtr(Ptr(PrefixSeg, 0))^.EnvSeg;
+    Mcb := Eseg-1;
+    InitEnv(Mcb, Eseg, False, Env);
+  end;
+
+  {!!.22 - Rewritten}
+  procedure ParentEnv(var Env : EnvRec);
+    {-Return environment record of program's parent}
+  var
+    PSeg : Word;
+    Eseg : Word;
+    Mcb : Word;
+    PspP : PspPtr;
+    Sele : Word;
+  begin
+    ClearEnvRec(Env);
+    if AllocLDTDescriptors(1, Sele) <> 0 then
+      Exit;
+    {Get segment of parent}
+    PspP := Ptr(PrefixSeg, 0);
+    PSeg := PspP^.PSPOfParent;
+    PspP := SetBaseAndLimit(Sele, Ptr(PSeg, 0), SizeOf(PSPType));
+    ESeg := PspP^.EnvSeg;
+    Mcb := Eseg-1;
+    InitEnv(Mcb, Eseg, False, Env);
+    Sele := FreeLDTDescriptor(Sele);
+  end;
+
+  {!!.21 - Rewritten}
+  procedure NewEnv(var Env : EnvRec; Size : Word);
+    {-Allocate a new environment in DOS (realmode) memory}
+  begin
+    with Env do begin
+      LongInt(EnvPtr) := GlobalDosAlloc(Size);
+      if OS(EnvPtr).O = 0 then begin
+        ClearEnvRec(Env);
+        exit;
+      end;
+      EnvSeg := OS(EnvPtr).O;
+      EnvLen := Size;
+      {Fill it with nulls}
+      FillChar(Ptr(OS(EnvPtr).O, 0)^, Size, 0);
+      EnvRealMode := False;
+    end;
+  end;
+
+  {!!.21 - Rewritten}
+  procedure DisposeEnv(var Env : EnvRec);
+    {-Deallocate an environment we previously allocated}
+  begin
+    with Env do
+      if OS(EnvPtr).O <> 0 then begin
+        if GlobalDosFree(OS(EnvPtr).O) = 0 then ;
+        ClearEnvRec(Env);
+      end;
+  end;
+
+  procedure SetCurrentEnv(Env : EnvRec);
+    {-Specify a different environment for the current program}
+  begin
+    with Env do
+      if EnvSeg <> 0 then
+        Word(Ptr(PrefixSeg, $2C)^) := EnvSeg;
+  end;
+
+  procedure CopyEnv(Src, Dest : EnvRec);
+    {-Copy contents of Src environment to Dest environment}
+  var
+    Size : Word;
+    SPtr : EnvArrayPtr;
+    DPtr : EnvArrayPtr;
+  begin
+    if (Src.EnvSeg = 0) or (Dest.EnvSeg = 0) then
+      Exit;
+
+    if Src.EnvLen <= Dest.EnvLen then
+      {Space for the whole thing}
+      Size := Src.EnvLen
+    else
+      {Take what fits}
+      Size := Dest.EnvLen-2;
+
+    SPtr := Ptr(Src.EnvSeg, 0);
+    DPtr := Ptr(Dest.EnvSeg, 0);
+    Move(SPtr^, DPtr^, Size);
+    FillChar(DPtr^[Size], Dest.EnvLen-Size, 0);
+  end;
+
+  procedure SkipAsciiZ(EPtr : EnvArrayPtr; var EOfs : Word);
+    {-Skip to end of current AsciiZ string}
+  begin
+    while EPtr^[EOfs] <> #0 do
+      Inc(EOfs);
+  end;
+
+  function EnvNext(EPtr : EnvArrayPtr) : Word;
+    {-Return the next available location in environment at EPtr^}
+  var
+    EOfs : Word;
+  begin
+    EOfs := 0;
+    if EPtr <> nil then begin
+      while EPtr^[EOfs] <> #0 do begin
+        SkipAsciiZ(EPtr, EOfs);
+        Inc(EOfs);
+      end;
+    end;
+    EnvNext := EOfs;
+  end;
+
+  function EnvFree(Env : EnvRec) : Word;
+    {-Return bytes free in environment}
+  begin
+    with Env do
+      if EnvSeg <> 0 then
+        EnvFree := EnvLen-EnvNext(Ptr(EnvSeg, 0))-1
+      else
+        EnvFree := 0;
+  end;
+
+  function StUpCase(S : String) : String;
+  var
+    I : Byte;
+  begin
+    for I := 1 to Length(S) do
+      S[I] := Upcase(S[I]);
+    StUpCase := S;
+  end;
+
+  function SearchEnv(EPtr : EnvArrayPtr; var Search : string) : Word;
+    {-Return the position of Search in environment, or $FFFF if not found.
+      Prior to calling SearchEnv, assure that
+        EPtr is not nil,
+        Search is not empty
+    }
+  var
+    SLen : Byte absolute Search;
+    EOfs : Word;
+    MOfs : Word;
+    SOfs : Word;
+    Match : WordBool;
+  begin
+    {Force upper case search}
+    Search := StUpcase(Search);
+
+    {Assure search string ends in =}
+    if Search[SLen] <> '=' then begin
+      Inc(SLen);
+      Search[SLen] := '=';
+    end;
+
+    EOfs := 0;
+    while EPtr^[EOfs] <> #0 do begin
+      {At the start of a new environment element}
+      SOfs := 1;
+      MOfs := EOfs;
+      repeat
+        Match := (EPtr^[EOfs] = Search[SOfs]);
+        if Match then begin
+          Inc(EOfs);
+          Inc(SOfs);
+        end;
+      until not Match or (SOfs > SLen);
+
+      if Match then begin
+        {Found a match, return index of start of match}
+        SearchEnv := MOfs;
+        Exit;
+      end;
+
+      {Skip to end of this environment string}
+      SkipAsciiZ(EPtr, EOfs);
+
+      {Skip to start of next environment string}
+      Inc(EOfs);
+    end;
+
+    {No match}
+    SearchEnv := $FFFF;
+  end;
+
+  procedure GetAsciiZ(EPtr : EnvArrayPtr; var EOfs : Word; var EStr : string);
+    {-Collect AsciiZ string starting at EPtr^[EOfs]}
+  var
+    ELen : Byte absolute EStr;
+  begin
+    ELen := 0;
+    while (EPtr^[EOfs] <> #0) and (ELen < 255) do begin
+      Inc(ELen);
+      EStr[ELen] := EPtr^[EOfs];
+      Inc(EOfs);
+    end;
+  end;
+
+  function GetEnvStr(Env : EnvRec; Search : string) : string;
+    {-Return a string from the environment}
+  var
+    SLen : Byte absolute Search;
+    EPtr : EnvArrayPtr;
+    EOfs : Word;
+    EStr : string;
+    ELen : Byte absolute EStr;
+    Sele : Word;
+  begin
+    with Env do begin
+      ELen := 0;
+      if (EnvSeg <> 0) and (SLen <> 0) then begin
+        {Find the search string}
+        if EnvRealMode then begin
+          if AllocLDTDescriptors(1, Sele) <> 0 then begin
+            GetEnvStr := '';
+            Exit;
+          end;
+          EPtr := SetBaseAndLimit(Sele, Ptr(EnvSeg, 0), EnvLen-1); {!!.21}
+        end
+        else
+          EPtr := Ptr(EnvSeg, 0);
+        EOfs := SearchEnv(EPtr, Search);
+        if EOfs <> $FFFF then begin
+          {Skip over the search string}
+          Inc(EOfs, SLen);
+          {Build the result string}
+          GetAsciiZ(EPtr, EOfs, EStr);
+        end;
+      end;
+      GetEnvStr := EStr;
+      if EnvRealMode then
+        Sele := FreeLDTDescriptor(Sele);
+    end;
+  end;
+
+  function SetEnvStr(Env : EnvRec; Search, Value : string) : Boolean;
+    {-Set environment string, returning true if successful}
+  var
+    SLen : Byte absolute Search;
+    VLen : Byte absolute Value;
+    EPtr : EnvArrayPtr;
+    ENext : Word;
+    EOfs : Word;
+    MOfs : Word;
+    OldLen : Word;
+    NewLen : Word;
+    NulLen : Word;
+    Sele : Word;
+  begin
+    with Env do begin
+      SetEnvStr := False;
+      if (EnvSeg = 0) or (SLen = 0) then
+        Exit;
+      if EnvRealMode then begin
+        if AllocLDTDescriptors(1, Sele) <> 0 then
+          Exit;
+        EPtr := SetBaseAndLimit(Sele, Ptr(EnvSeg, 0), EnvLen-1);  {!!.21}
+      end
+      else
+        EPtr := Ptr(EnvSeg, 0);
+      {Find the search string}
+      EOfs := SearchEnv(EPtr, Search);
+
+      {Get the index of the next available environment location}
+      ENext := EnvNext(EPtr);
+
+      {Get total length of new environment string}
+      NewLen := SLen+VLen;
+
+      if EOfs <> $FFFF then begin
+        {Search string exists}
+        MOfs := EOfs+SLen;
+        {Scan to end of string}
+        SkipAsciiZ(EPtr, MOfs);
+        OldLen := MOfs-EOfs;
+        {No extra nulls to add}
+        NulLen := 0;
+      end else begin
+        OldLen := 0;
+        {One extra null to add}
+        NulLen := 1;
+      end;
+
+      if VLen <> 0 then
+        {Not a pure deletion}
+        if ENext+NewLen+NulLen >= EnvLen+OldLen then begin
+          if EnvRealMode then
+            Sele := FreeLDTDescriptor(Sele);
+          {New string won't fit}
+          Exit;
+        end;
+
+      if OldLen <> 0 then begin
+        {Overwrite previous environment string}
+        Move(EPtr^[MOfs+1], EPtr^[EOfs], ENext-MOfs-1);
+        {More space free now}
+        Dec(ENext, OldLen+1);
+      end;
+
+      {Append new string}
+      if VLen <> 0 then begin
+        Move(Search[1], EPtr^[ENext], SLen);
+        Inc(ENext, SLen);
+        Move(Value[1], EPtr^[ENext], VLen);
+        Inc(ENext, VLen);
+      end;
+
+      {Clear out the rest of the environment}
+      FillChar(EPtr^[ENext], EnvLen-ENext, 0);
+      if EnvRealMode then
+        Sele := FreeLDTDescriptor(Sele);
+      SetEnvStr := True;
+    end;
+  end;
+
+  function GetProgramStr(Env : EnvRec) : string;
+    {-Return the name of the program that owns Env, '' if DOS < 3.0 or unknown}
+  var
+    EOfs : Word;
+    EPtr : EnvArrayPtr;
+    PStr : string;
+    Sele : Word;
+  begin
+    GetProgramStr := '';
+    if DosVersion < $0300 then
+      Exit;
+    if Env.EnvSeg = 0 then
+      Exit;
+    with Env do begin
+      if EnvRealMode then begin
+        if AllocLDTDescriptors(1, Sele) <> 0 then
+          Exit;
+        EPtr := SetBaseAndLimit(Sele, Ptr(Env.EnvSeg, 0), Env.EnvLen-1); {!!.21}
+      end
+      else
+        EPtr := Ptr(Env.EnvSeg, 0);
+    end;
+    {Find the end of the current environment}
+    EOfs := EnvNext(EPtr);
+    if EPtr^[EOfs+1] = #1 then begin
+      {Skip to start of path name}
+      Inc(EOfs, 3);
+      {Collect the path name}
+      GetAsciiZ(EPtr, EOfs, PStr);
+      GetProgramStr := PStr;
+    end;
+    if Env.EnvRealMode then
+      Sele := FreeLDTDescriptor(Sele);
+  end;
+
+  procedure DumpEnv(Env : EnvRec);
+    {-Dump the environment to the screen}
+  var
+    EOfs : Word;
+    Sele : Word;   {!!.21}
+    EPtr : EnvArrayPtr;
+  begin
+    with Env do begin
+      if EnvSeg = 0 then
+        Exit;
+      if EnvRealMode then begin                                  {!!.21}
+        if AllocLDTDescriptors(1, Sele) <> 0 then                {!!.21}
+          Exit;                                                  {!!.21}
+        EPtr := SetBaseAndLimit(Sele, Ptr(EnvSeg, 0), EnvLen-1); {!!.21}
+      end                                                        {!!.21}
+      else                                                       {!!.21}
+        EPtr := Ptr(EnvSeg, 0);
+      EOfs := 0;
+      WriteLn;
+      while EPtr^[EOfs] <> #0 do begin
+        while EPtr^[EOfs] <> #0 do begin
+          Write(EPtr^[EOfs]);
+          Inc(EOfs);
+        end;
+        WriteLn;
+        Inc(EOfs);
+      end;
+      WriteLn('Bytes free: ', EnvFree(Env));
+      if EnvRealMode then                                       {!!.21}
+        Sele := FreeLDTDescriptor(Sele);                        {!!.21}
+    end;
+  end;
+
+  function SetProgramStr(Env : EnvRec; Path : string) : Boolean;
+    {-Add a program name to the end of an environment if sufficient space}
+  var
+    PLen : Byte absolute Path;
+    EOfs : Word;
+    Numb : Word;
+    EPtr : EnvArrayPtr;
+  begin
+    SetProgramStr := False;
+    with Env do begin
+      if EnvSeg = 0 then
+        Exit;
+      {Find the end of the current environment}
+      EPtr := Ptr(EnvSeg, 0);
+      EOfs := EnvNext(EPtr);
+      {Assure space for path}
+      if EnvLen < PLen+EOfs+4 then
+        Exit;
+      {Put in the count field}
+      Inc(EOfs);
+      Numb := 1;
+      Move(Numb, EPtr^[EOfs], 2);
+      {Skip to start of path name}
+      Inc(EOfs, 2);
+      {Move the path into place}
+      Path := StUpcase(Path);
+      Move(Path[1], EPtr^[EOfs], PLen);
+      {Null terminate}
+      Inc(EOfs, PLen);
+      EPtr^[EOfs] := #0;
+      SetProgramStr := True;
+    end;
+  end;
+
+  function ShellWithPrompt(Prompt : string; EDP : ExecDosProc) : Integer;
+    {-Shell to DOS with a new prompt}
+  const
+    PromptStr : string[6] = 'PROMPT';
+  var
+    PLen : Byte absolute Prompt;
+    NSize : Word;
+    Status : Integer;
+    CE : EnvRec;
+    NE : EnvRec;
+    OldP : string;
+    OldPLen : Byte absolute OldP;
+  begin
+    {Point to current environment}
+    CurrentEnv(CE);
+    if CE.EnvSeg = 0 then begin
+      {Error getting environment}
+      ShellWithPrompt := -5;
+      Exit;
+    end;
+
+    {Compute size of new environment}
+    OldP := Dos.GetEnv(PromptStr);
+    NSize := CE.EnvLen;
+    if OldPLen < PLen then
+      Inc(NSize, PLen-OldPLen);
+
+    {Allocate and initialize a new environment}
+    NewEnv(NE, NSize);
+    if NE.EnvSeg = 0 then begin
+      {Insufficient memory for new environment}
+      ShellWithPrompt := -6;
+      Exit;
+    end;
+    CopyEnv(CE, NE);
+
+    {Get the program name from the current environment}
+    OldP := ParamStr(0);
+
+    {Set the new prompt string}
+    if not SetEnvStr(NE, PromptStr, Prompt) then begin
+      {Program error, should have enough space}
+      ShellWithPrompt := -7;
+      Exit;
+    end;
+
+    {Transfer program name to new environment if possible}
+    if not SetProgramStr(NE, OldP) then
+      ;
+
+    {Point to new environment}
+    SetCurrentEnv(NE);
+
+    {Shell to DOS with new prompt in place}
+    Status := ExecDos('', True, EDP);
+
+    {Restore previous environment}
+    SetCurrentEnv(CE);
+
+    {Release the heap space}
+    if Status >= 0 then
+      DisposeEnv(NE);
+
+    {Return exec status}
+    ShellWithPrompt := Status;
+  end;

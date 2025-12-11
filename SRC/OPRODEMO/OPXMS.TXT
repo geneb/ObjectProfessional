@@ -1,0 +1,441 @@
+;
+;-------------------------------------------------------------------
+!TOPIC 3151 OpXms
+The OpXms unit contains a variety of routines for working with extended
+memory. It allows you to determine whether or not XMS memory is installed
+and, if so, how much is currently available. You can allocate and deallocate
+extended memory.
+
+This unit also has routines for working with the High Memory Area (HMA).
+To use the HMA, routines are also provided to enable, disable, and query the
+state of the CPU's A20 line, which must be enabled in order to use
+the HMA.
+
+Allocated extended memory blocks may be locked. This assures that they will
+not be moved by the XMS memory manager. This unit contains routines to lock,
+unlock, and get information about allocated extended memory blocks.
+
+Some XMS memory managers support routines to allocate and free Upper Memory
+Blocks (UMB). UMBs are areas of memory located above the 640K of DOS
+accessable memory and below the 1 megabyte boundary. This memory is generally
+only accessable under 386 extended memory managers. This unit contains
+routines to allocate and free UMBs.
+
+For further information on XMS memory, it is recommended that you read the
+documentation that accompanies Microsoft's HIMEM.SYS XMS driver. Also, the
+Addison Wesley book "Extending MS-DOS" contains an excellent discussion of XMS
+memory.
+
+  3165AllocateExtMem             3172AllocUpperMemBlock       3152Declarations
+  3155Error codes                3166FreeExtMem               3173FreeUpperMemBlock
+  3170GetHandleInfo              3160GlobalDisableA20         3159GlobalEnableA20
+  3162LocalDisableA20            3161LocalEnableA20           3168LockExtMemBlock
+  3167MoveExtMemBlock            3163QueryA20                 3164QueryFreeExtMem
+  3158ReleaseHMA                 3171ResizeExtMemBlock        3157RequestHMA
+  3169UnlockExtMemBlock          3174XmsErrorString           3156XmsInstalled
+;
+;-------------------------------------------------------------------
+!TOPIC 3152 Declarations,OpXMS
+!NOINDEX
+OPXMS provides the following types and variables:
+
+  3153ExtMemPtr           3154XmsControl
+
+;
+;-------------------------------------------------------------------
+!TOPIC 3153 ExtMemPtr
+!NOINDEX
+type
+  ExtMemPtr      =
+    record
+      case Boolean of
+        False : (RealPtr : Pointer);
+        True  : (ProtectedPtr : LongInt);
+    end;
+
+A variant record used to specify pointers to either conventional or extended
+memory. In conventional memory, pointers are normal Segment:Offset dword
+pointers. In protected memory, linear (LongInt) pointers are used. This type
+is used only for the 3167MoveExtMemBlock function.
+;
+;-------------------------------------------------------------------
+!TOPIC 3154 XmsControl
+!NOINDEX
+var
+  XmsControl       : Pointer;
+
+Stores a pointer to the XMS control procedure. This is intended primarily for
+internal use.
+;-------------------------------------------------------------------
+!TOPIC 3155 Error codes,OpXMS
+!NOINDEX
+The following is a list of the error code constants interfaced by the
+3151OPXMS unit:
+
+  FuncNotImplemented   = $80; {function is not implemented}
+  VDiskDeviceDetected  = $81; {a VDISK compatible device found}
+  A20Error             = $82; {an A20 error occurred}
+  GeneralDriverError   = $8E; {general driver error}
+  UnrecoverableError   = $8F; {unrecoverable driver error}
+  HmaDoesNotExist      = $90; {high memory area does not exist}
+  HmaAlreadyInUse      = $91; {high memory area already in use}
+  HmaSizeTooSmall      = $92; {size requested less than /HMAMIN}
+  HmaNotAllocated      = $93; {high memory area not allocated}
+  A20StillEnabled      = $94; {A20 line is still enabled}
+  AllExtMemAllocated   = $A0; {all extended memory is allocated}
+  OutOfExtMemHandles   = $A1; {extended memory handles exhausted}
+  InvalidHandle        = $A2; {invalid handle}
+  InvalidSourceHandle  = $A3; {invalid source handle}
+  InvalidSourceOffset  = $A4; {invalid source offset}
+  InvalidDestHandle    = $A5; {invalid destination handle}
+  InvalidDestOffset    = $A6; {invalid destination offset}
+  InvalidLength        = $A7; {invalid length}
+  OverlapInMoveReq     = $A8; {overlap in move request}
+  ParityErrorDetected  = $A9; {parity error detected}
+  BlockIsNotLocked     = $AA; {block is not locked}
+  BlockIsLocked        = $AB; {block is locked}
+  LockCountOverflowed  = $AC; {lock count overflowed}
+  LockFailed           = $AD; {lock failed}
+  SmallerUMBAvailable  = $B0; {a smaller upper memory block is avail}
+  NoUMBAvailable       = $B1; {no upper memory blocks are available}
+  InvalidUMBSegment    = $B2; {invalid upper memory block segment}
+
+The routine 3174XmsErrorString can be used to translate an error code
+returned by an OPXMS function into an error message.
+;
+;-------------------------------------------------------------------
+!TOPIC 3156 XmsInstalled
+!NOINDEX
+function 3151OpXms.XmsInstalled : Boolean;
+
+Returns True if an XMS memory manager is installed.
+;
+;-------------------------------------------------------------------
+!TOPIC 3157 RequestHMA
+!NOINDEX
+function 3151OpXms.RequestHMA(Bytes : Word) : Byte;
+
+Request the High Memory Area (HMA). Bytes is amount of memory if TSR or
+device driver, or $FFFF if application program. Possible return codes:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $90 if the HMA does not exist
+  $91 if the HMA is already in use
+  $92 if Bytes is less than the /HMAMIN= parameter
+
+See also:
+  3158ReleaseHMA
+;
+;-------------------------------------------------------------------
+!TOPIC 3158 ReleaseHMA
+!NOINDEX
+function 3151OpXms.ReleaseHMA : Byte;
+
+Release the High Memory Area. Possible return codes:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $90 if the HMA does not exist
+  $93 if the HMA was not allocated
+
+See also:
+  3157RequestHMA
+;
+;-------------------------------------------------------------------
+!TOPIC 3159 GlobalEnableA20
+!NOINDEX
+function 3151OpXms.GlobalEnableA20 : Byte;
+
+Attempt to enable the A20 line. Should be used only by programs that
+have control of the HMA. Possible return codes:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $82 if an A20 error occurs
+
+See also:
+  3160GlobalDisableA20              3161LocalEnableA20
+  3162LocalDisableA20               3163QueryA20
+;
+;-------------------------------------------------------------------
+!TOPIC 3160 GlobalDisableA20
+!NOINDEX
+function 3151OpXms.GlobalDisableA20 : Byte;
+
+Attempt to disable the A20 line. Possible return codes:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $82 if an A20 error occurs
+  $94 if the A20 line is still enabled
+
+See also:
+  3159GlobalEnableA20               3161LocalEnableA20
+  3162LocalDisableA20               3163QueryA20
+;
+;-------------------------------------------------------------------
+!TOPIC 3161 LocalEnableA20
+!NOINDEX
+function 3151OpXms.LocalEnableA20 : Byte;
+
+Attempt to enable the A20 line. Should be used only by programs that
+need direct access to extended memory. Possible return codes:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $82 if an A20 error occurs
+
+See also:
+  3160GlobalDisableA20              3159GlobalEnableA20
+  3162LocalDisableA20               3163QueryA20
+;
+;-------------------------------------------------------------------
+!TOPIC 3162 LocalDisableA20
+!NOINDEX
+function 3151OpXms.LocalDisableA20 : Byte;
+
+Attempt to disable the A20 line. Possible return codes:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $82 if an A20 error occurs
+  $94 if the A20 line is still enabled
+
+See also:
+  3160GlobalDisableA20              3159GlobalEnableA20
+  3161LocalEnableA20                3163QueryA20
+;
+;-------------------------------------------------------------------
+!TOPIC 3163 QueryA20
+!NOINDEX
+function 3151OpXms.QueryA20 : Byte;
+
+Checks to see if the A20 line is physically enabled. Possible return codes:
+
+  $00 A20 line disabled
+  $01 A20 line enabled
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+
+See also:
+  3160GlobalDisableA20               3159GlobalEnableA20
+  3161LocalEnableA20                 3162LocalDisableA20
+;
+;-------------------------------------------------------------------
+!TOPIC 3164 QueryFreeExtMem
+!NOINDEX
+function 3151OpXms.QueryFreeExtMem(var TotalFree,
+                               LargestBlock : Word) : Byte;
+
+Return the amount of total free extended memory in TotalFree, and the Size
+of the largest free block of extended memory in LargestBlock. Both values
+are specified in number of kilobytes. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A0 if all extended memory is allocated
+;
+;-------------------------------------------------------------------
+!TOPIC 3165 AllocateExtMem
+!NOINDEX
+function 3151OpXms.AllocateExtMem(SizeInK : Word;
+                              var XmsHandle : Word) : Byte;
+
+Allocate a block of extended memory SizeInK kilobytes in size, returning
+the XMS handle in XmsHandle. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A0 if all extended memory is allocated
+  $A1 if all extended memory handles are in use
+
+See also: 3166FreeExtMem
+;
+;-------------------------------------------------------------------
+!TOPIC 3166 FreeExtMem,OpXMS
+!NOINDEX
+function 3151OpXms.FreeExtMem(XmsHandle : Word) : Byte;
+
+Free a previously allocated block of extended memory. XmsHandle is the XMS
+handle returned by the previous call to 3165AllocateExtMem.
+Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A2 if XmsHandle is invalid
+  $AB if XmsHandle is currently locked
+
+See also: 3165AllocateExtMem
+;
+;-------------------------------------------------------------------
+!TOPIC 3167 MoveExtMemBlock
+!NOINDEX
+function 3151OpXms.MoveExtMemBlock(BlockLength : LongInt;
+                               SourceHandle : Word;
+                               SourcePtr : ExtMemPtr;
+                               DestHandle : Word;
+                               DestPtr : ExtMemPtr) : Byte;
+
+Move a block of memory. Intended primarily for moving data to and from
+extended memory and conventional memory. Can also move memory from
+extended to extended and conventional to conventional. BlockLength must
+always be an even number. Memory areas may overlap ONLY if SourcePtr is at
+a lower address than DestPtr. If SourceHandle is 0, then SourcePtr is
+interpreted as a normal segment:offset dword pointer. If SourceHandle is
+non-zero, then the SourcePtr is interpreted as a 32 bit linear offset into
+the extended memory associated with SourceHandle. The same is true for
+DestHandle and DestPtr. This routine does NOT require that the A20 line be
+enabled. Extended memory blocks used as SourcePtr or DestPtr need not be
+locked before calling this routine (although they may be locked). Possible
+function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $82 if an A20 error occurs
+  $A3 if SourceHandle is invalid
+  $A4 if SourcePtr is invalid
+  $A5 if DestHandle is invalid
+  $A6 if DestPtr is invalid
+  $A7 if BlockLen is invalid
+  $A8 if SourcePtr and DestPtr contain an invalid overlap
+  $A9 if a memory parity error occurs
+;
+;-------------------------------------------------------------------
+!TOPIC 3168 LockExtMemBlock
+!NOINDEX
+function 3151OpXms.LockExtMemBlock(XmsHandle : Word;
+                               var LockedBlock : ExtMemPtr) : Byte;
+
+Locks an extended memory block and returns its base address as a 32 bit
+linear address. Locked extended memory blocks are guaranteed not to move.
+The LockedBlock address is valid only while the block is locked. Locked
+extended memory blocks should be unlocked as soon as possible. It is
+not necessary to lock a block before calling 3167MoveExtMemBlock. A count of
+the number of locks is maintained by the XMS memory manager and can be
+retrieved with the 3170GetHandleInfo function. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A2 if XmsHandle is invalid
+  $AC if the block's lock count overflows
+  $AD if the lock fails
+
+See also:  3169UnlockExtMemBlock
+;
+;-------------------------------------------------------------------
+!TOPIC 3169 UnlockExtMemBlock
+!NOINDEX
+function 3151OpXms.UnlockExtMemBlock(XmsHandle : Word) : Byte;
+
+Unlocks an extended memory block. Any 32 bit linear addresses in use
+obtained by calling 3168LockExtMemBlock are invalid after
+UnlockExtMemBlock is called. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A2 if XmsHandle is invalid
+  $AC if the block's lock count overflows
+  $AA if the block is not locked
+
+See also:  3168LockExtMemBlock
+;
+;-------------------------------------------------------------------
+!TOPIC 3170 GetHandleInfo
+!NOINDEX
+function 3151OpXms.GetHandleInfo(XmsHandle : Word;
+                             var LockCount    : Byte;
+                             var HandlesLeft  : Byte;
+                             var BlockSizeInK : Word) : Byte;
+
+Return information about an extended memory handle. The lock count for
+this handle, the number of XMS handles left, and the size in kilobytes of
+this handle are returned. To retrieve the 32 bit linear address of this
+handle, you must call 3168LockExtMemBlock. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A2 if XmsHandle is invalid
+;
+;-------------------------------------------------------------------
+!TOPIC 3171 ResizeExtMemBlock
+!NOINDEX
+function 3151OpXms.ResizeExtMemBlock(XmsHandle : Word;
+                                 NewSizeInK : Word) : Byte;
+
+Attempts to resize the memory block associated with XmsHandle. The
+extended memory block must be unlocked. If the NewSizeInK is bigger than
+the previous size, then all data is preserved. If it is smaller, then all
+data beyond the end of the new block size is lost. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $81 if a VDISK device is detected
+  $A0 if all extended memory is allocated
+  $A1 if all extended memory handles are in use
+  $A2 if XmsHandle is invalid
+  $AB if the block is locked
+
+See also:  3165AllocateExtMem
+;
+;-------------------------------------------------------------------
+!TOPIC 3172 AllocUpperMemBlock
+!NOINDEX
+function 3151OpXms.AllocUpperMemBlock(SizeInParas : Word;
+                                  var SegmentBase : Word;
+                                  var Size        : Word) : Byte;
+
+Allocates an upper memory block (UMB). If insufficient memory is available in
+upper memory blocks, then the size of the largest free upper memory block is
+returned in Size. If this functions succeeds, then SegmentBase contains
+the segment of the allocated upper memory block. Upper memory blocks are
+paragraph aligned (the offset is always 0). By definition, UMBs are located
+below the 1 meg address boundary. Therefore the A20 line need not be enabled
+to access the memory in a UMB. There are no restrictions on using this memory
+in DOS calls or pointing ISRs into this memory.
+
+This function is not implemented by most 286 XMS drivers. It is implemented by
+most 386 products like QEMM and 386^MAX. Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $B0 if a smaller UMB is available
+  $B1 if no UMBs are available
+
+See also:  3173FreeUpperMemBlock
+;
+;-------------------------------------------------------------------
+!TOPIC 3173 FreeUpperMemBlock
+!NOINDEX
+function 3151OpXms.FreeUpperMemBlock(SegmentBase : Word) : Byte;
+
+Frees a previously allocated upper memory block.
+Possible function results:
+
+  $00 successful
+  $80 if the function is not implemented
+  $82 if SegmentBase does not refer to a valid UMB
+
+See also:  3172AllocUpperMemBlock
+;
+;-------------------------------------------------------------------
+!TOPIC 3174 XmsErrorString
+!NOINDEX
+function 3151OpXms.XmsErrorString(ErrorCode : Byte) : String;
+
+Return a string indicating reason for the error.
+
+See also:  3155Error codes

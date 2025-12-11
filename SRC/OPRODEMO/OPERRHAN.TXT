@@ -1,0 +1,40 @@
+;
+;------------------------------------------------------------
+!TOPIC 1259 OpErrHan
+How can a program recover from a runtime error and continue processing?
+Object Professional provides the answer with the OpErrHan unit.
+
+OpErrHan works by tapping into the Turbo Pascal runtime error handler.
+Control is diverted from the normal System unit to a routine defined by
+OpErrHan. The OpErrHan routine classifies errors as recoverable or
+fatal, computes where control should return upon recovery, optionally calls
+a user-defined function, and finally returns to the program or to the
+System error handler as required.
+
+See also:  1261CanRecover  1260ErrorRecovery
+;
+;------------------------------------------------------------
+!TOPIC 1260 ErrorRecovery
+!NOINDEX
+procedure 1259OpErrHan.ErrorRecovery(On : Boolean; UserRoutine : Pointer);
+
+Call this procedure to activate or deactivate runtime error recovery. If
+the On parameter is True, error recovery is activated; otherwise it is
+deactivated and Turbo Pascal's normal error handling system is used.
+UserRoutine is a pointer to a user-defined function which can further
+customize the error handling behavior of an application. If you don't want
+to define such a user function, simply pass the value Nil in this position.
+
+See also:  1261CanRecover
+;
+;------------------------------------------------------------
+!TOPIC 1261 CanRecover
+!NOINDEX
+var
+  CanRecover : Boolean;
+
+Because OpErrHan must patch into Turbo's runtime system, its
+initialization code checks carefully to find the right patch point. If all
+goes well, OpErrHan sets CanRecover to True.
+
+See also:  1260ErrorRecovery

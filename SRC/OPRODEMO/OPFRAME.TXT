@@ -1,0 +1,1313 @@
+;
+;------------------------------------------------------------
+!TOPIC 1432 OpFrame
+OpFrame defines a number of important object types, but it is unlikely
+that you'll ever explicitly declare a variable using any of them. These
+types form a kind of Chinese puzzle where one type fits inside of the
+other, inside of another, until the largest one, the Frame itself, fits
+inside of the RawWindow object. A Frame without an associated window will
+be a rare beast. Even so, customizing a window's Frame requires you to
+understand and call methods of the Frame object. We'll describe those
+methods here.
+
+Also included in the OpFrame unit is the ScreenRect object, because
+shadows depend on it. The ScreenRect is a low-level object that is
+nevertheless such a fundamental building block that we will describe it in
+detail. A ScreenRect provides all the tools needed to save and restore
+portions of the screen. The RawWindow makes significant use of this object.
+
+Before proceeding, let's make clear the distinctions between some words
+that we'll use frequently. A border is a group of visible line drawing
+characters that surround a window or frame. A frame is a logical data
+structure associated with a window. The frame contains the characters
+needed for the border and also includes headers, shadows, scroll bars, and
+hot spots. A frame may or may not have a visible border. A window includes
+one or more frames, as well as the structures needed to save the underlying
+screen, the cursor position, the mouse position, and so on.
+
+Below is an extract of the window hierarchy showing where frames and frame
+components fit in:
+
+ [2306Root]
+    [2446DoubleListNode]
+      HeaderNode*
+      ShadowNode*
+      HotNode*
+    ScrollBar*
+    1435ScreenRect
+    1433AbstractFrame
+      1452Frame
+
+The objects whose names are surrounded by brackets are described elsewhere. In
+this case all of them are described with the OpRoot unit. Objects followed
+by an asterisk are low-level ones primarily designed for internal use.
+;
+;------------------------------------------------------------
+!TOPIC 1433 AbstractFrame
+!NOINDEX
+1432OpFrame.AbstractFrame = object(2306Root)
+!LINE
+AbstractFramePtr = ^AbstractFrame;
+
+Abstract data type describing a window frame. This object stores the
+coordinates of the frame (using Words so as not to preclude a graphics mode
+implementation) and defines some basic access methods for frames. This
+object is defined primarily for programmers who wish to make fundamental
+changes and extensions to the Object Professional window system. Only one
+of its methods is not overridden by the more specific Frame implementation.
+
+  1434ClearErrors
+;
+;------------------------------------------------------------
+!TOPIC 1434 ClearErrors,AbstractFrame
+!NOINDEX
+procedure 1433AbstractFrame.ClearErrors;
+
+Clear all pending errors.
+;
+;------------------------------------------------------------
+!TOPIC 1435 ScreenRect
+!NOINDEX
+1432OpFrame.ScreenRect = object(2306Root)
+
+The ScreenRect object is a primitive one, but not so primitive as its non-
+object-oriented predecessors. One of the first things that developers of
+early popup window systems added was the ability to save and restore
+portions of the screen that the window would overwrite. The ScreenRect
+encapsulates the data and code for these operations so that the same
+capabilities can be reused for windows and also for similar structures like
+shadow rectangles. ScreenRect also knows how to resize itself and transfer
+any previous contents to the new buffer. This is an important service to
+provide to window objects in a modern mouse-driven environment.
+
+If you are developing new window types, ScreenRect may be of direct use to
+you; if not, just be aware of its existence.
+
+  1444Adjust                    1436Alloc                   1439BufSize
+  1440Clear                     1449Coordinates             1441CopyFromScreen
+  1443CopyPartToScreen          1442CopyToScreen            1438Done
+  1448HaveContents              1437Init                    1450Load
+  1516ScreenBuffer              1446srResult                1451Store
+  1447StoreContents             1445Transfer
+;
+;------------------------------------------------------------
+!TOPIC 1436 Alloc,ScreenRect
+!NOINDEX
+constructor 1435ScreenRect.Alloc(X1, Y1, X2, Y2 : Byte);
+
+Initialize coordinates and allocate a screen buffer.
+
+See also:  1437Init
+;
+;------------------------------------------------------------
+!TOPIC 1437 Init,ScreenRect
+!NOINDEX
+constructor 1435ScreenRect.Init(X1, Y1, X2, Y2 : Byte; BufPtr : Pointer);
+
+Initialize coordinates and assign a preallocated buffer.
+
+See also:  1436Alloc  0353OpCrt.GetPagePointer
+;
+;------------------------------------------------------------
+!TOPIC 1438 Done,ScreenRect
+!NOINDEX
+destructor 1435ScreenRect.Done; virtual;
+
+Deallocate buffer.
+
+See also:  1436Alloc  1437Init
+;
+;------------------------------------------------------------
+!TOPIC 1439 BufSize
+!NOINDEX
+function 1435ScreenRect.BufSize : Word;
+
+Return required size of buffer in bytes.
+;
+;------------------------------------------------------------
+!TOPIC 1440 Clear,ScreenRect
+!NOINDEX
+procedure 1435ScreenRect.Clear(FChar : Char; FAttr : Byte);
+
+Clear with character and attribute.
+;
+;------------------------------------------------------------
+!TOPIC 1441 CopyFromScreen,ScreenRect
+!NOINDEX
+procedure 1435ScreenRect.CopyFromScreen;
+
+Copy from screen to buffer.
+
+See also:  3074VirtScreen.Activate  1442CopyToScreen
+;
+;------------------------------------------------------------
+!TOPIC 1442 CopyToScreen,ScreenRect
+!NOINDEX
+procedure 1435ScreenRect.CopyToScreen;
+
+Copy buffer to screen.
+
+See also:  1443CopyPartToScreen
+;
+;------------------------------------------------------------
+!TOPIC 1443 CopyPartToScreen
+!NOINDEX
+procedure 1435ScreenRect.CopyPartToScreen(X1, Y1, X2, Y2 : Byte);
+
+Copy part of the buffer to the screen.
+
+See also:  1442CopyToScreen
+;
+;------------------------------------------------------------
+!TOPIC 1444 Adjust
+!NOINDEX
+procedure 1435ScreenRect.Adjust(X1, Y1, X2, Y2 : Byte);
+
+Adjust buffer coordinates to X1, Y1, X2, Y2.
+
+See also:  1436Alloc  1446srResult  1445Transfer
+;
+;------------------------------------------------------------
+!TOPIC 1445 Transfer,ScreenRect
+!NOINDEX
+procedure 1435ScreenRect.Transfer(X1, Y1, X2, Y2 : Byte;
+                              FChar : Char; FAttr : Byte);
+
+Transfer buffer to new buffer at coordinates X1, Y1, X2, Y2.
+
+See also:  1444Adjust  1446srResult
+;
+;------------------------------------------------------------
+!TOPIC 1446 srResult
+!NOINDEX
+function 1435ScreenRect.srResult : Word;
+
+Return most recent status code.
+;
+;------------------------------------------------------------
+!TOPIC 1447 StoreContents
+!NOINDEX
+procedure 1435ScreenRect.StoreContents(On : Boolean);
+
+Specify whether Store writes contents of screen buffer.
+
+See also:  1451Store
+;
+;------------------------------------------------------------
+!TOPIC 1448 HaveContents
+!NOINDEX
+function 1435ScreenRect.HaveContents : Boolean;
+
+Return True if contents were loaded by Load.
+
+See also:  1450Load  1447StoreContents
+;
+;------------------------------------------------------------
+!TOPIC 1449 Coordinates,ScreenRect
+!NOINDEX
+procedure 1435ScreenRect.Coordinates(var X1, Y1, X2, Y2 : Byte);
+
+Return coordinates of screen rectangle.
+;
+;------------------------------------------------------------
+!TOPIC 1450 Load,ScreenRect
+!NOINDEX
+constructor 1435ScreenRect.Load(var S : IdStream);
+
+Load from stream. The stream registration procedure for ScreenRect is
+ScreenRectStream.
+
+See also:  1448HaveContents  1451Store
+;
+;------------------------------------------------------------
+!TOPIC 1451 Store,ScreenRect
+!NOINDEX
+procedure 1435ScreenRect.Store(var S : IdStream);
+
+Store to stream. The stream registration procedure for ScreenRect is
+ScreenRectStream.
+
+See also:  1450Load  1447StoreContents
+;
+;------------------------------------------------------------
+!TOPIC 1452 Frame
+!NOINDEX
+1432OpFrame.Frame = object(1433AbstractFrame)
+!LINE
+FramePtr = ^Frame;
+
+The Frame object fills in the details of the AbstractFrame. Like the rest
+of Object Professional, it is optimized for text mode and thus includes
+details for line-drawing border characters and video attributes. It also
+contains three linked lists (of headers, shadows, and hot spots) and one
+array (of pointers to scroll bars). Much of the look and feel of an
+application is controlled by the appearance of each window's frame. As
+such, the Frame methods used for adding and modifying border, header,
+shadow, and hot spot elements may play an important role in the design of
+your application. OOP provides a great advantage here: once you've learned
+the frame customization process for one window object type, you'll know how
+to do it for all of them, whether you're working on a data entry screen, a
+menu, an editor, or your own specialized window type.
+
+In spite of the usual connotations associated with a Frame, you don't need
+to think of it as always drawing a border around a window. Frames can be
+borderless or bordered. Borderless frames can still have headers, shadows,
+and hot spots if that's desirable.
+
+  1498Conditional defines       1497Declarations            1517General methods
+  1499Headers                   1501ScrollBars/HotSpots     1500Shadows
+;
+;------------------------------------------------------------
+!TOPIC 1453 Init,Frame
+!NOINDEX
+constructor 1452Frame.Init(X1, Y1, X2, Y2 : Byte;
+                       FA : FrameArray; var Colors : ColorSet);
+
+Initialize frame coordinates and all fields.
+
+See also:  1484SetClipLimits  1483SetSizeLimits
+;
+;------------------------------------------------------------
+!TOPIC 1454 fCopy
+!NOINDEX
+constructor 1452Frame.fCopy(var F : Frame);
+
+Initialize a frame from another,
+making a unique copy of all dynamic structures.
+
+See also:  1453Init
+;
+;------------------------------------------------------------
+!TOPIC 1455 Done,Frame
+!NOINDEX
+destructor 1452Frame.Done; virtual;
+
+Destroy a frame.
+;
+;------------------------------------------------------------
+!TOPIC 1456 SetFrameType
+!NOINDEX
+procedure 1452Frame.SetFrameType(FA : FrameArray);
+
+Change the frame type.
+;
+;------------------------------------------------------------
+!TOPIC 1457 SetFrameAttr,Frame
+!NOINDEX
+procedure 1452Frame.SetFrameAttr(Color, Mono : Byte); virtual;
+
+Set attributes for frame characters.
+
+See also:  1453Init  1458SetHeaderAttr
+;
+;------------------------------------------------------------
+!TOPIC 1458 SetHeaderAttr,Frame
+!NOINDEX
+procedure 1452Frame.SetHeaderAttr(Color, Mono : Byte; ChangeAll : Boolean);
+
+Set attributes for header characters.
+;
+;------------------------------------------------------------
+!TOPIC 1459 SetShadowAttr,Frame
+!NOINDEX
+procedure 1452Frame.SetShadowAttr(Color, Mono : Byte; ChangeAll : Boolean);
+
+Set attributes for shadow characters.
+;
+;------------------------------------------------------------
+!TOPIC 1460 SetSpanAttr,Frame
+!NOINDEX
+procedure 1452Frame.SetSpanAttr(Color, Mono : Byte);
+
+Set attributes for headers with a type of heSpan.
+;
+;------------------------------------------------------------
+!TOPIC 1461 AddHeader,Frame
+!NOINDEX
+procedure 1452Frame.AddHeader(S : string; Posn : HeaderPosType);
+
+Add a standard header.
+
+See also:  1463AddCustomHeader
+;
+;------------------------------------------------------------
+!TOPIC 1462 AddHeaderColor,Frame
+!NOINDEX
+procedure 1452Frame.AddHeaderColor(S : string;
+                               Posn : HeaderPosType;
+                               AttrColor, AttrMono : Byte);
+
+Add a standard header with custom color.
+;
+;------------------------------------------------------------
+!TOPIC 1463 AddCustomHeader,Frame
+!NOINDEX
+procedure 1452Frame.AddCustomHeader(S : string;
+                                Posn : FrameCornerType;
+                                DX, DY : Integer;
+                                AttrColor, AttrMono : Byte);
+
+Add a custom header.
+
+See also:  1461AddHeader  1464AddSpanHeader  1466AddAnyHeader
+;
+;------------------------------------------------------------
+!TOPIC 1464 AddSpanHeader
+!NOINDEX
+procedure 1452Frame.AddSpanHeader(FirstChar, SpanChar, LastChar : Char;
+                              Dpos : Integer; Posn : FrameEdgeType);
+
+Add a header spanning the frame.
+
+See also:  1465AddSpanHeaderColor
+;
+;------------------------------------------------------------
+!TOPIC 1465 AddSpanHeaderColor
+!NOINDEX
+procedure 1452Frame.AddSpanHeaderColor(FirstChar, SpanChar, LastChar : Char;
+                                   Dpos : Integer;
+                                   Posn : FrameEdgeType;
+                                   AttrColor, AttrMono : Byte);
+
+Add a header spanning the frame with custom color.
+
+See also:  1464AddSpanHeader
+;
+;------------------------------------------------------------
+!TOPIC 1466 AddAnyHeader
+!NOINDEX
+procedure 1452Frame.AddAnyHeader(HPtr : HeaderNodePtr);
+
+Add a header of any type derived from HeaderNode.
+
+See also:  1463AddCustomHeader
+;
+;------------------------------------------------------------
+!TOPIC 1467 GetLastHeaderIndex
+!NOINDEX
+function 1452Frame.GetLastHeaderIndex : Byte;
+
+Return index of last header added.
+
+See also:  1468ChangeHeaderString  1481GetLastHotIndex
+;
+;------------------------------------------------------------
+!TOPIC 1468 ChangeHeaderString
+!NOINDEX
+procedure 1452Frame.ChangeHeaderString(Index : Byte; S : string;
+                                   var Redraw : Boolean);
+
+Change existing header string and update position.
+
+See also:
+  2947RawWindow.ChangeHeader    1469ChangeHeaderAttr        1470DrawHeader
+  1488UpdateFrame
+;
+;------------------------------------------------------------
+!TOPIC 1469 ChangeHeaderAttr
+!NOINDEX
+procedure 1452Frame.ChangeHeaderAttr(Index : Byte; Color, Mono : Byte);
+
+Change existing header colors.
+
+See also:  1468ChangeHeaderString  1467GetLastHeaderIndex
+;
+;------------------------------------------------------------
+!TOPIC 1470 DrawHeader
+!NOINDEX
+procedure 1452Frame.DrawHeader(Index : Byte);
+
+Draw specified header.
+
+See also:  1469ChangeHeaderAttr  1468ChangeHeaderString
+;
+;------------------------------------------------------------
+!TOPIC 1471 DisableHeader
+!NOINDEX
+procedure 1452Frame.DisableHeader(Index : Byte; On : Boolean);
+
+Disable or enable specified header.
+
+See also:  1467GetLastHeaderIndex  1488UpdateFrame
+;
+;------------------------------------------------------------
+!TOPIC 1472 AddShadow,Frame
+!NOINDEX
+procedure 1452Frame.AddShadow(Posn : ShadowPosType;
+                          DrawType : ShadowDrawType);
+
+Add a standard shadow.
+
+See also:  1474AddCustomShadow  1473AddShadowColor
+;
+;------------------------------------------------------------
+!TOPIC 1473 AddShadowColor,Frame
+!NOINDEX
+procedure 1452Frame.AddShadowColor(Posn : ShadowPosType;
+                               DrawType : ShadowDrawType;
+                               AttrColor, AttrMono : Byte);
+
+Add a standard shadow with custom color.
+
+See also:  1474AddCustomShadow  1472AddShadow
+;
+;------------------------------------------------------------
+!TOPIC 1474 AddCustomShadow
+!NOINDEX
+procedure 1452Frame.AddCustomShadow(ShChar : Char;
+                                Edge : FrameEdgeType;
+                                DX, DY : Integer; W, H : Byte;
+                                AttrColor, AttrMono : Byte);
+
+Add a custom shadow rectangle.
+
+See also:  1472AddShadow
+;
+;------------------------------------------------------------
+!TOPIC 1475 AddScrollBar
+!NOINDEX
+procedure 1452Frame.AddScrollBar(Posn : FrameEdgeType;
+                             MinUser, MaxUser : LongInt;
+                             var Colors : ColorSet);
+
+Add a standard scroll bar.
+
+See also:  1476AddCustomScrollBar
+;
+;------------------------------------------------------------
+!TOPIC 1476 AddCustomScrollBar
+!NOINDEX
+procedure 1452Frame.AddCustomScrollBar(Posn : FrameEdgeType;
+                                   MinUser, MaxUser : LongInt;
+                                   DecOffset, IncOffset : Byte;
+                                   SliChar, BarChar : Char;
+                                   var Colors : ColorSet);
+
+Add a custom scroll bar.
+
+See also:  1475AddScrollBar
+;
+;------------------------------------------------------------
+!TOPIC 1477 AddHotSpot
+!NOINDEX
+procedure 1452Frame.AddHotSpot(Posn : FrameCornerType;
+                           HotChar : Char; var Colors : ColorSet);
+
+Add a hot spot in a frame corner.
+
+See also:  1480AddHotHeader
+;
+;------------------------------------------------------------
+!TOPIC 1478 AddHotBar
+!NOINDEX
+procedure 1452Frame.AddHotBar(Posn : FrameEdgeType; Code : Byte);
+
+Add a hot region covering an entire frame edge.
+
+See also:  1479AddHotRegion  1477AddHotSpot
+;
+;------------------------------------------------------------
+!TOPIC 1479 AddHotRegion
+!NOINDEX
+procedure 1452Frame.AddHotRegion(Posn : FrameCharType; Code : Byte;
+                             DX, DY : Integer; Width, Height : Byte);
+
+Add a fixed size hot region relative to the frame corner.
+
+See also:  1478AddHotBar  1480AddHotHeader
+;
+;------------------------------------------------------------
+!TOPIC 1480 AddHotHeader
+!NOINDEX
+procedure 1452Frame.AddHotHeader(hType : HeaderPosType;
+                             Code : Byte; Len : Byte);
+
+Add a hot region to coincide with a header.
+
+See also:  1479AddHotRegion
+;
+;------------------------------------------------------------
+!TOPIC 1481 GetLastHotIndex
+!NOINDEX
+function 1452Frame.GetLastHotIndex : Byte;
+
+Return index of last hot region.
+
+See also:  1467GetLastHeaderIndex
+;
+;------------------------------------------------------------
+!TOPIC 1482 ChangeHotHeader
+!NOINDEX
+procedure 1452Frame.ChangeHotHeader(Index : Byte; Len : Byte);
+
+Change the length (and position) of a hot header.
+
+See also:  1480AddHotHeader  1481GetLastHotIndex
+;
+;------------------------------------------------------------
+!TOPIC 1483 SetSizeLimits,Frame
+!NOINDEX
+procedure 1452Frame.SetSizeLimits(MinW, MinH, MaxW, MaxH : Byte);
+
+Set limits for sizing of frame.
+
+See also:  1492AdjustFrame  1484SetClipLimits
+;
+;------------------------------------------------------------
+!TOPIC 1484 SetClipLimits
+!NOINDEX
+procedure 1452Frame.SetClipLimits(MinXL, MinYL, MaxXH, MaxYH : Byte);
+
+Set limits for drawing frame (shadows get clipped).
+
+See also:  1483SetSizeLimits
+;
+;------------------------------------------------------------
+!TOPIC 1485 SetSliderValue
+!NOINDEX
+procedure 1452Frame.SetSliderValue(Posn : FrameEdgeType; UserVal : LongInt);
+
+Change the user value without drawing it.
+
+See also:  1486CurUserValue  2972RawWindow.DrawSlider
+;
+;------------------------------------------------------------
+!TOPIC 1486 CurUserValue
+!NOINDEX
+function 1452Frame.CurUserValue(Posn : FrameEdgeType) : LongInt;
+
+Return the current user value for specified scroll bar.
+
+See also:  2972RawWindow.DrawSlider  1485SetSliderValue
+;
+;------------------------------------------------------------
+!TOPIC 1487 Draw,Frame
+!NOINDEX
+procedure 1452Frame.Draw; virtual;
+
+Draw the frame, scrollbars, headers, and shadows.
+
+See also:  1488UpdateFrame
+;
+;------------------------------------------------------------
+!TOPIC 1488 UpdateFrame
+!NOINDEX
+procedure 1452Frame.UpdateFrame; virtual;
+
+Draw the frame, scrollbars, and headers (no shadows).
+
+See also:  1487Draw  1470DrawHeader
+;
+;------------------------------------------------------------
+!TOPIC 1489 IsFramed
+!NOINDEX
+function 1452Frame.IsFramed : Boolean;
+
+Return True if any of the FrameChars are not NoFrameChar.
+;
+;------------------------------------------------------------
+!TOPIC 1490 Coordinates,Frame
+!NOINDEX
+procedure 1452Frame.Coordinates(var X1, Y1, X2, Y2 : Byte);
+
+Return the coordinates of the frame.
+
+See also:  2967RawWindow.Extent  1491WithinFrameCoords
+;
+;------------------------------------------------------------
+!TOPIC 1491 WithinFrameCoords
+!NOINDEX
+procedure 1452Frame.WithinFrameCoords(var X1, Y1, X2, Y2 : Byte);
+
+Return the coordinates of region within, not including, the border.
+
+See also:  1490Coordinates
+;
+;------------------------------------------------------------
+!TOPIC 1492 AdjustFrame
+!NOINDEX
+procedure 1452Frame.AdjustFrame(X1, Y1, X2, Y2 : Byte);
+
+Set new coordinates and adjust related structures.
+
+See also:  2928RawWindow.AdjustFrameCoords
+;
+;------------------------------------------------------------
+!TOPIC 1493 Error,Frame
+!NOINDEX
+procedure 1452Frame.Error(Code : Word); virtual;
+
+Report that an error occurred.
+
+See also:  1494GetLastError
+;
+;------------------------------------------------------------
+!TOPIC 1494 GetLastError,Frame
+!NOINDEX
+function 1452Frame.GetLastError : Word; virtual;
+
+Return and clear the last error code.
+
+See also:  1434AbstractFrame.ClearErrors
+;
+;------------------------------------------------------------
+!TOPIC 1495 Load,Frame
+!NOINDEX
+constructor 1452Frame.Load(var S : IdStream);
+
+Load from stream. The stream registration procedure for Frame is FrameStream.
+
+See also:  3013RawWindow.Load  1496Store
+;
+;------------------------------------------------------------
+!TOPIC 1496 Store,Frame
+!NOINDEX
+procedure 1452Frame.Store(var S : IdStream);
+
+Store to stream. The stream registration procedure for Frame is FrameStream.
+
+See also:  1495Load  3014RawWindow.Store
+;
+;------------------------------------------------------------
+!TOPIC 1497 Declarations,OpFrame
+!NOINDEX
+!NOSEARCH
+OpFrame provides the following types, constants and variables for working
+Frames and related objects:
+
+  1505Border types              1509Frame positions         1510Header types
+  1511HeaderNode                1514HotNode                 1503NoFrameChar
+  1515ScrollBar                 1506ScrollBar arrows        1504SeeThruChar
+  1508Shadow chars              1513Shadow options          1512ShadowNode
+  1507Slider chars
+;
+;------------------------------------------------------------
+!TOPIC 1498 Conditional defines
+!NOINDEX
+!NOSEARCH
+OpFrame is a very full-featured frame manager. Providing this flexibility
+requires a substantial amount of object code (about 20,000 bytes in the
+entire OpFrame unit). Turbo Pascal's smart linker can strip much of the
+unused code from a particular program, but it cannot strip all such code,
+especially in the presence of virtual methods.
+
+To control code size (and to a lesser extent, data size) Object
+Professional counts on a number of conditional defines, all of them managed
+via the source file OPDEFINE.INC. Several of these defines apply to
+OpFrame and the units that depend on OpFrame. You'll want to disable as
+many of the defines as you can, consistent with the needs of your program.
+By convention, defines are disabled by placing a period between the left
+comment brace and the dollar sign, for example
+
+  {.$DEFINE UseScrollBars}
+
+Defines that affect OPFRAME are as follows:
+
+  {$DEFINE UseMouse}
+  {$DEFINE UseScrollBars}
+  {$DEFINE UseHotSpots}
+  {$DEFINE UseShadows}
+  {$DEFINE UseAdjustableWindows}
+
+All of these are active by default. When you disable one, certain methods
+are effectively removed from the source code. These defines also have
+effects on other units besides OpFrame, particularly OpWindow.
+
+Not all possible combinations of these defines make sense and you shouldn't
+expect logical program behavior if you pick a particularly bizarre set of
+options. Typically, if you don't UseMouse, you won't UseScrollBars or
+UseHotSpots. Similarly, if you don't UseScrollBars, you won't UseHotSpots
+either. UseShadows is independent of the other defines.
+UseAdjustableWindows is independent of the others, but is used most
+frequently when a mouse is available.
+
+Disabling all of these defines can reduce a window-based application's EXE
+size by over 17K bytes (counting the cumulative effects on OpFrame and
+OpWindow). In terms of final EXE size, shadows cost roughly 2K bytes;
+mouse, scroll bars and hot spots (together) cost 8K bytes; and adjustable
+windows cost 7K bytes,
+
+How a Frame object is written to a stream depends on which conditional
+defines are active. When a stream was written with one set of defines, you
+must read it with exactly the same set of defines.
+;
+;------------------------------------------------------------
+!TOPIC 1499 Headers
+!NOINDEX
+!NOSEARCH
+The most common use of a window header is to provide a title string
+centered in the top segment of the window frame. This is easy to do with
+OpFrame. However, there are many other ways to use headers and we'll
+discuss some of them here.
+
+The Frame object manages headers using a linked list of HeaderNodes. Each
+HeaderNode stores a pointer to the actual text string as well as the color
+and monochrome video attributes used to display the header. Four data
+fields within the HeaderNode fully describe the position of the header
+relative to the frame:
+
+  heDX    : Integer;       {Frame-relative coordinates for header}
+  heDY    : Integer;
+  heType  : HeaderPosType; {Type of header, used when resizing}
+  hePosn  : FrameCharType; {Portion of frame header is relative to}
+
+HeaderPosType is an enumerated type that describes the various categories
+of header positioning:
+
+  HeaderPosType = (heCustom, heSpan, heTL, heTC, heTR, heBL, heBC, heBR);
+
+It's worth describing these positioning options since they embody much of
+the header's flexibility. The most commonly used options will be
+heTL..heBR. When you add a header using AddHeader or AddHeaderColor, you
+initialize a HeaderNode with one of these HeaderPosType values. These
+describe headers that are placed at standard positions within the frame: at
+the left edge of the top bar, centered in the top bar, at the right edge of
+the top bar, and so on for the bottom bar of the frame. If you resize a
+frame (usually by calling ResizeWindow) the frame manager will correctly
+adjust the header coordinates so that the title remains in the same
+relative position.
+
+The heCustom option provides complete flexibility in positioning a header
+string. The heCustom option is accessed by using the AddCustomHeader method
+in the Frame object. The rest of the information describing the string's
+position is stored in the heDX, heDY, and hePosn fields. hePosn specifies
+the corner of the frame to which the header is relative. It can take on the
+values frTL (top left), frTR (top right), frBL (bottom left), and frBR
+(bottom right), which specify the frame's four corners. heDX and heDY
+specify the distance in columns and rows, respectively, from the specified
+corner to the start of the header string.
+
+You may have realized that there are four different ways to specify any
+position within the frame, depending on which hePosn corner is used as the
+base. The choice becomes important when the window is resized, at which
+time the header's distance from the chosen corner remains fixed. Suppose
+for example that you want a header that looks like this:
+
+!NOWRAP
++------Colors---+
+|               |
+|               |
++---------------+
+!WRAP
+
+and that when the window is resized you want the Colors string to move in
+concert with the upper right corner of the window. To achieve this goal,
+the values stored in the HeaderNode would be hePosn = frTR, heDX = -9, and
+heDY = 0.
+
+There's nothing that limits the position of a custom header to within the
+actual border of the frame. For example, you could place a row of titles
+inside the window. Because a window's frame is drawn after its contents are
+cleared or restored, such titles would remain visible as long as your code
+that writes to the window did not overwrite them.
+
+The heSpan option provides a particularly useful capability called a span
+header. Such a header spans from one edge of the frame to the other,
+merging into the frame's border on each edge. These are handy for dividing
+menus or entry screens into smaller working sections or for separating
+column titles from the lists they describe. When you call the Frame
+object's AddSpanHeader method, you specify the first character, the
+spanning character, and the last character of the span. The first and last
+characters should be chosen to provide a smooth merge between frame and
+span. The span may be either vertical or horizontal; this is specified by
+choosing an edge of the frame to which the span is parallel--frLL (left
+edge), frRR (right edge), frTT (top edge), frBB (bottom edge). This value
+is stored within the hePosn field. The combination of edge and offset
+distance determines the exact position of the span and its behavior when
+the window is resized.
+
+Any of the Add methods for headers can fail by running out of heap space.
+Be sure to check for errors by using the Frame.GetLastError function.
+
+So far we've talked of headers as static text; that is, something added
+when the frame is created and not changed thereafter. It's also possible to
+change headers on the fly. Object Professional does this in various higher
+level windows: the "Up/Down for More" prompt in a pick list or a
+pathname/wildcard title in a directory window, for example.
+
+To refer to an existing header, you use a byte variable called its header
+index. This is simply the sequential position of the header in the linked
+list of headers, starting with 0. You can count these yourself or you can
+use the Frame object's GetLastHeaderIndex method to return the index of the
+last header added. Later you can call Frame's ChangeHeaderString or
+ChangeHeaderAttr methods or RawWindow's ChangeHeader method with this index
+in order to modify the header text or attributes and optionally update the
+display. These details are taken care of automatically when you use the
+PickList, DirList, PagedHelpWindow, and other objects. You may need to know
+them if you're deriving specialized window types.
+
+It's also possible to temporarily disable specified headers, so that they
+are not drawn along with the rest. See the DisableHeader method for more
+information.
+
+  1466AddAnyHeader              1463AddCustomHeader         1461AddHeader
+  1462AddHeaderColor            1464AddSpanHeader           1465AddSpanHeaderColor
+  1469ChangeHeaderAttr          1468ChangeHeaderString      1471DisableHeader
+  1470DrawHeader                1467GetLastHeaderIndex      1458SetHeaderAttr
+  1460SetSpanAttr
+;
+;------------------------------------------------------------
+!TOPIC 1500 Shadows
+!NOINDEX
+!NOSEARCH
+Shadows offer a level of flexibility similar to headers when customizing a
+frame. The shadows of a frame are stored as a linked list of ShadowNodes.
+Since you can add an arbitrary number of ShadowNodes your windows can have
+shadows on one side, two sides, or even all.
+
+The most convenient method of specifying shadows is the Frame object's
+AddShadow routine. This method lets you specify a shadow that surrounds the
+bottom and right edges, or the bottom and left edges of the frame. The
+shadow may be displayed in either of two ways: shSeeThru or shOverWrite
+(which are both part of the ShadowDrawType enumerated type).
+
+The shSeeThru variety of shadow displays itself by simply changing the
+video attribute of the shadow region. With careful choice of attributes,
+you'll still be able to see the underlying text. The vertical section of
+this shadow is two columns wide and the horizontal portion is one row high.
+The attributes used for the shadow are taken from the frShadowColor and
+frShadowMono fields of the Frame object, which are themselves initialized
+from the ShadowColor and ShadowMono fields of a ColorSet when the Frame is
+initialized.
+
+The shOverWrite shadow displays itself by writing a new character and
+attribute to the shadow region. Various high order characters make good
+choices for the shadow region. The typed constants DefShadowCharH and
+DefShadowCharV are used to initialize the horizontal and vertical shadow
+characters of each ShadowNode at the time AddShadow is called. The vertical
+section of the shadow is only one column wide for this case.
+
+The AddShadowColor method works like AddShadow but allows specification of
+a non-default set of video attributes.
+
+The AddCustomShadow method is the most primitive and most flexible
+technique. With it you specify one rectangular shadow region at a time.
+Building a shadow like the one created by AddShadow would therefore require
+two calls to AddCustomShadow. Use this method to specify shadows on non-
+standard edges of a frame or with different width or height than the
+default.
+
+Any of the Add methods for shadows can fail by running out of heap space.
+Be sure to check for errors by using the Frame.GetLastError function.
+
+One further aspect of using shadows deserves mention here. OpFrame
+includes logic to clip shadows when they would fall outside of a specified
+region of the screen. Hence, shadows do not set a limit on the ability to
+move or resize a window.
+
+  1474AddCustomShadow           1472AddShadow               1473AddShadowColor
+  1459SetShadowAttr
+;
+;------------------------------------------------------------
+!TOPIC 1501 ScrollBars/HotSpots
+!NOINDEX
+!NOSEARCH
+ScrollBars and HotSpots are the most dynamic of the entities associated
+with a frame. The scroll bar display must be updated whenever the "current
+position" changes within the associated window. If the mouse cursor falls
+within a scroll bar, the position must be interpreted in terms of the user
+range associated with the scroll bar. When the mouse cursor falls within a
+hot spot another action may be indicated.
+
+These objects are generally used only when mouse support is designed into
+an application. Occasionally, scroll bars may be useful as status
+indicators even when no mouse is available. Where it makes sense, scroll
+bar support is already integrated into Object Professional's higher level
+window objects. For example, the PickList automatically supports scrolling
+via a scroll bar whenever it detects that a bar has been added to its
+frame.
+
+The AddScrollBar method is the easiest way to create a scroll bar. You
+specify which of the four frame edges to use for the scroll bar and it
+computes the appropriate screen coordinates to use. The increment and
+decrement arrows are positioned at the extremes of the frame edge (without
+writing to the frame corners themselves) and the background of the bar
+fills the region between. Characters for the increment and decrement arrows
+are taken from the appropriate elements of the DefArrows typed constant
+array (depending on whether the bar is horizontal or vertical). Characters
+for the bar slider and background are taken from the DefSliderChar and
+DefBarChar typed constants.
+
+AddCustomScrollBar works somewhat more flexibly. The exact portion of the
+frame edge to contain the scroll bar, as well as the characters to form the
+bar and slider, may be specified.
+
+No matter which Add method is used, the scroll bar must be at least 3
+characters long--one each for the increment and decrement arrows and one
+for the slider. Any less space causes the Add call to fail. OpFrame's
+ScrollBar object always requires the increment and decrement arrows; they
+can be made effectively invisible (by drawing them with the same characters
+as the underlying frame) and they can be ignored when the mouse selects
+them, but they always take space.
+
+Either of the Add methods for scroll bars can fail by running out of heap
+space. Be sure to check for errors by using the Frame.GetLastError
+function.
+
+How the scroll bar maps to the contents of the frame (or window) is an
+important concept to understand. The position of the slider character
+corresponds to a "current position" within the window. The meaning of
+current position varies depending on the kind of window. If the window
+contains a text editor, for example, the current position associated with a
+vertical scroll bar could be the line number where the editor's cursor
+resides. For a horizontal scroll bar, it could be the number of columns the
+editor has horizontally scrolled or perhaps the editor's cursor column. The
+slider character's position is intended to provide a quick estimate of the
+relative state of the window.
+
+The ScrollBar object linearly maps the user range to the visible range
+using the following relation:
+
+  CurPos-MinPos     CurUser-MinUser
+  -------------  =  ---------------
+  MaxPos-MinPos     MaxUser-MinUser
+
+MinPos and MaxPos correspond to the bar's absolute screen coordinates (the
+row for a vertical scroll bar, or the column for a horizontal one); CurPos
+to the slider's position; MinUser, MaxUser, and CurUser to the
+corresponding user values.
+
+The minimum and maximum values are specified when a scroll bar is added and
+may be updated as required. The current user value will be updated
+frequently, perhaps after each command is entered within the window. The
+example at the beginning of this section demonstrates using a ScrollBar.
+
+Hot spots are a little tricky to design because they are invisible. No
+indication of a hot spot appears on the screen, so it can be detected only
+by moving the mouse cursor and attempting selection at various points. Of
+course, a well-designed application will provide visible text to go with
+each hot spot, but it's your responsibility to choose the text and align it
+with the spots.
+
+Each hot spot is mapped to a byte-valued identifying code. When your
+application detects that the mouse is currently within a hot spot, this
+code will specify what action the program should take. Certain codes have
+predefined meanings; the rest are available to you. Here is a list of the
+codes:
+
+  hsNone            = 0;          {Not a hot spot}
+  hsDecV            = 1;          {Decrement arrow of a vert scrollbar}
+  hsIncV            = 2;          {Increment arrow of a vert scrollbar}
+  hsDecH            = 3;          {Decrement arrow of a horiz scrollbar}
+  hsIncH            = 4;          {Increment arrow of a horiz scrollbar}
+  hsBar             = 5;          {Slider portion of a scroll bar}
+  hsSpot            = 6;          {Single character hot spot}
+  hsRegion0         = 7;          {User-defined region}
+  ...
+  hsRegion9         = 16;
+  ...
+  hsReservedForTP   = 255;        {Used internally}
+
+Codes 1-5 are always associated with a scroll bar. Codes 7-16 are for
+user-defined hot spots. Codes 17-254 are available for any use. Code 255 is
+reserved.
+
+There are four different ways to add hot spots to a frame. These methods
+differ in their flexibility and also in the behavior of the resulting spot
+when the frame is resized.
+
+The AddHotSpot method adds a single character hot spot to one of the
+frame's four corners. This method is convenient in that it also adds a
+single character header to the same corner, thus making the hot spot
+visible. Such single character spots are often used to indicate that the
+associated window should be resized or closed. The hot spot code returned
+is always hsSpot. A code for the frame corner is also computed by the
+EvaluateMousePos method of the RawWindow object.
+
+AddHotBar adds a hot spot that covers the entire edge of a frame. This spot
+is invisible unless you provide additional headers associated with it. If
+the frame is resized, the spot grows or shrinks with it. A user-defined
+code is specified when AddHotBar is called.
+
+AddHotHeader specifies a hot spot to coincide with a standard window
+header. In combination with a specified length, the hot spot can be
+centered, left-justified, or right-justified in the top or bottom bar of a
+frame. DESKPOP has such a hot spot coinciding with the top title of each
+window; it is used to drag the window around the screen.
+
+AddHotRegion is the most general method. It specifies a spot of arbitrary
+rectangular dimensions at an arbitrary distance from any frame corner.
+These dimensions remain fixed when the frame is resized. DESKPOP uses these
+hot spots for the local menu activator near the upper left corner of each
+window.
+
+Any of the Add methods for hot spots can fail by running out of heap space.
+Be sure to check for errors by using the Frame.GetLastError function.
+
+Like a header, each hot spot has an associated index value. By using this
+index you can refer to an existing hot spot and change its size or
+position.
+
+  1476AddCustomScrollBar        1478AddHotBar               1480AddHotHeader
+  1479AddHotRegion              1477AddHotSpot              1475AddScrollBar
+  1482ChangeHotHeader           1481GetLastHotIndex         1502Hot spot values
+;
+;------------------------------------------------------------
+!TOPIC 1502 Hot spot values
+!NOINDEX
+!NOSEARCH
+const
+  hsNone            = 0;      {Not a hot spot}
+  hsDecV            = 1;      {Decrement arrow of a vertical scroll bar}
+  hsIncV            = 2;      {Increment arrow of a vertical scroll bar}
+  hsDecH            = 3;      {Decrement arrow of a horizontal scroll bar}
+  hsIncH            = 4;      {Increment arrow of a horizontal scroll bar}
+  hsBar             = 5;      {Slider portion of a scroll bar}
+  hsSpot            = 6;      {Single character hot spot}
+  hsRegion0         = 7;      {User-defined region}
+  ...
+  hsRegion9         = 16;
+  ...
+  hsReservedForTP   = 255;    {Used internally}
+
+Values used to identify hot spots. Such values are specified when adding
+the hot spot and are returned by the RawWindow.PosResults method after
+calling RawWindow.EvaluateMousePos or EvaluatePos.
+;
+;------------------------------------------------------------
+!TOPIC 1503 NoFrameChar
+!NOINDEX
+const
+  NoFrameChar       = #255;
+
+When used in a FrameArray indicates that no writing will be done in that
+position of the frame. The 1505NoWindowFrame constant is a complete array
+of NoFrameChar.
+;
+;------------------------------------------------------------
+!TOPIC 1504 SeeThruChar
+!NOINDEX
+const
+  SeeThruChar       = #255;
+
+Character indicates a see-through shadow when passed as a parameter to the
+AddCustomShadow method.
+
+See also:  1513Shadow options
+;
+;------------------------------------------------------------
+!TOPIC 1505 Border types
+!NOINDEX
+!NOSEARCH
+const
+  DefWindowFrame    : FrameArray = 'ÕÔ¸¾ÍÍ³³';
+  DblWindowFrame    : FrameArray = 'ÉÈ»¼ÍÍºº';
+  SglWindowFrame    : FrameArray = 'ÚÀ¿ÙÄÄ³³';
+  NoWindowFrame     : FrameArray = NoFrameChar+NoFrameChar+
+                                   NoFrameChar+NoFrameChar+
+                                   NoFrameChar+NoFrameChar+
+                                   NoFrameChar+NoFrameChar;
+
+Used to specify common border types to the SetFrameType method.
+DefWindowFrame is the default border used when creating a frame. If many
+windows of the same appearance are to be created, it may be convenient to
+assign a new value to DefWindowFrame before creating the windows.
+;
+;------------------------------------------------------------
+!TOPIC 1506 ScrollBar arrows
+!NOINDEX
+!NOSEARCH
+const
+  {$IFDEF UseScrollBars}
+  DefArrows      : ArrowArray = #27#26#24#25; {Left-Right-Up-Down arrows}
+  TriangleArrows : ArrowArray = #17#16#30#31; {Alternate, using triangles}
+  {$ENDIF}
+
+Used to specify the appearance of increment/decrement arrows for scroll
+bars. DefArrows contains the default arrows used when creating a scroll
+bar with AddScrollBar or AddCustomScrollBar. TriangleArrows is an
+alternate set of arrows provided for convenience.
+
+type
+  {$IFDEF UseScrollBars}
+  ArrowDirections   = (arrowLeft, arrowRight, arrowUp, arrowDown);
+  ArrowArray        = array[ArrowDirections] of Char;
+  {$ENDIF}
+
+Data structure describing the arrows used for building scroll bars.
+;
+;------------------------------------------------------------
+!TOPIC 1507 Slider chars
+!NOINDEX
+!NOSEARCH
+const
+  {$IFDEF UseScrollBars}
+  DefSliderChar     : Char = #178; {Character for slider}
+  DefBarChar        : Char = #176; {Character for scroll bar}
+  {$ENDIF}
+
+Used to specify the appearance of the scroll bar background and slider.
+These default values apply to scroll bars created using the AddScrollBar
+method.
+;
+;------------------------------------------------------------
+!TOPIC 1508 Shadow chars
+!NOINDEX
+!NOSEARCH
+const
+  {$IFDEF UseShadows}
+  DefShadowCharH : Char = #223; {Character for horizontal shadow}
+  DefShadowCharV : Char = #219; {Character for vertical shadow}
+  {$ENDIF}
+
+Used to specify the appearance of opaque (shOverWrite) shadows. These
+defaults apply to shadows created with calls to AddShadow and
+AddShadowColor.
+;
+;------------------------------------------------------------
+!TOPIC 1509 Frame positions
+!NOINDEX
+!NOSEARCH
+const
+  frInsideActive = 8;
+  frInsideFrame  = 9;
+  frOutsideFrame = 10;
+
+These constants continue a sequence of bytes that started in the OpCrt
+unit. All the constants describe a screen position relative to a particular
+window frame. The values in OpCrt defined the frame itself--its corners
+and edges. These additional constants define positions inside and outside
+of the frame and its associated window. The distinction between
+frInsideActive and frInsideFrame isn't clear until you consider how a frame
+and a window work together. The frame and window don't necessarily abut
+exactly. The window's coordinates determine where the active work goes on,
+perhaps where a pick list or editor scrolls. In some cases, the frame will
+be expanded to leave a section of extra screen space surrounding the active
+window; this is useful for effects like non- scrolling column headers over
+pick lists. The frInsideFrame constant applies to this in-between space and
+frInsideActive refers to the active window itself. These additional
+constants are returned by the PosResults method of the RawWindow object.
+
+type
+  FramePosType      = frTL..frOutsideFrame;
+  FrameCornerType   = frTL..frBR;
+  FrameEdgeType     = frTT..frRR;
+
+Types that specify various frame-relative positions. FramePosType covers
+all possible positions (see the discussion of frInsideActive above).
+FrameCornerType includes only the four corners of a frame and
+FrameEdgeType only the four edges. These types are used primarily to
+qualify parameters passed to various methods of the Frame object.
+
+See also: 0421OpCrt.FrameCharType
+;
+;------------------------------------------------------------
+!TOPIC 1510 HeaderPosType
+!NOINDEX
+!NOSEARCH
+type
+  HeaderPosType = (heCustom, heSpan, heTL, heTC, heTR, heBL, heBC, heBR);
+
+Categories of window headers.
+
+See also:  1511HeaderNode  1499Headers
+;
+;------------------------------------------------------------
+!TOPIC 1511 HeaderNode
+!NOINDEX
+1432OpFrame.HeaderNode = object(2446DoubleListNode);
+!LINE
+HeaderPtr = ^HeaderNode;
+
+Data type describing a window header. A linked list of these nodes is
+contained within the Frame object. You probably won't need to use any of
+the data fields or methods of the HeaderNode object directly since the
+Frame object manages them for you.
+
+See also:  1510Header types
+;
+;------------------------------------------------------------
+!TOPIC 1512 ShadowNode
+!NOINDEX
+!NOWRAP
+{$IFDEF UseShadows}
+1432OpFrame.ShadowNode = object(2446DoubleListNode);
+ShadowPtr = ^ShadowNode;
+{$ENDIF}
+!WRAP
+
+Data type describing a window shadow. A linked list of these nodes is
+contained within the Frame object. Each ShadowNode describes a single
+rectangular screen region; hence, for a standard two-edge shadow, there
+will be two nodes on the list. You probably won't need to use any of the
+data fields or methods of the ShadowNode object directly since the Frame
+object manages them for you.
+
+See also:  1500Shadows
+;
+;------------------------------------------------------------
+!TOPIC 1513 Shadow options
+!NOINDEX
+!NOSEARCH
+type
+  {$IFDEF UseShadows}
+  ShadowDrawType    = (shSeeThru, shOverWrite, shNone);
+  ShadowPosType     = (shBR, shBL);
+  {$ENDIF}
+
+Enumerated types describing how shadows are displayed. A "see-through"
+shadow is displayed by changing the video attribute of the underlying
+screen but leaving the characters unchanged. An "overwrite" shadow changes
+all underlying characters and attributes to specified values. shNone is
+returned by certain methods of the Frame and RawWindow objects when no
+shadows are in use.
+
+ShadowPosType describes the two standard composite shadows available with
+the AddShadow and AddShadowColor methods. These specify shadow portions on
+the bottom and right edges, or bottom and left edges, respectively. Other
+combinations can be created by using the AddCustomShadow method.
+;
+;------------------------------------------------------------
+!TOPIC 1514 HotNode
+!NOINDEX
+!NOWRAP
+{$IFDEF UseHotSpots}
+1432OpFrame.HotNode = object(2446DoubleListNode);
+HotSpotPtr = ^HotNode;
+{$ENDIF}
+!WRAP
+
+Data type describing a "hot spot." A linked list of these nodes is
+contained within the Frame object. You probably won't need to use any of
+the data fields or methods of the HotNode object directly since the Frame
+object manages them for you.
+;
+;------------------------------------------------------------
+!TOPIC 1515 ScrollBar
+!NOINDEX
+!NOWRAP
+{$IFDEF UseScrollBars}
+1432OpFrame.ScrollBar = object(2306Root);
+ScrollBarPtr = ^ScrollBar;
+{$ENDIF}
+!WRAP
+
+Data type describing a scroll bar. An array of four pointers--one for each
+frame edge--to these nodes is contained within the Frame object. You
+probably won't need to use any of the data fields or methods of the
+ScrollBar object directly since the Frame object manages them for you.
+;
+;------------------------------------------------------------
+!TOPIC 1516 ScreenBuffer
+!NOINDEX
+type
+  ScreenBuffer      = array[0..65520] of Byte;
+  ScreenBufferPtr   = ^ScreenBuffer;
+
+Used to access buffers that store screen contents in the ScreenRect
+object.
+;
+;------------------------------------------------------------
+!TOPIC 1517 General methods,Frame
+!NOINDEX
+!NOSEARCH
+Below are all Frame methods that don't specifically deal with Headers,
+HotSpots, ScrollBars and Shadows:
+
+  1492AdjustFrame               1490Coordinates             1486CurUserValue
+  1455Done                      1487Draw                    1493Error
+  1454fCopy                     1494GetLastError            1453Init
+  1489IsFramed                  1495Load                    1484SetClipLimits
+  1457SetFrameAttr              1456SetFrameType            1483SetSizeLimits
+  1485SetSliderValue            1496Store                   1488UpdateFrame
+  1491WithinFrameCoords

@@ -1,0 +1,761 @@
+;
+;===========================================================================
+!TOPIC 1069 OpEms
+The OpEms unit contains a variety of routines for working with expanded
+memory. It allows you to determine whether or not EMS memory is installed
+and, if so, how much is currently available. You can allocate and
+deallocate memory, and you can also save and restore the state ("context")
+of the expanded memory manager, in case you need to access EMS memory from
+a TSR. The following routines work with versions 3.x and higher of the
+Expanded Memory Manager:
+
+  1077AllocateEmsPages           1079DeallocateEmsHandle      1086Declarations
+  1085EmmSigFound                1083EmsActiveHandles         1071EmsErrorCode
+  1072EmsInstalled               1076EmsPageFramePtr          1074EmsPagesAvail
+  1084EmsPagesOwned              1073EmsStatusOK              1075EmsTotalPages
+  1080EmsVersion                 1070Error codes              1108GetSizeOfPageMap
+  1078MapEmsPage                 1082RestoreEmsContext        1107RestorePageMap
+  1081SaveEmsContext             1106SavePageMap
+
+The OpEms unit also contains the new EMS functions introduced with the
+EMS 4.0 specification. These include routines in a variety of categories:
+
+  * saving and restoring partial page maps
+  * mapping multiple pages by address or number
+  * reallocating the number of pages for a handle
+  * supporting non-volatile EMS handles that survive a warm boot
+  * setting, retrieving, and searching for a handle name
+  * moving and exchanging memory regions
+  * returning information about the EMS configuration
+
+The following routines are specific to EMS 4.0 and higher:
+
+  1117AttributeSupported         1071EmsErrorCode             1128EmsErrorMessage
+  1123ExchangeMemoryRegion       1125GetAddrMappablePages     1120GetAllHandleNames
+  1115GetHandleAttr              1118GetHandleName            1126GetHardwareConfig
+  1127GetNumberOfRawPages        1124GetNumberOfMappablePages 1105GetPagesForAll
+  1111GetSizeOfPartialPageMap    1113MapPagesByAddress        1112MapPagesByNumber
+  1122MoveMemoryRegion           1114ReallocatePages          1110RestorePartialPageMap
+  1109SavePartialPageMap         1121SearchForHandleName      1116SetHandleAttr
+  1119SetHandleName
+;
+;---------------------------------------------------------------------------
+!TOPIC 1070 Error codes,OpEms
+!NOINDEX
+The following lists all the possible error codes from the EMS functions:
+
+ $00  Success
+ $8A  Requested logical page is outside range of pages owned by handle
+ $8B  Illegal physical page number in mapping request
+ $8C  Page mapping hardware-state save area is full
+ $8D  Save context failed; save area already contains context for handle
+ $8E  Restore context failed; save area does not contain context for
+      handle
+ $8F  No such subfunction
+ $90  Attribute type not defined
+ $91  Feature not supported
+ $92  Source and destination have same handle and overlap; part of source
+      overwritten
+ $93  Length for source or destination is longer than actual allocated
+      length
+ $94  Memory overlaps
+ $95  Specified offset is outside logical page
+ $96  Region length exceeds 1 megabyte
+ $97  Source and destination have same handle and overlap; exhange not
+      performed
+ $98  Source and destination types are undefined
+ $9A  EmsErrSpecified alternate register set is not supported
+ $9B  All alternate register sets allocated
+ $9C  Register sets not supported, and alternate register set is not zero
+ $9D  Specified alternate register set not defined or allocated
+ $9E  Dedicated DMA channels not supported
+ $9F  Specified dedicated DMA channel not supported
+ $A0  No handle found for specified name
+ $A1  Handle with same name already exists
+ $A3  Invalid pointer passed, or contents of source array corrupted
+ $A4  Access to function denied by operating system
+
+See also: 1071EmsErrorCode
+;
+;---------------------------------------------------------------------------
+!TOPIC 1071 EmsErrorCode
+!NOINDEX
+const
+  EmsErrorCode = $0FFFF;
+
+Used by several of the OpEms functions to signal an error.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1072 EmsInstalled
+!NOINDEX
+function 1069OpEms.EmsInstalled : Boolean;
+
+Returns True if the expanded memory manager is installed.
+
+See also: 1073EmsStatusOK  1080EmsVersion
+;
+;---------------------------------------------------------------------------
+!TOPIC 1073 EmsStatusOK
+!NOINDEX
+function 1069OpEms.EmsStatusOK : Boolean;
+
+Returns True if the expanded memory manager reports its status as being OK.
+
+See also: 1072EmsInstalled
+;
+;---------------------------------------------------------------------------
+!TOPIC 1074 EmsPagesAvail
+!NOINDEX
+function 1069OpEms.EmsPagesAvail : Word;
+
+Returns the number of available pages from the expanded memory manager, or
+1071EmsErrorCode in case of error.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1075 EmsTotalPages
+!NOINDEX
+function 1069OpEms.EmsTotalPages : Word;
+
+Returns total number of pages of EMS memory, including allocated pages, or
+1071EmsErrorCode in case of error.
+
+See also: 1074EmsPagesAvail
+;
+;---------------------------------------------------------------------------
+!TOPIC 1076 EmsPageFramePtr
+!NOINDEX
+function 1069OpEms.EmsPageFramePtr : Pointer;
+
+Returns the page frame base address as a pointer.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1077 AllocateEmsPages
+!NOINDEX
+function 1069OpEms.AllocateEmsPages(NumPages : Word) : Word;
+
+Allocates the indicated number of pages and returns a handle. Returns
+1071EmsErrorCode in case of error.
+
+See also: 1074EmsPagesAvail
+;
+;---------------------------------------------------------------------------
+!TOPIC 1078 MapEmsPage
+!NOINDEX
+function 1069OpEms.MapEmsPage(Handle, LogicalPage : Word;
+                          PhysicalPage : Byte) : Boolean;
+
+Maps the specified LogicalPage associated with Handle into PhysicalPage
+(0-3). Returns True if successful.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1079 DeallocateEmsHandle
+!NOINDEX
+function 1069OpEms.DeallocateEmsHandle(Handle : Word) : Boolean;
+
+Deallocates the indicated handle and the memory associated with it.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1080 EmsVersion
+!NOINDEX
+function 1069OpEms.EmsVersion : Byte;
+
+Returns a BCD version number of the EMM handle. To check for version 3.2 or
+greater for example, use: 'if EmsVersion >= $32 then'. Returns 0 in case of
+error.
+
+See also: 1072EmsInstalled
+;
+;---------------------------------------------------------------------------
+!TOPIC 1081 SaveEmsContext
+!NOINDEX
+function 1069OpEms.SaveEmsContext(Handle : Word) : Boolean;
+
+Saves the EMM context for resident programs. The handle passed must have
+been allocated with a call to 1077AllocateEmsPages. Returns True if
+successful.
+
+See also: 1082RestoreEmsContext
+;
+;---------------------------------------------------------------------------
+!TOPIC 1082 RestoreEmsContext
+!NOINDEX
+function 1069OpEms.RestoreEmsContext(Handle : Word) : Boolean;
+
+Restores the mapping context of the EMM driver for the handle specified.
+The handle should be the same one used in a prior call to
+1081SaveEmsContext. Returns True if successful.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1083 EmsActiveHandles
+!NOINDEX
+function 1069OpEms.EmsActiveHandles : Word;
+
+Returns the number of active EMS handles, 1071EmsErrorCode in case of error.
+;
+;---------------------------------------------------------------------------
+!TOPIC 1084 EmsPagesOwned
+!NOINDEX
+function 1069OpEms.EmsPagesOwned(Handle : Word) : Word;
+
+Returns the number of pages owned by Handle, or 1071EmsErrorCode in case of
+error.
+;
+;------------------------------------------------------------
+!TOPIC 1085 EmmSigFound
+!NOINDEX
+function 1069OpEms.EmmSigFound : Boolean;
+
+Returns True if EMM signature found.
+
+See also: 1072EmsInstalled
+;
+;-------------------------------------------------------------------
+!TOPIC 1086 Declarations,OpEms
+!NOINDEX
+1069OpEms provides the following types, constants, and variables:
+
+  1100EmsPtrRecord               1101EmsPtrType               1089EmsResult
+  1098HandleNameList             1097HandleNameRec            1096HandleNameStr
+  1095HandleNameType             1091HandlePagesType          1104HardwareConfigType
+  1103MappablePageList           1102MappablePageType         1092MappableSegType
+  1087MaxHandles                 1088MaxMappablePages         1099MemoryType
+  1090PageInfoType               1094PageMapList              1093PageMapType
+;
+;-------------------------------------------------------------------
+!TOPIC 1087 MaxHandles
+!NOINDEX
+const
+  MaxHandles = 255;
+
+This is the maximum number of handles used by the type 1091HandlePagesType
+and 1095HandleNameType.
+;
+;-------------------------------------------------------------------
+!TOPIC 1088 MaxMappablePages
+!NOINDEX
+const
+  MaxMappablePages = 64;
+
+The maximum number of mappable segments used by the 1092MappableSegType and
+1103MappablePageList types.
+;
+;-------------------------------------------------------------------
+!TOPIC 1089 EmsResult
+!NOINDEX
+const
+  EmsResult : Byte = 0;
+
+The error code of the last EMS operation. This is set by all functions in
+this unit except EmsInstalled, EmsSigFound, and EmsErrorMessage.
+
+See also:  1128EmsErrorMessage
+;
+;-------------------------------------------------------------------
+!TOPIC 1090 PageInfoType
+!NOINDEX
+type
+  PageInfoType =
+    record
+      Handle : Word;
+      Pages  : Word;
+    end;
+
+A record type used by the 1091HandlePagesType type.
+;
+;-------------------------------------------------------------------
+!TOPIC 1091 HandlePagesType
+!NOINDEX
+type
+  HandlePagesType =
+    record
+      NumHandles : Word;
+      PageInfo   : Array[1..1087MaxHandles] of 1090PageInfoType;
+    end;
+
+A record type used by 1105GetPagesForAll.
+;
+;-------------------------------------------------------------------
+!TOPIC 1092 MappableSegType
+!NOINDEX
+type
+  MappableSegType =
+    record
+      NumPages : Word;
+      Segments : Array[1..1088MaxMappablePages] of Word;
+    end;
+
+A record type used by EMS 4.0 partial page mapping routines.
+
+See also:  1109SavePartialPageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1093 PageMapType
+!NOINDEX
+type
+  PageMapType =
+    record
+      Logical  : Integer;
+      Physical : Word;
+    end;
+
+A record type used in 1094PageMapList.
+;
+;-------------------------------------------------------------------
+!TOPIC 1094 PageMapList
+!NOINDEX
+type
+  PageMapList =
+    Array[1..1088MaxMappablePages] of 1093PageMapType;
+
+An array type used by 1112MapPagesByNumber and 1113MapPagesByAddress.
+;
+;-------------------------------------------------------------------
+!TOPIC 1095 HandleNameType
+!NOINDEX
+type
+  HandleNameType = array[1..8] of Char;
+
+A type representing the native format of EMS handle name. Used in
+1097HandleNameRec.
+;
+;-------------------------------------------------------------------
+!TOPIC 1096 HandleNameStr
+!NOINDEX
+type
+  HandleNameStr = string[8];
+
+A Turbo Pascal string representation of the EMS handle name.
+
+See also:  1118GetHandleName              1119SetHandleName
+           1121SearchForHandleName
+;
+;-------------------------------------------------------------------
+!TOPIC 1097 HandleNameRec
+!NOINDEX
+type
+  HandleNameRec  =
+    record
+      Handle : Word;
+      Name   : 1095HandleNameType;
+    end;
+
+A record type used by 1098HandleNameList.
+;
+;-------------------------------------------------------------------
+!TOPIC 1098 HandleNameList
+!NOINDEX
+type
+  HandleNameList =
+    record
+      NumNames : Byte;
+      NameList : array[1..1087MaxHandles] of 1097HandleNameRec;
+    end;
+
+A record type used by 1120GetAllHandleNames. NumNames is the number of
+names in the list, and NameList is the list of names.
+
+Note: This list contains the list of names in their native type. The names are
+not converted automatically to a Turbo Pascal string type.
+;
+;-------------------------------------------------------------------
+!TOPIC 1099 MemoryType
+!NOINDEX
+type
+  MemoryType = (Conventional, Expanded);
+
+This enumerated type defines the two memory types used by 1100EmsPtrRecord.
+;
+;-------------------------------------------------------------------
+!TOPIC 1100 EmsPtrRecord
+!NOINDEX
+type
+  EmsPtrRecord =
+    record
+      Offset : Word;
+      Page   : Word;
+    end;
+
+This type is used to describe a pointer when memory is of type Expanded (see
+1099MemoryType). It is used with the 1101EmsPtrType type.
+;
+;-------------------------------------------------------------------
+!TOPIC 1101 EmsPtrType
+!NOINDEX
+type
+  EmsPtrType =
+    record
+      case MemoryType of
+        Conventional : (ConventionalPtr : Pointer); {a normal real pointer}
+        Expanded     : (ExpandedPtr : 1100EmsPtrRecord); {a ptr to EMS memory}
+    end;
+
+A variant record type used to represent either a pointer to RAM or EMS.
+
+See also:  1122MoveMemoryRegion  1123ExchangeMemoryRegion
+;
+;-------------------------------------------------------------------
+!TOPIC 1102 MappablePageType
+!NOINDEX
+type
+  MappablePageType =
+    record
+      Segment      : Word;
+      PhysicalPage : Word;
+    end;
+
+A record used in 1103MappablePageList to describe a physical page.
+;
+;-------------------------------------------------------------------
+!TOPIC 1103 MappablePageList
+!NOINDEX
+type
+  MappablePageList =
+    record
+      NumPages : Word;
+      Pages    : array[1..1088MaxMappablePages] of 1102MappablePageType;
+    end;
+
+A type containing a list of all mappable pages used by 1125GetAddrMappablePages.
+;
+;-------------------------------------------------------------------
+!TOPIC 1104 HardwareConfigType
+!NOINDEX
+type
+  HardwareConfigType =
+    record
+      RawPageSize : Word; {size of raw EMS pages in paragraphs}
+      AltRegSets  : Word; {number of alternate register sets}
+      ContextSize : Word; {size of context save area in bytes}
+      DMARegSets  : Word; {number of register sets assignable to DMA}
+      DMAOpType   : Word; {0 = DMA can be used with alt reg sets
+                           1 = Only one DMA reg set available}
+    end;
+
+A record of information about the EMS configuration used by
+1126GetHardwareConfig.
+;
+;-------------------------------------------------------------------
+!TOPIC 1105 GetPagesForAll
+!NOINDEX
+function 1069OpEms.GetPagesForAll(var HandlePages :
+                              HandlePagesType) : Boolean;
+
+Return the number of pages allocated for each active handle in HandlePages.
+Function result is True if successful in returning the information.
+
+See also:  1084EmsPagesOwned
+;
+;-------------------------------------------------------------------
+!TOPIC 1106 SavePageMap
+!NOINDEX
+function 1069OpEms.SavePageMap(var Buffer) : Boolean;
+
+Save the page map to Buffer. Returns True if successful. Buffer must be at
+least as big as the value returned by 1108GetSizeOfPageMap. Requires EMS
+3.2 or greater.
+
+See also:  1107RestorePageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1107 RestorePageMap
+!NOINDEX
+function 1069OpEms.RestorePageMap(var Buffer) : Boolean;
+
+Restore the page map from Buffer. Returns True if successful. Buffer must
+contain information obtained by calling 1106SavePageMap. Requires EMS
+3.2 or greater.
+
+See also:  1108GetSizeOfPageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1108 GetSizeOfPageMap
+!NOINDEX
+function 1069OpEms.GetSizeOfPageMap : Byte;
+
+Return the size in bytes of the buffer needed to store the page map.
+Returns 0 if there is an error. This value is always 255 bytes or less.
+Requires EMS 3.2 or greater.
+
+See also:  1107RestorePageMap      1106SavePageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1109 SavePartialPageMap
+!NOINDEX
+function 1069OpEms.SavePartialPageMap(var MapList : MappableSegType;
+                                  var Buffer) : Boolean;
+
+Save partial page map into Buffer. Returns True if successful. Buffer must
+be at least as big as the value returned by 1111GetSizeOfPartialPageMap
+(given the same number of pages as specified in MapList). Requires EMS
+version 4.0.
+
+See also:  1110RestorePartialPageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1110 RestorePartialPageMap
+!NOINDEX
+function 1069OpEms.RestorePartialPageMap(var Buffer) : Boolean;
+
+Restore a partial page map from Buffer. Returns True if successful. Buffer
+must have been previously used in a call to 1109SavePartialPageMap.
+Requires EMS version 4.
+
+See also:  1111GetSizeOfPartialPageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1111 GetSizeOfPartialPageMap
+!NOINDEX
+function 1069OpEms.GetSizeOfPartialPageMap(NumPages : Word) : Byte;
+
+Return the size of the buffer needed to save partial page map info for
+NumPages pages. Returns 0 if an error occurs. Requires EMS version 4.
+
+See also:  1110RestorePartialPageMap      1109SavePartialPageMap
+;
+;-------------------------------------------------------------------
+!TOPIC 1112 MapPagesByNumber
+!NOINDEX
+function 1069OpEms.MapPagesByNumber(NumPages : Word; Handle : Word;
+                                var MappingInfo : PageMapList) : Boolean;
+
+Maps multiple pages by number. NumPages pages are mapped for Handle using
+the information contained within MappingInfo. Returns True if successful.
+If a Logical page number is -1 then the physical page is unmapped. The
+Physical field of the 1093PageMapType is used to hold the physical
+page's number. Requires EMS version 4.
+
+See also:  1113MapPagesByAddress
+;
+;-------------------------------------------------------------------
+!TOPIC 1113 MapPagesByAddress
+!NOINDEX
+function 1069OpEms.MapPagesByAddress(NumPages : Word; Handle : Word;
+                                 var MappingInfo : PageMapList) : Boolean;
+
+Maps multiple pages by address. NumPages pages are mapped for Handle using
+the information contained within MappingInfo. Returns True if successful.
+If a Logical page number is -1 then the physical page is unmapped. The
+Physical field of the 1093PageMapType is used to hold the segment of the
+page. Requires EMS version 4.
+
+See also:  1112MapPagesByNumber
+;
+;-------------------------------------------------------------------
+!TOPIC 1114 ReallocatePages
+!NOINDEX
+function 1069OpEms.ReallocatePages(Handle : Word;
+                               NewPages : Word) : Boolean;
+
+Reallocates the number of pages for the specified Handle. NewPages may be 0
+(the handle is still active and may be resized later). Returns True if
+successful. Requires EMS version 4.
+
+See also:  1077AllocateEmsPages
+;
+;-------------------------------------------------------------------
+!TOPIC 1115 GetHandleAttr
+!NOINDEX
+function 1069OpEms.GetHandleAttr(Handle : Word;
+                             var Volatile : Boolean) : Boolean;
+
+Returns the attribute of the specified Handle in Volatile. If Volatile is
+True, then Handle refers to a volatile EMS handle, if False, then it is
+non-volatile (its contents will be maintained across a warm boot). Function
+returns True if successful in returning attribute. Requires EMS version 4.
+
+See also:  1117AttributeSupported         1116SetHandleAttr
+;
+;-------------------------------------------------------------------
+!TOPIC 1116 SetHandleAttr
+!NOINDEX
+function 1069OpEms.SetHandleAttr(Handle : Word;
+                             Volatile : Boolean) : Boolean;
+
+Set a Handle's attribute. Returns True if successful, False if invalid
+Handle or function not supported. If Volatile is False, and this function
+succeeds, then the contents of the EMS pages allocated to Handle will be
+maintained across a warm boot. Requires EMS version 4.
+
+See also:  1117AttributeSupported         1115GetHandleAttr
+;
+;-------------------------------------------------------------------
+!TOPIC 1117 AttributeSupported
+!NOINDEX
+function 1069OpEms.AttributeSupported : Boolean;
+
+Returns True if the EMS driver supports the 1115GetHandleAttr and
+1116SetHandleAttr functions. Requires EMS version 4.
+
+Note: Many EMS drivers will return False for this function call, indicating
+they do not support non-volatile EMS handles.
+;
+;-------------------------------------------------------------------
+!TOPIC 1118 GetHandleName
+!NOINDEX
+function 1069OpEms.GetHandleName(Handle : Word;
+                             var Name : HandleNameStr) : Boolean;
+
+Returns the Name of Handle. The name for a handle is set with a call to
+1119SetHandleName. This function returns True if the name was
+successfully returned. A Handle's name is initialized to the empty string
+when it is allocated or deallocated. Requires EMS version 4.
+
+See also:  1120GetAllHandleNames         1121SearchForHandleName
+;
+;-------------------------------------------------------------------
+!TOPIC 1119 SetHandleName
+!NOINDEX
+function 1069OpEms.SetHandleName(Handle : Word;
+                             Name : HandleNameStr) : Boolean;
+
+Set the Name of the specified Handle. Returns True if successful. Requires
+EMS version 4.
+
+See also:  1118GetHandleName             1120GetAllHandleNames
+           1121SearchForHandleName
+;
+;-------------------------------------------------------------------
+!TOPIC 1120 GetAllHandleNames
+!NOINDEX
+function 1069OpEms.GetAllHandleNames(var List : HandleNameList) : Boolean;
+
+Get the names of all active handles in List. Returns True as function
+result if successful. Requires EMS version 4.
+
+See also:  1118GetHandleName             1119SetHandleName
+           1121SearchForHandleName
+;
+;-------------------------------------------------------------------
+!TOPIC 1121 SearchForHandleName
+!NOINDEX
+function 1069OpEms.SearchForHandleName(Name : HandleNameStr;
+                                   var Handle : Word) : Boolean;
+
+Search for the specified Name and return Handle of match if found. Returns
+True as function results if successful. If no match is found, function
+result is False. Requires EMS version 4.
+
+Note: This function automatically pads the handle passed in Name to 8
+characters. The character used to pad the string is the null character (#0).
+
+See also:  1118GetHandleName             1119SetHandleName
+           1120GetAllHandleNames
+;
+;-------------------------------------------------------------------
+!TOPIC 1122 MoveMemoryRegion
+!NOINDEX
+function 1069OpEms.MoveMemoryRegion(SrcType : MemoryType;
+                                SrcHandle : Word;
+                                SrcPtr : EmsPtrType;
+                                DestType : MemoryType;
+                                DestHandle : Word;
+                                DestPtr : EmsPtrType;
+                                Size : LongInt) : Boolean;
+
+Move a memory region. Returns True as function result if successful.
+Maximum size of region to move is one megabyte. If the length exceeds a
+single page, consecutive pages supply or receive the data. Overlapping
+addresses are handled correctly. Requires EMS version 4.
+
+SrcType is the type of the source memory (Conventional or Expanded).
+SrcHandle is the handle of the source memory. If the SrcType is
+Conventional, then SrcHandle should be zero. SrcPtr is a pointer (of type
+1101EmsPtrType) to the source memory (see next paragraph). DestType,
+DestHandle, and DestPtr have similar meanings for the destination memory.
+Size is the size of the memory to move in bytes.
+
+The type 1101EmsPtrType is used to pass the address of the regions. The
+MemoryType defines how the EmsPtrType is interpreted. If MemoryType
+is Conventional, then the EmsPtrType is interpreted as a regular pointer.
+EmsPtrType is a variant record.
+
+The following program fragment illustrates usage of the MoveMemoryRegion
+function:
+
+  const
+    OurSrcType  : MemoryType = Conventional;
+    OurDestType : MemoryType = Expanded;
+  var
+    OurSrcPtr  : EmsPtrType;
+    OurDestPtr : EmsPtrType;
+    P : Pointer;
+    EmsPage : Word;
+    EmsOfst : Word;
+    EmsHandle : Word;
+    OK : Boolean;
+  begin
+    ...
+    {assume P points to the source memory}
+    {assume EmsPage, EmsHandle, EmsOfst are properly initialized}
+    ...
+    OurSrcPtr.ConventionalPtr := P;
+    with OurDestPtr.ExpandedPtr do begin
+      Offset := EmsOfst;
+      Page   := EmsPage;
+    end;
+    OK := MoveMemoryRegion(OurSrcType, 0, OurSrcPtr, EmsHandle,
+                           OurDestType, EmsHandle, OurDestPtr);
+  end;
+
+See also:  1123ExchangeMemoryRegion
+;
+;-------------------------------------------------------------------
+!TOPIC 1123 ExchangeMemoryRegion
+!NOINDEX
+function 1069OpEms.ExchangeMemoryRegion(SrcType : MemoryType;
+                                    SrcHandle : Word;
+                                    SrcPtr : EmsPtrType;
+                                    DestType : MemoryType;
+                                    DestHandle : Word;
+                                    DestPtr : EmsPtrType;
+                                    Size : LongInt) : Boolean;
+
+Exchange two memory regions. Returns True as function result if successful.
+Parameters have the same meaning as in 1122MoveMemoryRegion. One
+difference is that the memory regions may not overlap in this routine.
+Requires EMS version 4.
+;
+;-------------------------------------------------------------------
+!TOPIC 1124 GetNumberOfMappablePages
+!NOINDEX
+function 1069OpEms.GetNumberOfMappablePages : Word;
+
+Return the number of mappable pages. Returns 0 if error. Requires EMS
+version 4.
+;
+;-------------------------------------------------------------------
+!TOPIC 1125 GetAddrMappablePages
+!NOINDEX
+function 1069OpEms.GetAddrMappablePages(var List :
+                                    MappablePageList) : Boolean;
+
+Return the addresses of all mappable pages in List. Returns True as
+function result if successful. Will fail if EMS supports more mappable
+pages than the constant 1088MaxMappablePages. Requires EMS version 4.
+;
+;-------------------------------------------------------------------
+!TOPIC 1126 GetHardwareConfig
+!NOINDEX
+function 1069OpEms.GetHardwareConfig(var Config :
+                                  1104HardwareConfigType) : Boolean;
+
+Return information about the EMS hardware configuration in Config. Returns
+True as function result if successful. Requires EMS version 4.
+;
+;-------------------------------------------------------------------
+!TOPIC 1127 GetNumberOfRawPages
+!NOINDEX
+function 1069OpEms.GetNumberOfRawPages(var Total, Free : Word) : Boolean;
+
+Return the number of raw pages. Returns both the Total and the number of
+raw pages Free. Returns True as function result if successful. Raw pages
+may have a size other than 16k. Requires EMS version 4.
+;
+;-------------------------------------------------------------------
+!TOPIC 1128 EmsErrorMessage
+!NOINDEX
+function 1069OpEms.EmsErrorMessage(ErrorCode : Byte) : String;
+
+Return an error message for ErrorCode.
+
+See also:  1089EmsResult

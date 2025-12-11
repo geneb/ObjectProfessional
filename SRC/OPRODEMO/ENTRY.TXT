@@ -1,0 +1,526 @@
+; Set width of help screen
+!WIDTH 64
+;
+; The first seventeen topics pertain to the data entry fields
+;
+!TOPIC  1 Name field
+This field has only one special characteristic: its picture
+mask, CharStr('x', 30), requests that the first letter in
+each word automatically be converted to upper case at the
+time it is entered. Thus, if the user enters 'john smith',
+the result will be 'John Smith'.
+
+Also, like the other fields in ENTRY, this field is cleared
+if the first character pressed is an ASCII character, an
+option activated with esFieldOptionsOn(efClearFirstChar).
+No special validation of input is performed on this field.
+;
+!TOPIC  2 Address field
+This field has only one special characteristic: it is marked as a
+required field, meaning that it cannot be left blank. The screen
+editor will check its contents both when leaving the field and
+when exiting from the screen editor (unless <Esc> has been pressed,
+a user-defined exit command has been issued, or the data entry
+screen is being exited temporarily in order to process a nested
+entry screen such as the one associated with the 6Phones field).
+;
+!TOPIC  3 City field
+This field has only one special characteristic: inserting
+new text cannot push existing text off the end of the field,
+an option selected with esFieldOptionsOff(efInsertPushes).
+No special validation of input is performed on this field.
+;
+!TOPIC  4 State field
+This field, which was added to the entry screen with
+AddPickStringField, is "edited" using a pick list created
+with OPPICK. Rather than entering an abbreviation for a
+state name, the user can simply select one from a list of
+valid abbreviations.
+;
+!TOPIC  5 Zip code field
+This field receives special treatment to insure that it is either
+entirely blank or else contains a 5- or 9-digit number. Validation
+is performed in two ways. First, the picture mask, '99999-9999',
+insures that only digits (0-9) or spaces may be entered. Second, a
+user-written validation routine, ValidateZip, insures that none
+of the first five slots is empty unless the whole field is empty,
+and that none of the last four slots is empty unless all four are
+empty. If you examine ENTRY.PAS, you'll see that ValidateZip
+is a simple routine that relies on the built-in
+ValidateSubfields procedure in OPFIELD.
+;                 ^--- this attribute used for field/procedure/unit names
+;
+!TOPIC  6 Phones field
+This field is unusual in that it has a nested data entry screen
+associated with it. If you move the cursor to this field and press
+<Enter>, a window is popped up that contains a secondary entry
+screen with two fields on it, 16Work phone and 17Home phone.
+This field was added to the main entry screen using the
+AddNestedField method.
+;
+!TOPIC  7 Gender field
+;                      v--- ^D signals link to topic 23
+This is one of the two 23multiple choice fields in the
+program, and it is the more typical of the two. The person's
+gender is stored in a variable of an enumerated type
+!LINE
+  GenderType = (Unknown, Male, Female)
+!LINE
+and the user simply presses keys until the desired choice is
+displayed. To see how this is done, examine the IncChoice
+routine in ENTRY.PAS.
+;
+!TOPIC  8 Marital status field
+This field is a standard yes/no field, added by calling
+AddYesNoField, and as such it requires no special validation.
+The only valid entries are `Y' or `N', and input is automatically
+converted to upper case.
+;
+!TOPIC  9 Date of birth field
+This is a Date field and may hold any valid date between January
+1, 1900 and December 31, 2078. Validation is done in two ways.
+First, the picture mask, usually 'mm/dd/yy', insures that only
+digits (0-9) or spaces may be entered. Second, a built-in
+validation routine insures that (almost) any date entered is a
+legal one. The only illegal date that may be entered,
+'00/00/00', is allowed because the lower and upper bounds for
+the field are both 0. To force the entry of a legal date, the
+constants MinDate and MaxDate (declared in OPDATE) could
+be used instead. Notice that the 10Age field is calculated
+based on the date of birth.
+;
+!TOPIC 10 Age field
+;         v-- this attribute used for general purpose emphasis
+This is a protected field, meaning that its value cannot be
+altered directly by the user. It is also a calculated field,
+meaning that its value is determined automatically based on that
+of another field, in this case the 9Date of birth field. To
+see how this is done, examine the PostEdit routine in
+ENTRY.PAS. Like the other protected fields in ENTRY, the Age
+field is displayed in a different color than unprotected fields.
+Unlike the other protected fields, however, it is not displayed
+at all if its value is 0.
+;
+!TOPIC 11 Hourly wage field
+This is the only numeric field in the program, at least by the
+definition used in OPENTRY. That is, it is the only field that
+uses the 22numeric editor, which in this case is requested by
+calling AddNumericRealField rather than AddRealField. Although
+the most noticeable difference between it and the other fields is
+that text is inserted from right to left in calculator fashion,
+the command set for the numeric editor is also restricted.
+!PAGE
+Notice, too, that the value in this field is used, along with
+13Hours worked per week, to calculate 12Weekly earnings and
+14Yearly earnings.
+;
+!TOPIC 12 Weekly earnings field
+This is a protected field, meaning that its value cannot be
+altered directly by the user. It is also a calculated field,
+meaning that its value is determined automatically based on that
+of another field, in this case the 11Hourly wage and 13Hours
+worked per week fields. To see how this is done, examine the
+PostEdit routine in ENTRY.PAS. This field is automatically
+right-justified because its picture mask contains a fixed decimal
+point, and it is padded with asterisks rather than spaces, an option
+selected using SetPadChar('*').
+;
+!TOPIC 13 Hours worked per week field
+This is the second of the two 23multiple choice fields in the
+program. Unlike the 7Gender field, however, it does not present
+the user with a small set of choices corresponding to an
+enumerated type. Rather, it presents a default value that may be
+incremented or decremented by pressing the <+> or <-> keys. To
+see how this is done, examine the IncChoice routine in
+ENTRY.PAS.
+
+Notice, too, that the value in this field is used, along with
+11Hourly wage, to calculate 12Weekly earnings and 14Yearly
+earnings.
+;
+!TOPIC 14 Yearly earnings field
+This field is handled in precisely the same manner as the
+12Weekly earnings field.
+;
+!TOPIC 15 Notes field
+This is a memo field created with the routines in OPMEMO. Like
+the 6Phones field, the Notes field is displayed by itself in a
+popup window when you move the cursor to it and press <Enter>.
+The most notable difference between the two is that this field has
+a string associated with the field. This effect is achieved by
+using AddNestedStringField rather than AddNestedField to add
+the field. Although ENTRY never alters this string (NotesMsg),
+some applications may wish to change the string associated with
+such a field in order to reflect choices made in the nested entry
+screen.
+
+The memo editor provides a variety of commands for editing
+text, moving the cursor, reformatting text, and so on. Like
+OPENTRY, OPMEMO also provides plenty of hooks to allow the
+unit to be customized for a particular application. ENTRY uses
+one of these hooks, SetStatusProc, to display a customized
+status line at the bottom of the editing window, for example.
+!PAGE
+;   ^----------- force the start of a new screen
+The memo editor offers the following commands:
+
+  <Left>, <CtrlS>
+  Cursor left one character.
+
+  <Right>, <CtrlD>
+  Cursor right one character.
+
+  <CtrlLeft>, <CtrlA>
+  Cursor left one word. A 'word' is a series of non-blank
+  characters followed by one or more blanks.
+!PAGE
+  <CtrlRight>, <CtrlF>
+  Cursor right one word.
+
+  <Home>, <CtrlQ><S>
+  Cursor to beginning of line.
+
+  <End>, <CtrlQ><D>
+  Cursor to end of line.
+
+  <Up>, <CtrlE>
+  Cursor up one line.
+!PAGE
+  <Down>, <CtrlX>
+  Cursor down one line.
+
+  <CtrlW>
+  Scroll display up one line.
+
+  <CtrlZ>
+  Scroll display down one line.
+
+  <PgUp>, <CtrlR>
+  Scroll display up one page.
+!PAGE
+  <PgDn>, <CtrlC>
+  Scroll display down one page.
+
+  <CtrlHome>, <CtrlQ><E>
+  Move cursor to top of edit window.
+
+  <CtrlEnd>, <CtrlQ><X>
+  Move cursor to bottom of edit window.
+
+  <CtrlPgUp>, <CtrlQ><R>
+  Move cursor to beginning of file.
+!PAGE
+  <CtrlPgDn>, <CtrlQ><C>
+  Move cursor to end of file.
+
+  <ClickLeft>
+  Move the cursor to the position indicated by the mouse.
+
+  <Del>, <CtrlG>
+  Delete character at cursor.
+
+  <Bksp>, <CtrlH>, <CtrlBksp>
+  Delete character to left of cursor.
+!PAGE
+  <CtrlY>
+  Delete current line.
+
+  <CtrlQ><Y>
+  Delete from cursor to end of line.
+
+  <CtrlT>
+  Delete word to right of cursor.
+
+  <Enter>, <CtrlM>
+  Start a new line.
+!PAGE
+  <Tab>, <CtrlI>
+  Move the cursor to the next tab stop.
+
+  <CtrlP>
+  Insert control character. For example, to insert a ^G, you
+  would enter <CtrlP><CtrlG>.
+
+  <Ins>
+  Toggle insert mode on and off. Fat cursor indicates insert
+  mode; thin cursor indicates overtype mode.
+!PAGE
+  <CtrlO><W>
+  Toggle word wrap on and off. When word wrap is on, any
+  attempt to insert or append text beyond the right margin
+  will cause a new line to be inserted, and the word
+  currently being entered to be moved to the new line.
+
+  <CtrlO><I>
+  Toggle auto-indent mode. In auto-indent mode, pressing
+  <Enter> in insert mode causes the new line to have the
+  same indentation as the previous line. Auto-indent also
+  affects the way text is formatted when word wrap occurs.
+!PAGE
+  <CtrlB>
+  Reformat the current paragraph.
+
+  <AltR>
+  Reformat the entire file. Use this command with caution.
+
+  <CtrlQ><L>
+  Undo changes to current line and continue editing.
+
+  <Esc>, <CtrlBreak>, <ClickRight>
+  Quit editing.
+!PAGE
+  <F1>, <ClickBoth>
+  Help. If a user-written help routine has been established,
+  as has been done here, this command invokes that routine.
+  Otherwise it does nothing.
+;
+!TOPIC 16 Work phone field
+This field receives special treatment to insure that it is
+either entirely blank or contains a complete phone number,
+with or without an area code. Validation is performed in two
+ways. First, the picture mask, '(999) 999-9999', insures
+that only digits (0-9) or spaces may be entered. Second, a
+user-written validation routine, ValidatePhone, insures
+that none of the last seven slots is empty unless the whole
+field is empty, and that none of the first three slots is
+empty unless all three are empty. If you examine
+ENTRY.PAS, you'll see that ValidatePhone is a simple
+routine that relies on the ValidateSubfields procedure in
+OPFIELD.
+!PAGE
+Notice that each sub-field is padded to the right with
+underscore characters. This option was selected using
+SetPadChar('_'). The underscore characters appear only on
+screen; the string being edited is actually padded with
+spaces.
+;
+!TOPIC 17 Home phone field
+This field is handled in precisely the same manner as the 16Work
+phone field.
+;
+; The remaining topics are more general...
+;
+!TOPIC 18 Help on Help
+;      v----- force this topic to appear first in the index
+!INDEX 1
+This demo program has a context-sensitive help system developed
+using OPHELP. As you've already discovered, this help system is
+similar to the one used by Borland in Turbo Pascal: it is
+invoked by pressing <F1>, you can select from an index of help
+topics by pressing <F1> a second time, and you can page backward
+through a list of previously selected topics by pressing
+<AltF1>.
+
+The text for a given topic may also contain links to other topics,
+which can be selected by moving the cursor to the appropriate word
+or phrase and pressing <Enter>.
+;
+!TOPIC 19 Editing commands
+!INDEX 2
+The following are the commands available in the string editor,
+which is used for editing most of the fields in ENTRY. Note
+that several of these commands are either not available or
+behave slightly differently in the 22numeric editor and
+23multiple choice editor.
+
+  <Left>, <CtrlS>
+  Cursor left one character.
+
+  <Right>, <CtrlD>
+  Cursor right one character.
+!PAGE
+  <CtrlLeft>, <CtrlA>
+  Cursor left one word. A 'word' is a series of non-blank
+  characters followed by one or more blanks.
+
+  <CtrlRight>, <CtrlF>
+  Cursor right one word.
+
+  <Home>, <CtrlQ><S>
+  Cursor to beginning of field.
+!PAGE
+  <End>, <CtrlQ><D>
+  Cursor to end of field.
+
+  <Del>, <CtrlG>
+  Delete character at cursor.
+
+  <Bksp>, <CtrlH>, <CtrlBksp>
+  Delete character to left of cursor.
+
+  <CtrlY>
+  Clear entire field.
+!PAGE
+  <CtrlEnd>, <CtrlQ><Y>
+  Delete from cursor to end of subfield.
+
+  <CtrlHome>
+  Delete from beginning of subfield to cursor.
+
+  <CtrlT>
+  Delete word to right of cursor.
+!PAGE
+  <Ins>
+  Toggle insert mode on and off. Fat cursor indicates insert
+  mode; thin cursor indicates overtype mode.
+
+  <CtrlP>
+  Insert control character. For example, to insert a ^G, you
+  would enter <CtrlP><CtrlG>.
+
+  <CtrlR>, <CtrlQ><L>
+  Restore original contents of the field and continue
+  editing.
+!PAGE
+  <F1>
+  Help. If a user-written help routine has been established,
+  as has been done here, this command invokes that routine.
+  Otherwise it does nothing.
+;
+!TOPIC 20 Field movement commands
+!INDEX 3
+These commands allow the user to move the cursor from one field
+(or subfield) to another:
+
+  <Enter>, <CtrlM>
+  Accept contents of field and move to the next one.
+
+  <Tab>, <CtrlI>
+  Move cursor to the beginning of the next subfield.
+
+  <ShiftTab>
+  Move cursor to the beginning of the previous subfield.
+!PAGE
+  <Up>, <CtrlE>
+  Move cursor to last field above the current one.
+
+  <Down>, <CtrlX>
+  Move cursor to last field below the current one.
+
+  <CtrlPgUp>, <CtrlQ><R>
+  Move cursor to first field on screen.
+
+  <CtrlPgDn>, <CtrlQ><C>
+  Move cursor to last field on screen.
+!PAGE
+  <PgUp>
+  Move cursor to the top line of the entry screen if the
+  entry screen is non-scrollable, or to the previous page
+  if it is.
+
+  <PgDn>
+  Move cursor to the bottom line of the entry screen if the
+  entry screen is non-scrollable, or to the next page if
+  it is.
+;
+!TOPIC 21 Exit commands
+!INDEX 4
+An exit command is a command that causes control to pass
+from the entry screen manager back to the main program,
+which must react to the command. The following are the
+standard pre-assigned exit commands:
+
+  <CtrlEnter>, <CtrlK><D>, <CtrlK><Q>
+  Quit editing. Accepts all changes to the current field.
+
+  <Esc>, <CtrlBreak>
+  Abort. Restores the original value of the current field.
+!PAGE
+The programmer may also define as many as 56 additional exit
+commands: ccUser0..ccUser55. In ENTRY, there are three
+user-defined exit commands:
+
+  <CtrlPgUp>
+  Quit editing the current record and start editing the
+  previous one. Accepts all changes to the current field.
+  Note that <CtrlPgUp> is actually assigned to the standard
+  exit command ccPrevRec, which is normally not associated
+  with a keystroke.
+
+  <CtrlPgDn>
+  Quit editing the current record and start editing the next
+  one. Accepts all changes to the current field. Note that
+  <CtrlPgDn> is actually assigned to the standard exit
+  command ccNextRec, which is normally not associated with
+  a keystroke.
+
+  <AltB>
+  Toggles the error bell on and off.
+;
+!TOPIC 22 Numeric editor
+!INDEX 5
+The numeric editor is designed exclusively for entering and
+editing numbers. It works much like a calculator, meaning that the
+cursor is always positioned at the far right edge of the field and
+digits are always inserted at the end, pushing previously entered
+digits to the left.
+
+The numeric editor also has one command not found in the 19string
+editor or the 23multiple choice editor:
+
+  <->
+  Changes the sign of the number being entered.
+;
+!TOPIC 23 Multiple choice editor
+!INDEX 6
+This special-purpose editor is designed to edit two kinds of
+fields: those associated with enumerated types, and those
+associated with numeric values that need to be adjusted in
+incremental fashion.
+
+In comparison with the 19string editor, the multiple choice editor
+offers a restricted command set. There are no commands for
+inserting or deleting text, nor are there any commands for moving
+the cursor within the field itself. The only cursor commands
+available are those which move the cursor to another field.
+!PAGE
+The multiple choice editor does, however, offer two commands not
+implemented in the 19string editor or the 22numeric editor:
+
+  <+>, <Space>
+  Select next choice, or increment value.
+
+  <->
+  Select previous choice, or decrement value.
+
+Note that you may alter these key assignments, if desired,
+by calling EntryCommands.AddCommand.
+;
+!TOPIC 24 Mouse functions
+!INDEX 7
+Thanks to the low-level facilities in OPMOUSE and other
+units in Object Professional, ENTRY is able to provide
+extensive mouse support. While editing fields, you can do
+the following things using a mouse (if one is installed):
+
+- Move the mouse cursor (shaped like a diamond) to any
+  unprotected field on the data entry screen and select it
+  by clicking the left mouse button
+!LINE
+- Move the mouse cursor to the 6Phones field and click
+  the left mouse button: the secondary entry screen
+  associated with it will be popped up
+!LINE
+- Move the mouse cursor to the 8Marital status field and
+  click the left mouse button once to select it, a second
+  time to toggle its value
+!LINE
+- Move the mouse cursor to the 13Hours worked per week or
+  7Gender field and click the left mouse button once to
+  select the field, a second time to increment the value
+!LINE
+- Press the right mouse button to simulate pressing the
+  <Esc> key
+!LINE
+- Press both mouse buttons (the left and the right) to bring
+  up the help screen for the current field
+!PAGE
+- Press the center mouse button (on three-button mice only)
+  to simulate pressing <Enter>
+
+You can also use the mouse when selecting from pick lists,
+when using the help system, and when responding to prompts for
+a single keypress (in general, clicking the right button does
+the same thing as pressing <Esc>, while clicking the left
+button does the same thing as pressing <Enter>).
+

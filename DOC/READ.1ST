@@ -1,0 +1,471 @@
+
+                Late News on Object Professional 1.30
+                -------------------------------------
+
+This file describes changes, additions, and clarifications that do not
+appear in the Object Professional manual. Please print and read this
+file prior to using Object Professional, and save it for future
+reference. It includes the following sections, which are organized
+according to the unit/utility to which they apply:
+
+      1.  DPMI
+      2.  OPABSWIN/OPWINDOW
+      3.  OPCMD
+      4.  OPDATE
+      5.  OPDIALOG
+      6.  OPDIR
+      7.  OPDOS
+      8.  OPDRAG
+      9.  OPEDITOR
+      10. OPFIELD
+      11. OPFORM
+      12. OPROOT
+      13. OPSTRING
+      14. MAKEMENU
+      15. Help system
+      16. Conditional Defines
+      17. Error Codes
+      18. Corrections to the Manual
+
+NOTE! Starting with this version of Object Professional, 5.25"
+diskettes are no longer distributed with the package. We can provide
+the 5.25" diskettes upon request, however. Simply fill out the
+enclosed coupon and return it, along with your 3.5" diskettes, to us.
+
+As of version 1.30, new and updated manuals are available.  You can
+purchase a new set (all three volumes) for $30.00 + shipping.
+Shipping charges are:
+
+        Method                 Cost $
+        ---------------        ------
+        U.S. Mail                5.00
+        Fedex, 2 day            10.00
+        Fedex, next day         20.00
+        International air mail  40.00
+
+If you want new manuals, you can call our sales line at (800)333-4160.
+International customers can call (719)260-9136.  Please have your
+serial number ready when ordering manuals or upgrades.
+
+
+1. DPMI
+=====================================================================
+TurboPower ships a unit named DPMI.PAS with our Turbo Professional,
+Async Professional, and Object Professional products.  The unit's
+interface changes over time, resulting in the possibility of 'unit
+version mismatch' errors from the compiler, depending on which DPMI
+unit it finds first.  If you get this error, you should find your
+newest copy of DPMI.PAS and overwrite any older versions with the new
+copy.  You should then delete any copies of DPMI.TPU or DPMI.TPP and
+re-make your application.
+
+
+2. OPABSWIN/OPWINDOW
+=====================================================================
+As of version 1.30, the OPWINDOW unit has been split into two separate
+units: OPABSWIN and OPWINDOW.
+
+OPABSWIN contains the AbstractWindow object previously defined in
+OPWINDOW.PAS.  No other changes were made to OPWINDOW that should
+affect your code.  There are very few instances in which you will have
+to put OPABSWIN in your program's uses statement.
+
+
+3. OPCMD
+=====================================================================
+The following new declarations have been added:
+
+const
+  {...}
+  ccBlkAppend = 141;
+
+type
+  {...}
+  UserMatchFunc = function(    CPP : CommandProcessorPtr;
+                           var Key, Cmd : Word) : MatchType;
+
+The following new methods have been added to CommandProcessor:
+
+Declaration
+  function cpUserMatch(var Key, Cmd : Word) : MatchType; virtual;
+Purpose
+  Allow the user to match a keystroke with a command.
+Description
+  This method is called each time the cpReadKey method returns a
+  keystroke.  If you override this method, you have the opportunity to
+  match that keystroke (or mouse click) with a command by returning
+  the appropriate values in Key and Cmd.
+
+  For example:
+
+    { generate a special command if F3 is pressed }
+    if (Key = $3D00) then
+      Cmd := ccUser21;
+
+  If you do match the keystroke to a command, cpUserMatch should
+  return the value FullMatch.  If you do not match the keystroke,
+  cpUserMatch should return NoMatch.
+
+  If you don't want to create a new type of CommandProcessor to use
+  this feature, see the SetUserMatchFunc method defined below.
+
+
+Declaration
+  procedure SetUserMatchFunc(UMF : UserMatchFunc);
+Purpose
+  Specify a routine to be called each time a keystroke is generated.
+Description
+  A UserMatchFunc (describe above) is called each time the
+  CommandProcessor's read key routine returns a keystroke.  See the
+  entry for cpUserMatch above for more information.
+
+
+4. OPDATE
+=====================================================================
+The following routines have been added to OPDATE:
+
+Declaration
+  procedure DosToDateTime(var DT : DateTime; var DTR : DateTimeRec);
+Purpose
+  Convert a DOS unit DateTime structure to an OPDATE DateTimeRec.
+Description
+  Some standard DOS unit routines (UnpackTime, PackTime, GetFTime,
+  SetFTime, FindFirst, and FindNext) deal with a structure called
+  DateTime, which contains information about a date and time.
+  Similarly, OPDATE defines a structure, DateTimeRec, which it uses
+  for date and time comparisons and for incrementing and decrementing
+  dates.  This routine converts a DOS unit DateTime structure into an
+  OPDATE DateTimeRec structure.
+
+Declaration
+  procedure DateTimeToDos(var DTR : DateTimeRec; var DT : DateTime);
+Purpose
+  Convert an OPDATE DateTimeRec to a DOS unit DateTime structure.
+Description
+  This routine converts an OPDATE DateTimeRec structure into a DOS
+  unit DateTime structure.
+
+Declaration
+  procedure PackedToDateTime(PackedTime : LongInt; var DT : DateTimeRec);
+Purpose
+  Convert a packed date/time into a DateTimeRec.
+Description
+  Internally, DOS stores dates and times in a 4-byte variable that
+  holds information about both date and time.  This routine converts
+  that information from packed time format into an OPDATE DateTimeRec
+  structure.
+
+Declaration
+  procedure DateTimeToPacked(var DT : DateTimeRec; var PackedTime : LongInt);
+Purpose
+  Convert a DateTimeRec to a packed date/time.
+Description
+  Converts a DOS packed time into an OPDATE DateTimeRec structure.
+
+
+5. OPDIALOG
+=====================================================================
+The following methods have been added to DialogBox:
+
+Declaration
+  procedure ProtectClusterItem(ClusterID : Word; ItemID : Byte);
+Purpose
+  Protect an individual radio button or check box in a cluster.
+Description
+  Many people have requested a way to protect individual radio buttons
+  and check boxes in a cluster.  ProtectClusterItem allows this.
+
+  A protected cluster item cannot be selected, either by mouse or by
+  keyboard.  If the user edits a cluster where the default item is
+  protected, the default item is moved to the topmost, unprotected
+  item.  If all items in the cluster are protected, the DialogBox
+  object treats the entire cluster as protected.
+
+  ClusterID is the field ID of the cluster that contains the item you
+  want to protect.  ItemID is the ID of the item in the cluster.  For
+  instance, if you wanted to protect the "Pepperoni" item in the
+  following set of check boxes:
+
+    {idToppings:}
+    AddCheckBoxes(...);
+      AddCheckBox('Xtra Cheez', WantCheez);       { Item ID = 0 }
+      AddCheckBox('Olives', WantOlives);          { Item ID = 1 }
+      AddCheckBox('Pepperoni', WantPepperoni);    { Item ID = 2 }
+      AddCheckBox('Mushrooms', WantMushrooms);    { Item ID = 3 }
+
+  you would write:
+
+    MyDialog.ProtectClusterItem(idToppings, 2);
+
+
+Declaration
+  procedure UnprotectClusterItem(ClusterID : Word; ItemID : Byte);
+Purpose
+  Turn off protection for a cluster item.
+Description
+  This method reverses the effects of ProtectClusterItem.  The
+  parameters are the same as for ProtectClusterItem.
+
+
+6. OPDIR
+=====================================================================
+The following methods have been added to PathList:
+
+Declaration
+  procedure SavePathList(FName : PathStr);
+Purpose
+  Save the entries in a PathList to a disk file.
+Description
+  SavePathList writes all the entries in a PathList object to disk.
+  If you're going to be looking at the same set of paths over and over
+  again, using this routine (and its sister, LoadPathList) can
+  drastically decrease the time that it takes to load and format a set
+  of paths.
+
+Declaration
+  procedure LoadPathList(FName : PathStr);
+Purpose
+  Load a previously saved PathList from a disk file.
+Description
+  This method reads a set of paths previously written to disk by
+  SavePathList.  This method can be used in place of the
+  PreLoadPathList method.
+
+
+7. OPDOS
+=====================================================================
+The following routines have been added:
+
+Declaration
+  function IsPhantom(Drive : Char) : Boolean;
+Purpose
+  Determine whether the specified drive is a phantom drive.
+Description
+  DOS version 3.2 or greater is required to use this routine.
+
+  On computers with only one floppy disk, DOS creates a phantom disk
+  drive to make it easier to copy information from one floppy disk to
+  another.  Whenever this phantom floppy is selected, DOS prompts you
+  to insert the disk for that floppy and swaps the drive letter of the
+  phantom floppy with the active floppy.  In this manner, DOS can copy
+  information between two floppies on a one-floppy system, prompting
+  the user to swap disks as necessary.
+
+  Programs with modern, multi-window user interfaces generally don't
+  appreciate DOS interrupting their users; especially if DOS is
+  prompting the user to do something.
+
+  In an effort to prevent DOS from interfering with your application,
+  OpDos now includes the IsPhantom function.  IsPhantom allows you to
+  detect whether or not the drive specified in Drive is a phantom
+  drive.  If the drive is a phantom (i.e., if DOS will prompt you to
+  insert a disk if you access it), this function returns True,
+  otherwise it returns False.
+
+  Additionally, many of the OPDOS routines that access the disk now
+  check for phantom drives before performing any disk accesses.
+
+Declaration
+  function PhantomExists : Boolean;
+Purpose
+  Determine whether a phantom floppy drive exists in the system.
+Description
+  DOS version 3.2 or greater is required to use this routine.
+
+  This routine calls IsPhantom for drive A and drive B.  If IsPhantom
+  returns True for either of these drives, PhantomExists returns True,
+  otherwise it returns False.
+
+Declaration
+  procedure SelectPhantom(Drive : Char);
+Purpose
+  Select a phantom drive as current.
+Description
+  DOS version 3.2 or greater is required to use this routine.
+
+  This routine allows you to select a phantom drive without DOS's
+  "Insert diskette for drive..." message popping up.  This routine
+  assigns the drive letter of the current floppy to the phantom
+  drive and makes the drive specified in Drive active, just like
+  SelectDrive does.
+
+8. OPDRAG
+=====================================================================
+The following constants have been added:
+
+const
+  {...}
+  CloseHotCode  = hsRegion3;
+
+Whenever HandleMousePress is called when the mouse has been clicked on
+a region with a hot value of CloseHotCode, the last command for the
+owning CommandWindow will be set to ccQuit.
+
+Example:
+
+  MyCommandWindow.Process;
+  if (MyCommandWindow.GetLastCommand in [ccMouseDown, ccMouseAuto]) then
+    HotCode := HandleMousePress(MyCommandWindow);
+  case MyCommandWindow.GetLastCommand of
+    ccQuit: {place quit logic here}
+  end;
+
+
+9. OPEDITOR
+=====================================================================
+An append marked block function has been added.  You can now press
+^K^A, or generate a ccAppendBlk command to access this feature.  The
+append block functionality will strip any ^Z characters from the end
+of the destination file before performing the append.
+
+A "whole word" search capability has been added.  Adding a 'W'
+character to the search options string will only find the search
+string if that string is found as a complete word.  A complete word is
+defined as a series of characters which have a word delimiter to their
+immediate left and their immediate right.  Word delimiters are stored
+in the meWordDelims typed constant in OPMEMO.
+
+
+10. OPFIELD
+=====================================================================
+As of version 1.30, portions of the code from OPFIELD have been moved
+into the OPSELECT unit.  The declarations and implementations of the
+SelectField and TextField objects have been moved from OPFIELD into
+OPSELECT.  If your code references either of these data types, you
+will need to include OPSELECT in your uses list.
+
+The user-specified PostEdit routine is now called each time a multiple
+choice field is incremented or decremented.
+
+
+11. OPFORM
+=====================================================================
+In versions prior to 1.30, shaded fields added to a form were not
+added relative to the current block.  Hence, when shaded fields were
+printed, they were printed relative to the current page.  We felt
+that, for consistency, shaded fields, like all other fields, should be
+relative to the current block and shaded fields will behave that way
+from now on.
+
+
+12. OPROOT
+=====================================================================
+The following method has been added to SingleList and DoubleList:
+
+Declaration
+  procedure Reset;
+Purpose
+  Clear all nodes from a list without disposing of them.
+Description
+  This method simply resets the internal list points to NIL and sets
+  the size of the list to zero.  All allocated list nodes remain
+  intact.
+
+
+13. OPSTRING
+=====================================================================
+The following routines have been added:
+
+Declaration
+  function Replace( var Buffer; BufLength : Word;
+                    var Match; MatLength : Word;
+                    var Repl; RepLength : Word;
+                    var NewLength : Word;
+                    MaxLength : Word; All : Boolean) : Word;
+Purpose
+  Replace occurrences of Match in Buffer with Repl.
+Description
+  Looks through Buffer for the first occurrence of the data in Match.
+  If an occurrence is found, that data is replaced with the data in
+  Repl.  BufLength is the number of bytes currently stored in Buffer.
+  MatLength is the number of match bytes in Match.  RepLength is the
+  number of replacement bytes in Repl.  MaxLength is the maximum
+  number of bytes that the buffer can hold.
+
+  If the All parameter is set to False, only the first occurrence of
+  Match will be replaced.  If All is set to True, all occurrences of
+  Match will be replaced.
+
+  If the replacement buffer is smaller than the match buffer, the
+  buffer will shrink with each replacement.  If the replacement buffer
+  is larger than the match buffer, the buffer will grow with each
+  replacement.  On return from Replace, NewLength will contain the new
+  number of characters in the buffer.
+
+  The return value of the Replace function is the offset of the last
+  replacement made.  $FFFF is returned if there was an error, or if
+  Match was not found in Buffer.
+
+Declaration
+  function ReplaceUC( var Buffer; BufLength : Word;
+                      var Match; MatLength : Word;
+                      var Repl; RepLength : Word;
+                      var NewLength : Word;
+                      MaxLength : Word; All : Boolean) : Word;
+Purpose
+  Replace all occurrences of Match in Buffer with Repl.  The search
+  for Match is not case-sensitive
+Description
+  This routine works exactly like Replace, except the search performed
+  for Match is done in a case-insensitive manner.
+
+
+14. MAKEMENU
+=====================================================================
+The algorithm used to generate default identifiers for menu choices
+has been changed to allow the generation of better identifiers.
+Default identifiers are now generated by concatenating the first 10
+characters of the choice string, after replacing spaces with
+underscores, and a string representation of the item ID.
+
+15. Help System
+=====================================================================
+A new utility named MEGAPAGE.EXE is now installed in the \OPRO\HELP
+subdirectory when you install the OPRO help system. If you run this
+utility, it merges page numbers from the OPRO 1.30 manual into all
+relevant topics of the help text. It reads the supplied file
+OPROIND.TXT to supply a map between the topic names and the manual
+pages. MEGAPAGE.EXE creates new help text files with the extension
+.NEW, leaving the previous .TXT files unchanged. To use the new
+files, run MAKEHELP OPRO.NEW to create a new version of OPRO.HLP.
+
+MEGAPAGE.EXE is a modified version of Scott Samet's MEGAPAGE program,
+which was originally developed as a bonus file for Object
+Professional.
+
+MEGAPAGE.EXE is a protected mode program.  You must have copies of
+Borland's RTM.EXE and DPMI16BI.OVL to run this program.
+
+
+16. Conditional defines
+=====================================================================
+The following conditional defines have been added to OPDEFINE.INC:
+
+  {$DEFINE OPro13}
+
+This define was added as of version 1.30.  Units that depend on Object
+Professional and need to compile with all versions of Object
+Professional can test this define to detect the changed organization
+of version 1.30.  The primary use for this define is to detect the
+split of OPWINDOW into OPWINDOW and OPABSWIN, and the split of OPFIELD
+into OPFIELD and OPSELECT.
+
+
+17. Error codes
+=====================================================================
+The following error codes have been added to OPCONST:
+
+  ecPathListEmpty   = 02201; {can't save path list because it's empty}
+
+Error codes in the range 6000-6999 have been reserved for user
+applications. TurboPower will not use error codes in this range, so
+you can define them for application-specific purposes.
+
+
+18. Corrections to the manual
+=====================================================================
+p. 4-256    The example for DirList.FileCapacity says that a DirList
+            generates an "ecTooManyFiles error" when reading a
+            directory that contains more files than the list can
+            handle.  This error should be "ecDirTooBig."
+

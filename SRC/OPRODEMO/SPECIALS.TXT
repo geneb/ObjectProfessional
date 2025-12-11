@@ -1,0 +1,436 @@
+;
+;===========================================================================
+!TOPIC 1 Help on Help
+!INDEX 1
+!NOSEARCH
+This pop-up reference POPHELP is a tool to help you make most effective use
+of the many capabilities in Object Professional 1.0. While it cannot be a
+complete replacement for the printed manual, it does serve as a valuable
+quick reference to the available routines and the most important data
+structures and constants.
+
+POPHELP is a memory resident program that can be activated in several ways:
+
+<ShiftF1>
+!LINE
+Reads a word from the screen at a location nearest to the cursor position
+and then scans the list of topics and displays the matching topic. If none
+is found, it displays the main help index. The help window is positioned
+away from the cursor position if possible.
+
+<ShiftF2>
+!LINE
+Redisplays the most recently selected help topic.
+
+<ShiftF3>
+!LINE
+Pops up the main help index, which displays the names of the Object
+Professional units and other items of interest, such as Help on Help.
+
+The following keystrokes may be used after POPHELP is popped up:
+
+<F1>
+!LINE
+Displays the main topic index again.
+
+<AltF1>
+!LINE
+Displays the topic that was displayed prior to the current one.
+
+<F3>
+!LINE
+Prompts for a new help file. POPHELP will read any help file built
+using the Object Professional 1.0 MAKEHELP utility.
+
+<F4>, <CtrlK><C>
+!LINE
+If a block is marked and visible, pastes it from the help system to the
+underlying editor.
+
+<F5>, <AltZ>
+!LINE
+Toggles the zoom mode of the window.
+
+<F6>, <AltM>
+!LINE
+Enters move/resize mode--you can use the cursor keys to move the window
+around the screen, or the Shift-cursor keys to resize the window. <PgUp>
+and <PgDn> change the height of the window in increments of 4.
+<CtrlLeftArrow> and <CtrlRightArrow> change the width in increments of 10.
+Note that the window cannot be resized while it is zoomed.
+
+<F7>, <CtrlK><B>
+!LINE
+Marks the beginning of a block.
+
+<F8>, <CtrlK><K>
+!LINE
+Marks the end of a block.
+
+<F9>, <CtrlL>
+!LINE
+Continues the last topic name search, using the search string obtained
+with the <ShiftF1> hotkey. Searching is circular.
+
+<CtrlK><H>
+!LINE
+Hides or unhides the currently marked block. <F4> will paste only if a
+block is visible.
+
+<PgUp>, <PgDn>
+!LINE
+Moves to the next or previous page of the current help topic.
+
+<Left>, <Right>, <Up>, <Down>
+!LINE
+Moves the cursor around the help window. Positioning the cursor over a
+cross-reference link and pressing <Enter> will load and display the
+associated help topic.
+
+<Tab>
+!LINE
+Jumps to the next cross reference topic, if any.
+
+<ShiftTab>
+!LINE
+Jumps to the previous cross reference topic, if any.
+
+<Enter>
+!LINE
+Selects the currently highlighted cross-reference topic.
+
+<Esc>, <AltX>
+!LINE
+Exits POPHELP. The current topic and page are retained and may be
+redisplayed by pressing <ShiftF2>.
+;
+;===========================================================================
+!TOPIC 2 Defines
+!INDEX 2
+!NOSEARCH
+A number of conditional defines affect the behavior of Object
+Professional. All such defines are located in the file OPDEFINE.INC, which
+is included by all units. By convention, unwanted defines are deactivated
+by placing a period immediately after the opening comment brace, e.g.:
+
+   {.$DEFINE UseMouse}
+
+The following defines are contained in OPDEFINE.INC. The default condition
+of the define is indicated by whether a period appears in the define.
+
+{$N-}
+  Controls whether the Float type in OpString is defined as an Extended
+  or a Real. Also controls the inclusion of certain methods that apply only
+  to 8087 numeric types.
+
+{$DEFINE InitAllUnits}
+  Forces all units to contain an initialization block, even those that do
+  not have any actual initialization code. Adding these blocks helps to
+  work around a bug in Turbo Debugger 1.5.
+
+{.$DEFINE UseCrt}
+  Determines whether or not OpCrt is compiled in such a way as to coexist
+  peacefully with the standard Turbo Pascal CRT unit.
+
+{$DEFINE UseMouse}
+  Enables mouse support in various units.
+
+{$DEFINE UseScrollBars}
+  Enables scroll bar support in OpWindow and units that depend on it.
+
+{$DEFINE UseHotSpots}
+  Enables hot spot support in OpWindow and units that depend on it.
+
+{$DEFINE UseShadows}
+  Enables shadowing support in OpWindow.
+
+{$DEFINE UseAdjustableWindows}
+  Enables the AdjustWindow, ResizeWindow, MoveWindow, and other methods in
+  OpWindow.
+
+{$DEFINE FourByteDates}
+  Dates in OpDate are stored as LongInt's when enabled, Word's otherwise.
+
+{$DEFINE UseDates}
+  Enables support for editing of dates in OpEdit and OpEntry. Also
+  enables certain formatting options in OpDir.
+
+{.$DEFINE UseBCD}
+  Enables support for BCD reals in OpEdit, OpEntry, and OpForm.
+
+{$DEFINE PickListFields}
+  Enables support for pick list fields in OpEntry.
+
+{$DEFINE FastDispose}
+  Enables a special dispose technique that improves performance in
+  OpSort. Disable if the program must allocate heap space during the
+  sort. Note that FastDispose is automatically undefined under Turbo Pascal
+  6, with which it is incompatible.
+
+{$DEFINE ThwartSideKick}
+  When defined, OpTsr tries to thwart SideKick.
+
+{$DEFINE UseStreams}
+  When defined, streams support is available for all objects.
+
+{$DEFINE SupportXms}
+  When defined, XMS support is enabled in OpSwap.
+
+{.$DEFINE UseDrag}
+  When defined, OpDrag support will be included in all units containing
+  CommandWindow-based objects.
+
+{.$DEFINE UseCalcEdit}
+  If UseCalcEdit is defined, the new calculator-style editor will be
+  compiled into OpFEdit under the name 'NumberEditor', and the standard
+  numeric editor will be omitted from the unit.
+;
+;===========================================================================
+!TOPIC 3 Scan Codes
+!INDEX 3
+!NOSEARCH
+The following table shows the hexadecimal scan words (returned by
+0406ReadKeyWord) for all the keys on a normal keyboard. For additional
+keystrokes returned on an enhanced keyboard, see 1129OpEnhKbd. The low
+byte of each word is the normal ASCII character returned by
+0339ReadKey.
+
+        Plain  Shift  Control  Alt            Plain  Shift  Control  Alt
+     Up  4800   4838    --     --        Down  5000   5032    --     --
+   Left  4B00   4B34   7300    --       Right  4D00   4D36   7400    --
+   Home  4700   4737   7700    --         End  4F00   4F31   7500    --
+   PgUp  4900   4939   8400    --        PgDn  5100   5133   7600    --
+    Ins  5200   5230    --     --         Del  5300   532E    --     --
+
+        Plain  Shift  Control  Alt            Plain  Shift  Control  Alt
+     F1  3B00   5400   5E00   6800         F2  3C00   5500   5F00   6900
+     F3  3D00   5600   6000   6A00         F4  3E00   5700   6100   6B00
+     F5  3F00   5800   6200   6C00         F6  4000   5900   6300   6D00
+     F7  4100   5A00   6400   6E00         F8  4200   5B00   6500   6F00
+     F9  4300   5C00   6600   7000        F10  4400   5D00   6700   7100
+
+        Plain  Shift  Control  Alt            Plain  Shift  Control  Alt
+    Esc  011B   011B   011B    --         Tab  0F09   0F00    --     --
+   BkSp  0E08   0E08   0E7F    --
+    [ {  1A5B   1A7B   1A1B    --         ] }  1B5D   1B7D   1B1D    --
+    ; :  273B   273A    --     --         ' "  2827   2822    --     --
+    , <  332C   333C    --     --         . >  342E   343E    --     --
+    / ?  352F   353F    --     --         ` ~  2960   297E    --     --
+    \ |  2B5C   2B7C   2B1C    --
+
+        Plain  Shift  Control  Alt            Plain  Shift  Control  Alt
+      a  1E61   1E41   1E01   1E00          b  3062   3042   3002   3000
+      c  2E63   2E43   2E03   2E00          d  2064   2044   2004   2000
+      e  1265   1245   1205   1200          f  2166   2146   2106   2100
+      g  2267   2247   2207   2200          h  2368   2348   2308   2300
+      i  1769   1749   1709   1700          j  246A   244A   240A   2400
+      k  256B   254B   250B   2500          l  266C   264C   260C   2600
+      m  326D   324D   320D   3200          n  316E   314E   310E   3100
+
+        Plain  Shift  Control  Alt            Plain  Shift  Control  Alt
+      o  186F   184F   180F   1800          p  1970   1950   1910   1900
+      q  1071   1051   1011   1000          r  1372   1352   1312   1300
+      s  1F73   1F53   1F13   1F00          t  1474   1454   1414   1400
+      u  1675   1655   1615   1600          v  2F76   2F56   2F16   2F00
+      w  1177   1157   1117   1100          x  2D78   2D58   2D18   2D00
+      y  1579   1559   1519   1500          z  2C7A   2C5A   2C1A   2C00
+
+        Plain  Shift  Control Alt             Plain  Shift  Control Alt
+    1 !  0231   0221    --   7800         2 @  0332   0340   0300  7900
+    3 #  0433   0423    --   7A00         4 $  0534   0524    --   7B00
+    5 %  0635   0625    --   7C00         6 ^  0736   075E   071E  7D00
+    7 &  0837   0826    --   7E00         8 *  0938   092A    --   7F00
+    9 (  0A39   0A28    --   8000         0 )  0B30   0B29    --   8100
+
+The following are the standard hardware scan codes (in hex) generated by
+the keyboard. This table is especially useful for calculating TSR hotkeys:
+
+  Code Key        Code  Key        Code  Key        Code  Key
+   01  <Esc>        02  <1>          03  <2>          04  <3>
+   05  <4>          06  <5>          07  <6>          08  <7>
+   09  <8>          0A  <9>          0B  <0>          0C  <->
+   0D  <=>          0E  <Bksp>       0F  <Tab>        10  <Q>
+   11  <W>          12  <E>          13  <R>          14  <T>
+   15  <Y>          16  <U>          17  <I>          18  <O>
+   19  <P>          1A  <[>          1B  <]>          1C  <Enter>
+   1D  <Ctrl>       1E  <A>          1F  <S>          20  <D>
+   21  <F>          22  <G>          23  <H>          24  <J>
+   25  <K>          26  <L>          27  <;>          28  <'>
+   29  <`>          2A  <LtShift>    2B  <\>          2C  <Z>
+   2D  <X>          2E  <C>          2F  <V>          30  <B>
+   31  <N>          32  <M>          33  <,>          34  <.>
+   35  </>          36  <RtShift>    37  <PrtSc>      38  <Alt>
+   39  <Space>      3A  <CapLock>    3B  <F1>         3C  <F2>
+   3D  <F3>         3E  <F4>         3F  <F5>         40  <F6>
+   41  <F7>         42  <F8>         43  <F9>         44  <F10>
+   45  <NumLock>    46  <ScrLock>    47  <Home>       48  <Up>
+   49  <PgUp>       4A  <Minus>      4B  <Left>       4C  <Center>
+   4D  <Right>      4E  <Plus>       4F  <End>        50  <Down>
+   51  <PgDn>       52  <Ins>        53  <Del>        54  <SysReq>
+   55  ------       56  ------       57  <F11>        58  <F12>
+;
+;===========================================================================
+!TOPIC 4 Line Drawing
+!INDEX 4
+!NOSEARCH
+The following figures make it easy to pick out the extended ASCII line
+drawing characters. The ASCII character number is shown in decimal next to
+the way it actually appears:
+
+       205                196                 203                194
+ 201ÉÍÍÍÍÍÍÍ»187    218ÚÄÄÄÄÄÄÄ¿191     201ÉÍÍÍËÍÍÍ»187    218ÚÄÄÄÂÄÄÄ¿191
+    º       º          ³       ³           º206º   º          ³197³   ³
+ 186º       º186    179³       ³179     204ÌÍÍÍÎÍÍÍ¹185    195ÃÄÄÄÅÄÄÄ´180
+    º       º          ³       ³           º   º   º          ³   ³   ³
+ 200ÈÍÍÍÍÍÍÍ¼188    192ÀÄÄÄÄÄÄÄÙ217     200ÈÍÍÍÊÍÍÍ¼188    192ÀÄÄÄÁÄÄÄÙ217
+       205                196                 202                193
+
+       203                210                 194                209
+ 213ÕÍÍÍËÍÍÍ¸184    214ÖÄÄÄÒÄÄÄ·183     214ÖÄÄÄÂÄÄÄ·183    213ÕÍÍÍÑÍÍÍ¸184
+    ³206º   ³          º215º   º           º197³   º          ³216³   ³
+ 198ÆÍÍÍÎÍÍÍµ181    199ÇÄÄÄ×ÄÄÄ¶182     199ÇÄÄÄÅÄÄÄ¶182    198ÆÍÍÍØÍÍÍµ181
+    ³   º   ³          º   º   º           º   ³   º          ³   ³   ³
+ 212ÔÍÍÍÊÍÍÍ¾190    211ÓÄÄÄÐÄÄÄ½189     211ÓÄÄÄÁÄÄÄ½189    212ÔÍÍÍÏÍÍÍ¾190
+       202                208                 193                207
+;
+;------------------------------------------------------------
+!TOPIC 5 Object hierarchy
+!INDEX 5
+!NOSEARCH
+Following is the complete object hierarchy for Object Professional. Where
+applicable, the object name is a cross-reference link to its help topic:
+
+  Object                                   Unit
+  0291ColorSet                                 OPCRT
+  2306Root                                     OPROOT
+    2394PointerStack                           OPROOT
+      3089WindowStack                          OPWINDOW
+    ByteStack*                             OPPRINT
+    2409StaticQueue                            OPROOT
+    2425SingleListNode                         OPROOT
+      1314TextField                            OPSELECT
+      2206PrintMode                            OPPRINT
+      FieldListNode*                       OPFORM
+      1420PrintBlock                           OPFORM
+      1421PrintPage                            OPFORM
+      1345PrintedForm                          OPFORM
+    2446DoubleListNode                         OPROOT
+      HeaderNode*                          OPFRAME
+      ShadowNode*                          OPFRAME
+      HotNode*                             OPFRAME
+      1841MenuItemNode                         OPMENU
+      0017AbstractField                        OPABSFLD
+        1292SelectField                        OPSELECT
+          1303EntryField                       OPFIELD
+            1303StringField*                   OPFIELD
+            1303ArrayField*                    OPFIELD
+            1303CharField*                     OPFIELD
+            1303BooleanField*                  OPFIELD
+            1303YesNoField*                    OPFIELD
+            1303LongIntField*                  OPFIELD
+            1303WordField*                     OPFIELD
+            1303IntegerField*                  OPFIELD
+            1303ByteField*                     OPFIELD
+            1303ShortIntField*                 OPFIELD
+            1303RealField*                     OPFIELD
+            1303BcdField*                      OPFIELD
+            1303ExtendedField*                 OPFIELD
+            1303DoubleField*                   OPFIELD
+            1303SingleField*                   OPFIELD
+            1303CompField*                     OPFIELD
+            1303DateField*                     OPFIELD
+            1303DateStField*                   OPFIELD
+            1303TimeField*                     OPFIELD
+            1303ChoiceField*                   OPFIELD
+            1303NestedField*                   OPFIELD
+            1303MultiLineField*                OPFIELD
+            1240PickField*                     OPENTRY
+            1241WindowField*                   OPENTRY
+        1334PrintField                         OPFORM
+          1334StringPrintField*                OPFORM
+          1334CharPrintField*                  OPFORM
+          1334WordPrintField*                  OPFORM
+          1334BooleanPrintField*               OPFORM
+          1334YesNoPrintField*                 OPFORM
+          1334LongPrintField*                  OPFORM
+          1334IntPrintField*                   OPFORM
+          1334BytePrintField*                  OPFORM
+          1334ShortPrintField*                 OPFORM
+          1334RealPrintField*                  OPFORM
+          1334BCDPrintField*                   OPFORM
+          1334ExtPrintField*                   OPFORM
+          1334DblPrintField*                   OPFORM
+          1334SglPrintField*                   OPFORM
+          1334CompPrintField*                  OPFORM
+          1334DatePrintField*                  OPFORM
+          1334TimePrintField*                  OPFORM
+          1334LineField*                       OPFORM
+            1334ShadedField*                   OPFORM
+    2427SingleList                             OPROOT
+    2448DoubleList                             OPROOT
+      2468CircularList                         OPROOT
+        MenuItemList*                      OPMENU
+    2472BitSet                                 OPROOT
+      2496LargeBitSet                          OPROOT
+    2503StringDict                             OPROOT
+      2520StringSet                            OPROOT
+    2525StringArray                            OPROOT
+    1682AbstractArray                          OPLARRAY
+      1703RamArray                             OPLARRAY
+        1706RamRCArray                         OPLARRAY
+      1709EmsArray                             OPLARRAY
+        1712EmsRCArray                         OPLARRAY
+      1721VirtualArray                         OPLARRAY
+        1724PrimitiveArray                     OPLARRAY
+        1726VirtualRCArray                     OPLARRAY
+      1729OpArray                              OPLARRAY
+    2353DirEntry                               OPROOT
+    2309IdStream                               OPROOT
+      2336DosIdStream                          OPROOT
+        2342BufIdStream                        OPROOT
+          2365OpLibrary                          OPROOT
+      2348MemIdStream                          OPROOT
+        2387MemLibrary                         OPROOT
+    0218CommandProcessor                       OPCMD
+    0251CommandPacker                          OPCMD
+    0201Cloner                                 OPCLONE
+    ScrollBar*                             OPFRAME
+    1435ScreenRect                             OPFRAME
+    3099LoadableColorSet                       OPWINDOW
+    3103PackedWindow                           OPWINDOW
+    3070VirtScreen                             OPWINDOW
+    0942LineEditor                             OPEDIT
+    2592SimpleLineEditor                       OPSEDIT
+    AbstractFrame*                         OPFRAME
+      1452Frame                                OPFRAME
+    AbstractWindow*                        OPABSWIN
+      2923RawWindow                            OPWINDOW
+        SubMenu*                           OPMENU
+        3015StackWindow                        OPWINDOW
+          3045CommandWindow                    OPWINDOW
+            0102Browser                        OPBROWSE
+            1798Memo                           OPMEMO
+              1815MemoFile                     OPMEMO
+                1023TextEditor                 OPEDITOR
+            1859Menu                           OPMENU
+            2027PickList                       OPPICK
+              0708DirList                      OPDIR
+              0766PathList                     OPDIR
+              1519AbstractHelpWindow*          OPHELP
+                1559PagedHelpWindow            OPHELP
+                1550ScrollingHelpWindow        OPHELP
+            2618AbstractSelector*              OPSELECT
+              2664Selector                     OPSELECT
+                2681ScrollingSelector          OPSELECT
+              1137EntryScreen                  OPENTRY
+                1214ScrollingEntryScreen       OPENTRY
+    2212BasePrinter                            OPPRNLOW
+      2235DosPrinter                           OPPRNLOW
+      2239FlexiblePrinter                      OPPRNLOW
+        2240BiosPrinter                        OPPRNLOW
+    2128Printer                                OPPRINT
+    1399Report                                 OPFORM
+
+Note: An asterisk after a object's name means that the object is generally
+considered to be for internal use only. However, in many cases, some
+additional information is provided about that object.

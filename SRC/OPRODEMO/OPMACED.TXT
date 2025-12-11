@@ -1,0 +1,156 @@
+;
+;------------------------------------------------------------
+!TOPIC 1744 OpMacEd
+OpMacEd implements a full-featured macro editor. This specialized editor
+allows you to easily insert, delete, and change the keys in a macro, which
+are represented as strings of one or more characters. The Escape key, for
+example, is displayed as "<Esc>", and the Enter key as "<Enter>", so you
+don't need to know anything about scan codes in order to use it.
+
+OpMacEd interfaces the following:
+
+  1751Commands                  1750Configuration data      1745EditKeys
+  1748MacEdCmd                  1749MacEdCommands           1746NonMacroKey
+  1747TempMacro
+;
+;------------------------------------------------------------
+!TOPIC 1745 EditKeys
+!NOINDEX
+function 1744OpMacEd.EditKeys(Key : Word; var Macro : MacroRec;
+                          MinCol, MinRow, MaxCol, MaxRow : Byte;
+                          Dim, Bright : Byte;
+                          var Modified : Boolean) : MacroRecPtr;
+
+Edit the Macro associated with Key. EditKeys implements a full-featured
+macro editor. The editing window is defined by the MinCol, MinRow, MaxCol,
+and MaxRow parameters. Key is the key associated with the macro, and
+normally it is displayed at the top left corner of the window. If you don't
+want it displayed, pass NonMacroKey as the Key parameter.
+
+Macro, a variable of type MacroRec, is never actually modified by EditKeys.
+Instead, EditKeys makes a copy of it, on which the actual editing is
+performed, and returns a pointer to the copy. If no edits were made to the
+Macro, the Modified parameter is set to False, otherwise to True.
+
+The Dim and Bright parameters determine the video attributes used to draw
+the window border (Bright) and the keys in the macro (normal keys are
+displayed in Dim; keys that must be represented with a string are displayed
+in Bright).
+
+See also:
+  1751Commands                  1748MacEdCmd                1749MacEdCommands
+  1746NonMacroKey               1747TempMacro
+;
+;------------------------------------------------------------
+!TOPIC 1746 NonMacroKey
+!NOINDEX
+const
+  NonMacroKey = $FFFF;
+
+If this value is passed to EditKeys as the Key parameter, Key is not
+translated into a string and displayed while editing.
+
+See also:  1745EditKeys
+;
+;------------------------------------------------------------
+!TOPIC 1747 TempMacro
+!NOINDEX
+var
+  TempMacro : MacroRec;
+
+Temporary macro used for editing. Since this macro is used only while
+editing, you may treat it as a scrap macro.
+
+See also:  1745EditKeys  1782OpMacro.MacroRec
+;
+;------------------------------------------------------------
+!TOPIC 1748 MacEdCmd
+!NOINDEX
+var
+  MacEdCmd : Word;
+
+Last command entered by the user in EditKeys.
+
+See also:  1745EditKeys
+;
+;------------------------------------------------------------
+!TOPIC 1749 MacEdCommands
+!NOINDEX
+var
+  MacEdCommands : CommandProcessor;
+
+Command processor used by the macro editor.
+
+See also:  0218CommandProcessor  1745EditKeys
+;
+;------------------------------------------------------------
+!TOPIC 1750 Configuration data,OpMacEd
+!NOINDEX
+!NOSEARCH
+const
+  MacEdKeyMax = 70;
+  MacEdKeyID  : string[12] = 'opmaced keys';
+  MacEdKeySet : array[0..MacEdKeyMax] of Byte = (...);
+  MacEdCfgEnd : Byte = 0;
+
+MacEdKeyMax is the last available slot in MacEdKeySet. MacEdKeyID is an ID
+string that allows installation programs to locate the configuration data.
+MacEdKeySet contains the default key assignments for the macro editor.
+MacEdCfgEnd marks the end of the configuration data.
+;
+;------------------------------------------------------------
+!TOPIC 1751 Commands,OpMacEd
+!NOINDEX
+!NOSEARCH
+The following commands are available in 1744OpMacEd's macro editor:
+
+!WRAP
+ccSelect      <Enter>, <ClickLeft>
+!LINE
+Stop editing.
+
+ccQuit        <Esc>, <ClickRight>
+!LINE
+Restore original macro and stop editing.
+
+ccLeft        <Left>
+!LINE
+Cursor left one key.
+
+ccRight       <Right>
+!LINE
+Cursor right one key.
+
+ccUp          <Up>
+!LINE
+Cursor up one line.
+
+ccDown        <Down>
+!LINE
+Cursor down one line.
+
+ccIns         <Ins>
+!LINE
+Toggle insert mode.
+
+ccDel         <Del>
+!LINE
+Delete key at cursor.
+
+ccBack        <Bksp>
+!LINE
+Delete previous key.
+
+ccDelLine     <CtrlBksp>
+!LINE
+Delete all keys in macro.
+
+ccHelp        <F1>, <ClickBoth>
+!LINE
+Help. Invoke help routine associated with 1749MacEdCommands, if any.
+
+----          <ScrollLock>
+!LINE
+Toggle between command mode and literal mode. In literal mode, pressing any
+of the keys listed above will insert that key into the macro, rather than
+executing the command.
