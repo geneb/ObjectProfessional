@@ -10,12 +10,16 @@ Their website clearly states, "TurboPower libraries released as open source".  T
 
 Well dammit, **I'm** interested!  I'm sure I'm not the only one.
 
+The original product description for Object Professional can be found [here](https://web.archive.org/web/20000919042436/http://www.turbopower.com/products/opro/).
+
 I owned a copy of Object Professional that I used back in the mid 90's and after chasing down some patch updates, this repository is the result.  At some point, I'll be adding photos and binary images of my original diskettes.
+
+From what I can determine, v1.30 is the last version of Object Professional that was released by TurboPower.
 
 ## Building
 Object Professional can be built using Turbo Pascal versions 5.5 to 7.0, and Borland Pascal v7.0.  In the case of Borland Pascal 7.0, units can be built for both real mode (TPU) and protected mode (TPP).  The build process also requires Turbo Assembler v1.0 or greater, or Microsoft Assembler v4.0 or greater in order to assemble the .ASM files.  You'll need to ensure that your build tools are in your DOS path.
 
-The file SRC\OPDEFINE.INC has settings that can be changed in order to affect how Turbo Power is built and functions.  It would be worth your time to peruse that file - note that unless you know **why** you're going to change something, you probably should leave it the default.
+The file SRC\OPDEFINE.INC has settings that can be changed in order to affect how Object Professional is built and functions.  It would be worth your time to peruse that file - note that unless you know **why** you're going to change something, you probably should leave it the default.
 
 The Makefile for Object Professional can be found in SRC\OPRO.MAK.  This file will allow you to adjust a number of different things about how the units are built.  I recommend going through it - the settings it uses are very well documented.  Note that the Makefile uses the Borland Make syntax.
 
