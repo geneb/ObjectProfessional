@@ -1,6 +1,6 @@
 # TurboPower Object Professional v1.30
 
-22 years ago, TurboPower Software closed their doors as a retail software company and released all of their development libraries the for Borland[1]/CodeGear/Embarcadero Delphi compiler.  These items were released under a Mozilla 1.1 license.
+22 years ago, TurboPower Software closed their doors as a retail software company and released all of their development libraries the for Borland/CodeGear/Embarcadero Delphi compiler.  These items were released under a Mozilla 1.1 license.
 
 Here's their original announcement: http://www.turbopower.com/
 
@@ -31,7 +31,7 @@ There are three directory assignments in the Makefile that you'll need to change
 
 The directory assignments must be full paths - relative paths confuses Borland's make program.
 
-Change to the SRC directory and kick off the build with `MAKE -FOPRO`.  This will build all the units, all the object files, compile the help files, and build all the examples.  Copy all the TPU and/or TPP unit files to some location that you can easily point the compiler's Unit Directory setting at.  You're done!
+Change to the SRC directory and kick off the build with `make -fopro`.  This will build all the units, all the object files, compile the help files, and build all the examples.  Copy all the TPU and/or TPP unit files to some location that you can easily point the compiler's Unit Directory setting at.  You're done!
 
 ## Documentation
 
@@ -40,10 +40,13 @@ The Object Professional documentation is spread across three volumes:
 * Vol. 2 - Data Input/Output
 * Vol. 3 - TSRs and More
 
-I'll be scanning all three volumes and updating them as soon as possible.
+I've scanned and uploaded the versions (v1.20) of the manuals that I have.  If anyone has a set of the v1.30 manuals, please reach out!
+
+Since the manuals are too large for github, I've uploaded them to the Internet Archive.
+https://archive.org/editxml/object-professional-v-1.20-volume-2-data-input-output
 
 Hopefully more people than just me will find this repository useful.
 
-
+ 
 
 
