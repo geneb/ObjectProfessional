@@ -43,7 +43,7 @@ The Object Professional documentation is spread across three volumes:
 I've scanned and uploaded the versions (v1.20) of the manuals that I have.  If anyone has a set of the v1.30 manuals, please reach out!
 
 Since the manuals are too large for github, I've uploaded them to the Internet Archive.
-https://archive.org/editxml/object-professional-v-1.20-volume-2-data-input-output
+[https://archive.org/editxml/object-professional-v-1.20-volume-2-data-input-output](https://archive.org/details/object-professional-v-1.20-volume-2-data-input-output-set)
 
 Hopefully more people than just me will find this repository useful.
 
